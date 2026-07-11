@@ -13,7 +13,7 @@ class CloseConnectionsItem extends ConsumerWidget {
     final closeConnections = ref.watch(
       appSettingProvider.select((state) => state.closeConnections),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.autoCloseConnections),
       subtitle: Text(appLocalizations.autoCloseConnectionsDesc),
       value: closeConnections,
@@ -35,7 +35,7 @@ class UsageItem extends ConsumerWidget {
     final onlyStatisticsProxy = ref.watch(
       appSettingProvider.select((state) => state.onlyStatisticsProxy),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.onlyStatisticsProxy),
       subtitle: Text(appLocalizations.onlyStatisticsProxyDesc),
       value: onlyStatisticsProxy,
@@ -57,7 +57,7 @@ class MinimizeItem extends ConsumerWidget {
     final minimizeOnExit = ref.watch(
       appSettingProvider.select((state) => state.minimizeOnExit),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.minimizeOnExit),
       subtitle: Text(appLocalizations.minimizeOnExitDesc),
       value: minimizeOnExit,
@@ -79,7 +79,7 @@ class AutoLaunchItem extends ConsumerWidget {
     final autoLaunch = ref.watch(
       appSettingProvider.select((state) => state.autoLaunch),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.autoLaunch),
       subtitle: Text(appLocalizations.autoLaunchDesc),
       value: autoLaunch,
@@ -101,7 +101,7 @@ class SilentLaunchItem extends ConsumerWidget {
     final silentLaunch = ref.watch(
       appSettingProvider.select((state) => state.silentLaunch),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.silentLaunch),
       subtitle: Text(appLocalizations.silentLaunchDesc),
       value: silentLaunch,
@@ -123,7 +123,7 @@ class AutoRunItem extends ConsumerWidget {
     final autoRun = ref.watch(
       appSettingProvider.select((state) => state.autoRun),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.autoRun),
       subtitle: Text(appLocalizations.autoRunDesc),
       value: autoRun,
@@ -145,7 +145,7 @@ class HiddenItem extends ConsumerWidget {
     final hidden = ref.watch(
       appSettingProvider.select((state) => state.hidden),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.exclude),
       subtitle: Text(appLocalizations.excludeDesc),
       value: hidden,
@@ -167,7 +167,7 @@ class AnimateTabItem extends ConsumerWidget {
     final isAnimateToPage = ref.watch(
       appSettingProvider.select((state) => state.isAnimateToPage),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.tabAnimation),
       subtitle: Text(appLocalizations.tabAnimationDesc),
       value: isAnimateToPage,
@@ -189,7 +189,7 @@ class OpenLogsItem extends ConsumerWidget {
     final openLogs = ref.watch(
       appSettingProvider.select((state) => state.openLogs),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.logcat),
       subtitle: Text(appLocalizations.logcatDesc),
       value: openLogs,
@@ -211,7 +211,7 @@ class CrashlyticsItem extends ConsumerWidget {
     final crashlytics = ref.watch(
       appSettingProvider.select((state) => state.crashlytics),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.crashlytics),
       subtitle: Text(appLocalizations.crashlyticsTip),
       value: crashlytics,
@@ -233,7 +233,7 @@ class AutoCheckUpdateItem extends ConsumerWidget {
     final autoCheckUpdate = ref.watch(
       appSettingProvider.select((state) => state.autoCheckUpdate),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.autoCheckUpdate),
       subtitle: Text(appLocalizations.autoCheckUpdateDesc),
       value: autoCheckUpdate,

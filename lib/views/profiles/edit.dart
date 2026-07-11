@@ -257,7 +257,7 @@ class _EditProfileViewState extends State<EditProfileView> {
             },
           ),
         ),
-        ListItem.toogle(
+        ListItem.toggle(
           title: Text(appLocalizations.autoUpdate),
           value: _autoUpdate,
           onChanged: _setAutoUpdate,

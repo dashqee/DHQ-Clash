@@ -186,7 +186,7 @@ class _EditProxyProvidersViewState extends ConsumerState<EditProxyProvidersView>
                 child: CommonCard(
                   radius: 20,
                   type: CommonCardType.filled,
-                  child: ListItem.toogle(
+                  child: ListItem.toggle(
                     minTileHeight: 54,
                     title: Row(
                       mainAxisSize: MainAxisSize.min,

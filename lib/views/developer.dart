@@ -106,7 +106,7 @@ class DeveloperView extends ConsumerWidget {
             CommonCard(
               type: CommonCardType.filled,
               radius: 18,
-              child: ListItem.toogle(
+              child: ListItem.toggle(
                 padding: const EdgeInsets.only(left: 16, right: 16),
                 title: Text(appLocalizations.developerMode),
                 value: enable,

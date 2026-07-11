@@ -32,7 +32,7 @@ class ResourcesView extends StatelessWidget {
             ...generateSection(
               title: appLocalizations.geoOptions,
               items: [
-                ListItem.toogle(
+                ListItem.toggle(
                   title: Text(appLocalizations.geoAutoUpdate),
                   value: vm2.a,
                   onChanged: (value) {

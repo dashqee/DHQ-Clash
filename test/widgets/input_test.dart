@@ -9,13 +9,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('ListItem.toogle toggles when tapping the row', (tester) async {
+  testWidgets('ListItem.toggle toggles when tapping the row', (tester) async {
     bool? changedValue;
 
     await tester.pumpWidget(
       _TestApp(
         child: Scaffold(
-          body: ListItem.toogle(
+          body: ListItem.toggle(
             title: const Text('Enabled'),
             value: false,
             onChanged: (value) {
@@ -31,11 +31,11 @@ void main() {
     expect(changedValue, isTrue);
   });
 
-  testWidgets('ListItem.toogle is disabled without onChanged', (tester) async {
+  testWidgets('ListItem.toggle is disabled without onChanged', (tester) async {
     await tester.pumpWidget(
       _TestApp(
         child: Scaffold(
-          body: ListItem.toogle(title: const Text('Disabled'), value: false),
+          body: ListItem.toggle(title: const Text('Disabled'), value: false),
         ),
       ),
     );

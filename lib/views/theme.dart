@@ -428,7 +428,7 @@ class _PrueBlackItem extends ConsumerWidget {
       themeSettingProvider.select((state) => state.pureBlack),
     );
     return SliverToBoxAdapter(
-      child: ListItem.toogle(
+      child: ListItem.toggle(
         leading: const Icon(Icons.contrast),
         horizontalTitleGap: 12,
         title: Text(
@@ -464,7 +464,7 @@ class _TextScaleFactorItem extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: ListItem.toogle(
+            child: ListItem.toggle(
               leading: const Icon(Icons.text_fields),
               horizontalTitleGap: 12,
               title: Text(

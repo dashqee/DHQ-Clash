@@ -400,7 +400,7 @@ class Ipv6Item extends ConsumerWidget {
     final ipv6 = ref.watch(
       patchClashConfigProvider.select((state) => state.ipv6),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       leading: const Icon(Icons.water_outlined),
       title: const Text('IPv6'),
       subtitle: Text(appLocalizations.ipv6Desc),
@@ -423,7 +423,7 @@ class AppendSystemDNSItem extends ConsumerWidget {
     final appendSystemDNS = ref.watch(
       networkSettingProvider.select((state) => state.appendSystemDns),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       leading: const Icon(Icons.dns_outlined),
       title: Text(appLocalizations.appendSystemDns),
       subtitle: Text(appLocalizations.appendSystemDnsTip),
@@ -446,7 +446,7 @@ class AllowLanItem extends ConsumerWidget {
     final allowLan = ref.watch(
       patchClashConfigProvider.select((state) => state.allowLan),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       leading: const Icon(Icons.device_hub),
       title: Text(appLocalizations.allowLan),
       subtitle: Text(appLocalizations.allowLanDesc),
@@ -470,7 +470,7 @@ class UnifiedDelayItem extends ConsumerWidget {
       patchClashConfigProvider.select((state) => state.unifiedDelay),
     );
 
-    return ListItem.toogle(
+    return ListItem.toggle(
       leading: const Icon(Icons.compress_outlined),
       title: Text(appLocalizations.unifiedDelay),
       subtitle: Text(appLocalizations.unifiedDelayDesc),
@@ -496,7 +496,7 @@ class FindProcessItem extends ConsumerWidget {
       ),
     );
 
-    return ListItem.toogle(
+    return ListItem.toggle(
       leading: const Icon(Icons.polymer_outlined),
       title: Text(appLocalizations.findProcessMode),
       subtitle: Text(appLocalizations.findProcessModeDesc),
@@ -525,7 +525,7 @@ class TcpConcurrentItem extends ConsumerWidget {
     final tcpConcurrent = ref.watch(
       patchClashConfigProvider.select((state) => state.tcpConcurrent),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       leading: const Icon(Icons.double_arrow_outlined),
       title: Text(appLocalizations.tcpConcurrent),
       subtitle: Text(appLocalizations.tcpConcurrentDesc),
@@ -550,7 +550,7 @@ class GeodataLoaderItem extends ConsumerWidget {
         (state) => state.geodataLoader == GeodataLoader.memconservative,
       ),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       leading: const Icon(Icons.memory),
       title: Text(appLocalizations.geodataLoader),
       subtitle: Text(appLocalizations.geodataLoaderDesc),
@@ -581,7 +581,7 @@ class ExternalControllerItem extends ConsumerWidget {
         (state) => state.externalController == ExternalControllerStatus.open,
       ),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       leading: const Icon(Icons.api_outlined),
       title: Text(appLocalizations.externalController),
       subtitle: Text(appLocalizations.externalControllerDesc),

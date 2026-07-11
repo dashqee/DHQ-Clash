@@ -15,7 +15,7 @@ class VPNItem extends ConsumerWidget {
     final enable = ref.watch(
       vpnSettingProvider.select((state) => state.enable),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: const Text('VPN'),
       subtitle: Text(appLocalizations.vpnEnableDesc),
       value: enable,
@@ -38,7 +38,7 @@ class TUNItem extends ConsumerWidget {
       patchClashConfigProvider.select((state) => state.tun.enable),
     );
 
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.tun),
       subtitle: Text(appLocalizations.tunDesc),
       value: enable,
@@ -60,7 +60,7 @@ class AllowBypassItem extends ConsumerWidget {
     final allowBypass = ref.watch(
       vpnSettingProvider.select((state) => state.allowBypass),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.allowBypass),
       subtitle: Text(appLocalizations.allowBypassDesc),
       value: allowBypass,
@@ -82,7 +82,7 @@ class VpnSystemProxyItem extends ConsumerWidget {
     final systemProxy = ref.watch(
       vpnSettingProvider.select((state) => state.systemProxy),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.systemProxy),
       subtitle: Text(appLocalizations.systemProxyDesc),
       value: systemProxy,
@@ -105,7 +105,7 @@ class SystemProxyItem extends ConsumerWidget {
       networkSettingProvider.select((state) => state.systemProxy),
     );
 
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.systemProxy),
       subtitle: Text(appLocalizations.systemProxyDesc),
       value: systemProxy,
@@ -125,7 +125,7 @@ class Ipv6Item extends ConsumerWidget {
   Widget build(BuildContext context, ref) {
     final appLocalizations = context.appLocalizations;
     final ipv6 = ref.watch(vpnSettingProvider.select((state) => state.ipv6));
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: const Text('IPv6'),
       subtitle: Text(appLocalizations.ipv6InboundDesc),
       value: ipv6,
@@ -147,7 +147,7 @@ class AutoSetSystemDnsItem extends ConsumerWidget {
     final autoSetSystemDns = ref.watch(
       networkSettingProvider.select((state) => state.autoSetSystemDns),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.autoSetSystemDns),
       value: autoSetSystemDns,
       onChanged: (bool value) async {
@@ -225,7 +225,7 @@ class DNSHijackingItem extends ConsumerWidget {
     final dnsHijacking = ref.watch(
       vpnSettingProvider.select((state) => state.dnsHijacking),
     );
-    return ListItem<RouteMode>.toogle(
+    return ListItem<RouteMode>.toggle(
       title: Text(appLocalizations.dnsHijacking),
       value: dnsHijacking,
       onChanged: (value) async {

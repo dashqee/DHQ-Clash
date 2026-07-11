@@ -12,7 +12,7 @@ class OverrideItem extends ConsumerWidget {
   Widget build(BuildContext context, ref) {
     final appLocalizations = context.appLocalizations;
     final override = ref.watch(overrideDnsProvider);
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.overrideDns),
       subtitle: Text(appLocalizations.overrideDnsDesc),
       value: override,
@@ -32,7 +32,7 @@ class StatusItem extends ConsumerWidget {
     final enable = ref.watch(
       patchClashConfigProvider.select((state) => state.dns.enable),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.status),
       subtitle: Text(appLocalizations.statusDesc),
       value: enable,
@@ -87,7 +87,7 @@ class PreferH3Item extends ConsumerWidget {
     final preferH3 = ref.watch(
       patchClashConfigProvider.select((state) => state.dns.preferH3),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: const Text('PreferH3'),
       subtitle: Text(appLocalizations.preferH3Desc),
       value: preferH3,
@@ -108,7 +108,7 @@ class IPv6Item extends ConsumerWidget {
     final ipv6 = ref.watch(
       patchClashConfigProvider.select((state) => state.dns.ipv6),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: const Text('IPv6'),
       value: ipv6,
       onChanged: (bool value) async {
@@ -129,7 +129,7 @@ class RespectRulesItem extends ConsumerWidget {
     final respectRules = ref.watch(
       patchClashConfigProvider.select((state) => state.dns.respectRules),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.respectRules),
       subtitle: Text(appLocalizations.respectRulesDesc),
       value: respectRules,
@@ -302,7 +302,7 @@ class UseHostsItem extends ConsumerWidget {
     final useHosts = ref.watch(
       patchClashConfigProvider.select((state) => state.dns.useHosts),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.useHosts),
       value: useHosts,
       onChanged: (bool value) async {
@@ -323,7 +323,7 @@ class UseSystemHostsItem extends ConsumerWidget {
     final useSystemHosts = ref.watch(
       patchClashConfigProvider.select((state) => state.dns.useSystemHosts),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: Text(appLocalizations.useSystemHosts),
       value: useSystemHosts,
       onChanged: (bool value) async {
@@ -436,7 +436,7 @@ class GeoipItem extends ConsumerWidget {
         (state) => state.dns.fallbackFilter.geoip,
       ),
     );
-    return ListItem.toogle(
+    return ListItem.toggle(
       title: const Text('Geoip'),
       value: geoip,
       onChanged: (bool value) async {

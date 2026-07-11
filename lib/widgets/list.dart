@@ -280,7 +280,7 @@ class ListItem<T> extends StatelessWidget {
        trailing = null,
        onTap = null;
 
-  ListItem.toogle({
+  ListItem.toggle({
     super.key,
     required this.title,
     this.subtitle,
