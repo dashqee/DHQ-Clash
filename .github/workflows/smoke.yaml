@@ -1,0 +1,57 @@
+name: smoke
+
+# Smoke build: proves the fork + submodule + toolchain compile end-to-end
+# without tags or signing secrets (falls back to debug signing).
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  FLUTTER_VERSION: '3.44.4'
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.4'
+          cache-dependency-path: |
+            core/go.sum
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: master
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r28c
+          add-to-path: true
+          link-to-sdk: true
+
+      - name: Get Flutter Dependency
+        run: |
+          flutter --version
+          flutter pub get
+
+      - name: Build
+        run: dart setup.dart android -v
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-android
+          path: ./dist
+          overwrite: true
