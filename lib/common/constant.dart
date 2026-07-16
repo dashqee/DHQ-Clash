@@ -34,6 +34,21 @@ const sheetAppBarHeight = 68.0;
 
 const watchExecution = false;
 
+// Hosts whose install-config deep links import silently (with auto-connect).
+// Anything else keeps the confirmation dialog: a silently installed foreign
+// profile would route all traffic through an attacker's proxy. Must list the
+// subscription domain(s) (PUBLIC_BASE_URL host on the backend) — update when
+// the production domain changes.
+const trustedInstallHosts = ['144.31.155.223.sslip.io'];
+
+bool isTrustedInstallUrl(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri == null || uri.scheme != 'https') {
+    return false;
+  }
+  return trustedInstallHosts.contains(uri.host);
+}
+
 final defaultTextScaleFactor =
     WidgetsBinding.instance.platformDispatcher.textScaleFactor;
 const httpTimeoutDuration = Duration(milliseconds: 5000);

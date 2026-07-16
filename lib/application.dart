@@ -59,26 +59,40 @@ class ApplicationState extends ConsumerState<Application> {
   }
 
   void _initLink() {
-    linkManager.initAppLinksListen((url) async {
-      final res = await globalState.showMessage(
-        title: currentAppLocalizations.addProfile,
-        message: TextSpan(
-          children: [
-            TextSpan(text: currentAppLocalizations.doYouWantToPass),
-            TextSpan(
-              text: ' $url ',
-              style: TextStyle(
-                color: context.colorScheme.primary,
-                decoration: TextDecoration.underline,
-                decorationColor: context.colorScheme.primary,
+    linkManager.initAppLinksListen((request) async {
+      // Only subscription URLs from our own backend import silently: a silently
+      // installed foreign profile could route all traffic through an attacker's
+      // proxy, so everything else keeps the confirmation dialog.
+      if (!isTrustedInstallUrl(request.url)) {
+        final res = await globalState.showMessage(
+          title: currentAppLocalizations.addProfile,
+          message: TextSpan(
+            children: [
+              TextSpan(text: currentAppLocalizations.doYouWantToPass),
+              TextSpan(
+                text: ' ${request.url} ',
+                style: TextStyle(
+                  color: context.colorScheme.primary,
+                  decoration: TextDecoration.underline,
+                  decorationColor: context.colorScheme.primary,
+                ),
               ),
-            ),
-            TextSpan(text: currentAppLocalizations.createProfile),
-          ],
-        ),
-      );
-      if (res != true) return;
-      ref.read(profilesActionProvider.notifier).addProfileFormURL(url);
+              TextSpan(text: currentAppLocalizations.createProfile),
+            ],
+          ),
+        );
+        if (res != true) return;
+      }
+      final profile = await ref
+          .read(profilesActionProvider.notifier)
+          .addProfileFormURL(request.url, name: request.name);
+      if (profile == null) return;
+      // putProfile only selects the very first profile; a deep-link install must
+      // become current explicitly so autoconnect starts with the right config.
+      ref.read(currentProfileIdProvider.notifier).value = profile.id;
+      if (request.autoConnect) {
+        await ref.read(setupActionProvider.notifier).updateStatus(true);
+      }
     });
   }
 

@@ -79,5 +79,18 @@ Source: "{{SOURCE_DIR}}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdi
 [Icons]
 Name: "{autoprograms}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"
 Name: "{autodesktop}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"; Tasks: desktopicon
+
+; dhqclash:// URL scheme, so install links can open the app directly. Only our own
+; scheme is claimed — taking over the shared clash:// default would fight other
+; installed clients. HKA follows PrivilegesRequired (HKLM for admin, HKCU otherwise).
+; NB: single backslashes here on purpose. This file is a Liquid template rendered
+; verbatim; the doubled \\ used elsewhere survives into the final .iss and file-path
+; APIs tolerate it, but registry subkeys with \\ would be created wrong.
+[Registry]
+Root: HKA; Subkey: "Software\Classes\dhqclash"; ValueType: string; ValueName: ""; ValueData: "URL:dhqclash Protocol"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\dhqclash"; ValueType: string; ValueName: "URL Protocol"; ValueData: ""; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\dhqclash\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{{EXECUTABLE_NAME}},0"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\dhqclash\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{{EXECUTABLE_NAME}}"" ""%1"""; Flags: uninsdeletekey
+
 [Run]
 Filename: "{app}\\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY_NAME}}}"; Flags: {% if PRIVILEGES_REQUIRED == 'admin' %}runascurrentuser{% endif %} nowait postinstall skipifsilent

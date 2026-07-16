@@ -22,6 +22,7 @@ class Window {
       exit(0);
     }
     if (system.isWindows) {
+      protocol.register('dhqclash');
       protocol.register('clash');
       protocol.register('clashmeta');
       protocol.register('flclash');
