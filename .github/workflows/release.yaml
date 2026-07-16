@@ -99,6 +99,9 @@ jobs:
           name: artifact-${{ matrix.platform }}${{ matrix.arch && format('-{0}', matrix.arch) }}
           path: ./dist
           overwrite: true
+          # Fail loudly if a platform produced no artifact (e.g. a build error the
+          # packager swallowed) instead of silently shipping a release missing it.
+          if-no-files-found: error
 
   release:
     permissions:

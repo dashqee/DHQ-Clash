@@ -64,6 +64,7 @@ jobs:
           name: smoke-android
           path: ./dist
           overwrite: true
+          if-no-files-found: error
 
   # Compiles the windows runner (main.cpp deep-link forwarding) and renders
   # inno_setup.iss — neither is exercised by the android job.
@@ -106,3 +107,4 @@ jobs:
           name: smoke-windows
           path: ./dist
           overwrite: true
+          if-no-files-found: error
