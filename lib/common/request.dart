@@ -71,14 +71,18 @@ class Request {
   }
 
   Future<Map<String, dynamic>?> checkForUpdate() async {
+    final pa = updatePlatformArch();
+    if (pa == null) return null;
     try {
       final response = await dio.get(
-        'https://api.github.com/repos/$repository/releases/latest',
+        '$updateBaseUrl/api/app/latest',
+        queryParameters: {'platform': pa.$1, 'arch': pa.$2},
         options: Options(responseType: ResponseType.json),
       );
       if (response.statusCode != 200) return null;
       final data = response.data as Map<String, dynamic>;
-      final remoteVersion = data['tag_name'];
+      if (data['update'] != true) return null;
+      final remoteVersion = (data['version'] ?? '').toString();
       final version = globalState.packageInfo.version;
       final hasUpdate =
           utils.compareVersions(remoteVersion.replaceAll('v', ''), version) > 0;
@@ -88,6 +92,23 @@ class Request {
       commonPrint.log('checkForUpdate failed', logLevel: LogLevel.warning);
       return null;
     }
+  }
+
+  /// Download an update artifact to [savePath], reporting progress in [0,1].
+  Future<void> downloadUpdate(
+    String url,
+    String savePath, {
+    void Function(double progress)? onProgress,
+    CancelToken? cancelToken,
+  }) async {
+    await dio.download(
+      url,
+      savePath,
+      cancelToken: cancelToken,
+      onReceiveProgress: (received, total) {
+        if (total > 0 && onProgress != null) onProgress(received / total);
+      },
+    );
   }
 
   final Map<String, IpInfo Function(Map<String, dynamic>)> _ipInfoSources = {
