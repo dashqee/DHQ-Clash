@@ -6,38 +6,15 @@
 #include "flutter_window.h"
 #include "utils.h"
 
-// Forward a dhqclash://... activation to the already-running instance instead of
-// starting a second one (two instances would race over the core/TUN). Standard
-// app_links single-instance pattern; the window title is set once in wWinMain and
-// never changed at runtime, so FindWindow by class+title is reliable.
-bool SendAppLinkToInstance(const std::wstring& title) {
-  HWND hwnd = ::FindWindow(L"FLUTTER_RUNNER_WIN32_WINDOW", title.c_str());
-  if (!hwnd) {
-    return false;
-  }
-
-  ::SendAppLink(hwnd);
-
-  WINDOWPLACEMENT place = {sizeof(WINDOWPLACEMENT)};
-  ::GetWindowPlacement(hwnd, &place);
-  switch (place.showCmd) {
-    case SW_SHOWMAXIMIZED:
-      ::ShowWindow(hwnd, SW_SHOWMAXIMIZED);
-      break;
-    case SW_SHOWMINIMIZED:
-      ::ShowWindow(hwnd, SW_RESTORE);
-      break;
-    default:
-      ::ShowWindow(hwnd, SW_NORMAL);
-      break;
-  }
-  ::SetForegroundWindow(hwnd);
-  return true;
-}
-
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
-  if (SendAppLinkToInstance(L"DHQClash")) {
+  // When a dhqclash://... link is opened while the app is already running,
+  // forward it to the existing instance and exit, instead of starting a second
+  // process (the Dart-side SingleInstanceLock would just kill it and drop the
+  // link). Use the plugin's own SendAppLinkToInstance(): it locates the running
+  // window by class + full exe path, so it works regardless of the custom
+  // (hidden) title bar — unlike a FindWindow-by-title lookup.
+  if (SendAppLinkToInstance()) {
     return EXIT_SUCCESS;
   }
 
