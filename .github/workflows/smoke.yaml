@@ -15,6 +15,15 @@ jobs:
   build-android:
     runs-on: ubuntu-latest
     steps:
+      # The 3-ABI release build + Go core intermittently exhausts the runner's
+      # disk (mergeReleaseNativeLibs: "No space left on device"). Drop unused
+      # preinstalled toolchains (~35 GB) before building.
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY/CodeQL" || true
+          sudo docker image prune -af > /dev/null 2>&1 || true
+          df -h /
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
