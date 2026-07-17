@@ -2,5 +2,10 @@
     <files-path
         name="files"
         path="."/>
+    <!-- getTemporaryDirectory() (path_provider) → context.cacheDir; the update APK
+         is downloaded here and shared with the package installer via FileProvider. -->
+    <cache-path
+        name="cache"
+        path="."/>
 </paths>
 

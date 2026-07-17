@@ -172,9 +172,32 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
                 result.success(openAppSettings())
             }
 
+            "installApk" -> {
+                result.success(installApk(call.argument<String>("path")))
+            }
+
             else -> {
                 result.notImplemented()
             }
+        }
+    }
+
+    private fun installApk(path: String?): Boolean {
+        if (path.isNullOrEmpty()) return false
+        return try {
+            val context = GlobalState.application
+            val file = java.io.File(path)
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+                context, "${context.packageName}.fileProvider", file
+            )
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            (activityRef?.get() ?: context).startActivity(intent)
+            true
+        } catch (e: Exception) {
+            false
         }
     }
 

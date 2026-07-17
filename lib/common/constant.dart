@@ -41,6 +41,11 @@ const watchExecution = false;
 // the production domain changes.
 const trustedInstallHosts = ['144.31.155.223.sslip.io'];
 
+// Base URL of our Mini App backend, which mirrors GitHub Releases for in-app
+// updates (github.com is unreachable in the VPN's target regions). Update
+// together with the production domain.
+const updateBaseUrl = 'https://app.144.31.155.223.sslip.io';
+
 bool isTrustedInstallUrl(String url) {
   final uri = Uri.tryParse(url);
   if (uri == null || uri.scheme != 'https') {
@@ -71,7 +76,7 @@ const localhost = '127.0.0.1';
 const clashConfigKey = 'clash_config';
 const configKey = 'config';
 const double dialogCommonWidth = 300;
-const repository = 'chen08209/FlClash';
+const repository = 'dashqee/FlClash';
 const defaultExternalController = '127.0.0.1:9090';
 const maxMobileWidth = 600;
 const maxLaptopWidth = 840;

@@ -10,6 +10,7 @@ import 'package:fl_clash/plugins/app.dart';
 import 'package:fl_clash/plugins/service.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
+import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -75,8 +76,8 @@ class CommonAction extends _$CommonAction {
     bool isUser = false,
   }) async {
     if (data != null) {
-      final tagName = data['tag_name'];
-      final body = data['body'];
+      final tagName = (data['version'] ?? '').toString();
+      final body = (data['notes'] ?? '').toString();
       final submits = utils.parseReleaseBody(body);
       final context = globalState.navigatorKey.currentContext!;
       final textTheme = context.textTheme;
@@ -95,7 +96,7 @@ class CommonAction extends _$CommonAction {
         cancelText: isUser ? null : currentAppLocalizations.noLongerRemind,
       );
       if (res == true) {
-        launchUrl(Uri.parse('https://github.com/$repository/releases/latest'));
+        await _downloadAndInstallUpdate(data);
       } else if (!isUser && res == false) {
         ref
             .read(appSettingProvider.notifier)
@@ -105,6 +106,68 @@ class CommonAction extends _$CommonAction {
       globalState.showMessage(
         title: currentAppLocalizations.checkUpdate,
         message: TextSpan(text: currentAppLocalizations.checkUpdateError),
+      );
+    }
+  }
+
+  Future<void> _downloadAndInstallUpdate(Map<String, dynamic> data) async {
+    final url = (data['url'] ?? '').toString();
+    final filename = (data['filename'] ?? '').toString();
+    final sha256Hex = (data['sha256'] ?? '').toString();
+    if (url.isEmpty || filename.isEmpty) return;
+
+    // Platforms without an in-app installer path fall back to opening the
+    // download in the browser.
+    if (!AppUpdater.isSupported) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      return;
+    }
+
+    final progress = ValueNotifier<double>(0);
+    globalState.showCommonDialog<void>(
+      dismissible: false,
+      child: PopScope(
+        canPop: false,
+        child: CommonDialog(
+          title: currentAppLocalizations.download,
+          actions: const [],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: ValueListenableBuilder<double>(
+              valueListenable: progress,
+              builder: (_, value, __) => Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  LinearProgressIndicator(value: value > 0 ? value : null),
+                  const SizedBox(height: 8),
+                  Text('${(value * 100).toStringAsFixed(0)}%'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final error = await AppUpdater.downloadAndInstall(
+      url: url,
+      filename: filename,
+      sha256Hex: sha256Hex,
+      onProgress: (p) => progress.value = p,
+    );
+
+    // Close the progress dialog (on Windows the app has already exited).
+    final ctx = globalState.navigatorKey.currentContext;
+    if (ctx != null && Navigator.of(ctx).canPop()) {
+      Navigator.of(ctx).pop();
+    }
+    progress.dispose();
+
+    if (error != null) {
+      globalState.showMessage(
+        title: currentAppLocalizations.checkUpdate,
+        message: TextSpan(text: error),
       );
     }
   }

@@ -61,6 +61,12 @@ class App {
         false;
   }
 
+  /// Launch the system package installer for a downloaded update APK.
+  Future<bool> installApk(String path) async {
+    return await methodChannel.invokeMethod<bool>('installApk', {'path': path}) ??
+        false;
+  }
+
   Future<ImageProvider?> getPackageIcon(String packageName) async {
     final path = await methodChannel.invokeMethod<String>('getPackageIcon', {
       'packageName': packageName,
