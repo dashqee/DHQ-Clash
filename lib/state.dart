@@ -315,8 +315,11 @@ class GlobalState {
     container.read(systemActionProvider.notifier).updateTray();
     container.read(profilesActionProvider.notifier).autoUpdateProfiles();
     container.read(commonActionProvider.notifier).autoCheckUpdate();
-    autoLaunch?.updateStatus(container.read(appSettingProvider).autoLaunch);
-    if (!container.read(appSettingProvider).silentLaunch) {
+    final appSetting = container.read(appSettingProvider);
+    autoLaunch?.updateStatus(appSetting.autoLaunch);
+    // Never hide the first launch: the user still needs to see and accept the
+    // initial disclaimer. Subsequent launches follow the silent-launch setting.
+    if (!appSetting.silentLaunch || !appSetting.disclaimerAccepted) {
       window?.show();
     } else {
       window?.hide();

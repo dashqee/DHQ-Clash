@@ -13,9 +13,9 @@ _AppSettingProps _$AppSettingPropsFromJson(Map<String, dynamic> json) =>
           ? defaultDashboardWidgets
           : dashboardWidgetsSafeFormJson(json['dashboardWidgets'] as List?),
       onlyStatisticsProxy: json['onlyStatisticsProxy'] as bool? ?? false,
-      autoLaunch: json['autoLaunch'] as bool? ?? false,
-      silentLaunch: json['silentLaunch'] as bool? ?? false,
-      autoRun: json['autoRun'] as bool? ?? false,
+      autoLaunch: json['autoLaunch'] as bool? ?? true,
+      silentLaunch: json['silentLaunch'] as bool? ?? true,
+      autoRun: json['autoRun'] as bool? ?? true,
       openLogs: json['openLogs'] as bool? ?? false,
       closeConnections: json['closeConnections'] as bool? ?? true,
       testUrl: json['testUrl'] as String? ?? defaultTestUrl,
