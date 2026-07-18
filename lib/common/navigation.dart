@@ -34,6 +34,22 @@ class Navigation {
             const ProfilesView(key: GlobalObjectKey(PageLabel.profiles)),
       ),
       NavigationItem(
+        icon: const Icon(Icons.rule),
+        label: PageLabel.addedRules,
+        builder: (_) => const AddedRulesView(
+          key: GlobalObjectKey(PageLabel.addedRules),
+        ),
+        modes: [NavigationItemMode.desktop, NavigationItemMode.more],
+      ),
+      NavigationItem(
+        icon: const Icon(Icons.poll_outlined),
+        label: PageLabel.providers,
+        builder: (_) => const ProvidersView(
+          key: GlobalObjectKey(PageLabel.providers),
+        ),
+        modes: [NavigationItemMode.desktop, NavigationItemMode.more],
+      ),
+      NavigationItem(
         icon: const Icon(Icons.view_timeline),
         label: PageLabel.requests,
         builder: (_) =>

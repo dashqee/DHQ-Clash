@@ -25,7 +25,7 @@ var
   i: Integer;
   ResultCode: Integer;
 begin
-  Processes := ['FlClash.exe', 'FlClashCore.exe', 'FlClashHelperService.exe'];
+  Processes := ['DHQClash.exe', 'FlClash.exe', 'FlClashCore.exe', 'FlClashHelperService.exe'];
 
   for i := 0 to GetArrayLength(Processes)-1 do
   begin
@@ -75,6 +75,10 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "{{SOURCE_DIR}}\\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+
+[InstallDelete]
+; Remove the old executable left by upgrades from builds before the rename.
+Type: files; Name: "{app}\FlClash.exe"
 
 [Icons]
 Name: "{autoprograms}\\{{DISPLAY_NAME}}"; Filename: "{app}\\{{EXECUTABLE_NAME}}"

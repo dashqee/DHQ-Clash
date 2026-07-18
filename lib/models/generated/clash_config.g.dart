@@ -161,7 +161,7 @@ Map<String, dynamic> _$SnifferConfigToJson(_SnifferConfig instance) =>
     };
 
 _Tun _$TunFromJson(Map<String, dynamic> json) => _Tun(
-  enable: json['enable'] as bool? ?? false,
+  enable: json['enable'] as bool? ?? true,
   device: json['device'] as String? ?? appName,
   autoRoute: json['auto-route'] as bool? ?? false,
   stack:

@@ -35,6 +35,17 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
           },
           icon: const Icon(Icons.adjust, weight: 1),
         ),
+      if (_hasProviders)
+        IconButton(
+          tooltip: appLocalizations.providers,
+          onPressed: () {
+            showExtend(
+              context,
+              builder: (_) => const ProvidersView(),
+            );
+          },
+          icon: const Icon(Icons.poll_outlined),
+        ),
       CommonPopupBox(
         targetBuilder: (open) {
           return IconButton(
@@ -63,19 +74,6 @@ class _ProxiesViewState extends ConsumerState<ProxiesView> {
                 );
               },
             ),
-            if (_hasProviders)
-              PopupMenuItemData(
-                icon: Icons.poll_outlined,
-                label: appLocalizations.providers,
-                onPressed: () {
-                  showExtend(
-                    context,
-                    builder: (_) {
-                      return const ProvidersView();
-                    },
-                  );
-                },
-              ),
           ],
         ),
       ),

@@ -38,12 +38,13 @@ const defaultThemeProps = ThemeProps(primaryColor: defaultPrimaryColor);
 
 const List<DashboardWidget> defaultDashboardWidgets = [
   DashboardWidget.networkSpeed,
-  DashboardWidget.systemProxyButton,
-  DashboardWidget.tunButton,
   DashboardWidget.outboundMode,
   DashboardWidget.networkDetection,
-  DashboardWidget.trafficUsage,
   DashboardWidget.intranetIp,
+  DashboardWidget.trafficUsage,
+  DashboardWidget.tunButton,
+  DashboardWidget.systemProxyButton,
+  DashboardWidget.memoryInfo,
 ];
 
 List<DashboardWidget> dashboardWidgetsSafeFormJson(
@@ -62,7 +63,7 @@ List<DashboardWidget> dashboardWidgetsSafeFormJson(
 @freezed
 abstract class AppSettingProps with _$AppSettingProps {
   const factory AppSettingProps({
-    String? locale,
+    @Default('ru') String? locale,
     @Default(defaultDashboardWidgets)
     @JsonKey(fromJson: dashboardWidgetsSafeFormJson)
     List<DashboardWidget> dashboardWidgets,
