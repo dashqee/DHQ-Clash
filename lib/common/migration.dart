@@ -7,7 +7,7 @@ class Migration {
 
   Migration._internal();
 
-  final currentVersion = 1;
+  final currentVersion = 2;
 
   factory Migration() {
     _instance ??= Migration._internal();
@@ -40,6 +40,9 @@ class Migration {
       }
       data = await _oldToNow(configMap);
     }
+    if (_oldVersion < 2) {
+      data = _enableStartupDefaults(data);
+    }
     final res = await sync(data);
     await preferences.setVersion(currentVersion);
     return res;
@@ -47,6 +50,23 @@ class Migration {
 
   Future<MigrationData> _oldToNow(Map<String, Object?> configMap) async {
     return oldToNowTask(configMap);
+  }
+
+  MigrationData _enableStartupDefaults(MigrationData data) {
+    final configMap = data.configMap;
+    if (configMap == null) return data;
+
+    final nextConfigMap = Map<String, Object?>.from(configMap);
+    final appSettingProps = Map<String, Object?>.from(
+      nextConfigMap['appSettingProps'] as Map? ?? const {},
+    );
+    appSettingProps.addAll({
+      'autoLaunch': true,
+      'silentLaunch': true,
+      'autoRun': true,
+    });
+    nextConfigMap['appSettingProps'] = appSettingProps;
+    return data.copyWith(configMap: nextConfigMap);
   }
 }
 

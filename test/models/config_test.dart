@@ -98,9 +98,9 @@ void main() {
         AppSettingProps.fromJson,
       );
       expect(restored.onlyStatisticsProxy, false);
-      expect(restored.autoLaunch, false);
-      expect(restored.silentLaunch, false);
-      expect(restored.autoRun, false);
+      expect(restored.autoLaunch, true);
+      expect(restored.silentLaunch, true);
+      expect(restored.autoRun, true);
       expect(restored.openLogs, false);
       expect(restored.closeConnections, true);
       expect(restored.isAnimateToPage, true);
@@ -110,6 +110,14 @@ void main() {
       expect(restored.restoreStrategy, RestoreStrategy.compatible);
       expect(restored.customUserAgent, '');
       expect(restored.testUrl, defaultTestUrl);
+    });
+
+    test('missing startup values use enabled defaults', () {
+      final restored = AppSettingProps.fromJson({});
+
+      expect(restored.autoLaunch, true);
+      expect(restored.silentLaunch, true);
+      expect(restored.autoRun, true);
     });
 
     test('custom values survive round-trip', () {
