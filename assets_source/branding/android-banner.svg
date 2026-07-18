@@ -1,10 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
   <rect width="320" height="180" fill="#08091F"/>
-  <g transform="translate(18 24) scale(.128)">
-    <path d="M744 256A318 318 0 1 0 760 738" fill="none" stroke="#52DCE9" stroke-width="112" stroke-linecap="round"/>
-    <path d="M249 488H492V564H249C264 540 264 512 249 488Z" fill="#7366F2"/>
-    <path d="M250 780C351 766 441 670 536 548C625 434 704 387 786 366C687 428 610 510 526 616C430 738 333 808 250 780Z" fill="#7366F2"/>
-    <circle cx="812" cy="355" r="49" fill="#C7FF3D"/>
-  </g>
+  <image href="app-icon-master-3d.png" x="16" y="22" width="136" height="136" preserveAspectRatio="xMidYMid meet"/>
   <text x="145" y="105" fill="#F7F8FF" font-family="Inter,Arial,sans-serif" font-size="34" font-weight="700" letter-spacing="-1">DHQ Clash</text>
 </svg>

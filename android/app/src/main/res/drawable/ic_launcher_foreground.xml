@@ -1,30 +1,5 @@
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="1024"
-    android:viewportHeight="1024">
-    <group
-        android:scaleX="0.74"
-        android:scaleY="0.74"
-        android:translateX="133.12"
-        android:translateY="133.12">
-        <path
-            android:pathData="M744,256A318,318 0,1 0,760 738"
-            android:fillColor="@android:color/transparent"
-            android:strokeColor="#52DCE9"
-            android:strokeWidth="112"
-            android:strokeLineCap="round" />
-        <path
-            android:pathData="M249,488L492,488L492,564L249,564C264,540 264,512 249,488Z"
-            android:fillColor="#6658F5" />
-        <path
-            android:pathData="M250,780C351,766 441,670 536,548C625,434 704,387 786,366C687,428 610,510 526,616C430,738 333,808 250,780Z"
-            android:fillColor="#7366F2" />
-        <path
-            android:pathData="M250,780C302,811 347,804 397,771C352,786 313,780 283,755Z"
-            android:fillColor="#8B46F5" />
-        <path
-            android:pathData="M812,306A49,49 0,1 0,812 404A49,49 0,1 0,812 306Z"
-            android:fillColor="#C7FF3D" />
-    </group>
-</vector>
+<?xml version="1.0" encoding="utf-8"?>
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/dhq_icon_3d"
+    android:filter="true"
+    android:gravity="fill" />

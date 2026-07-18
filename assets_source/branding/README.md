@@ -6,6 +6,10 @@ The production mark is based on the selected **Hidden DHQ** concept:
 - the left bowl and inner bridge hint at `D` and `H`;
 - the diagonal route exits the ring and ends at the lime availability point.
 
+`app-icon-master-3d.png` is the authoritative full-colour production master. It
+preserves the bevels, inner shading and depth of the selected concept. The SVG
+sources remain the deterministic simplified forms for monochrome and tray use.
+
 Palette:
 
 - background: `#08091F` / `#171347`;
