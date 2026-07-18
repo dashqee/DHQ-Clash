@@ -3,7 +3,7 @@ description: A multi-platform proxy client based on ClashMeta, simple and easy t
 publish_to: 'none'
 # Fork versioning is decoupled from upstream FlClash (their tags live in this
 # repo's history): DHQ Clash starts at 1.0.0. versionCode stays date-based.
-version: 1.0.3+2026071801
+version: 1.0.4+2026071802
 environment:
   sdk: '>=3.8.0 <4.0.0'
 
