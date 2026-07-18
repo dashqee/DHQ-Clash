@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180">
+  <rect width="320" height="180" fill="#08091F"/>
+  <image href="app-icon-master-3d.png" x="16" y="22" width="136" height="136" preserveAspectRatio="xMidYMid meet"/>
+  <text x="145" y="105" fill="#F7F8FF" font-family="Inter,Arial,sans-serif" font-size="34" font-weight="700" letter-spacing="-1">DHQ Clash</text>
+</svg>
