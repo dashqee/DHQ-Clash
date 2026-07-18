@@ -1,10 +1,10 @@
 # DHQ Clash brand assets
 
-The production mark is based on the selected **Hidden DHQ** concept:
+The production mark is based on the selected **Velocity Orbit** concept:
 
 - an open `Q` is the primary silhouette;
-- the left bowl and inner bridge hint at `D` and `H`;
-- the diagonal route exits the ring and ends at the lime availability point.
+- the diagonal orbit is a free route through the open boundary;
+- the cyan route point completes the motion without a literal arrow.
 
 Palette:
 
@@ -12,7 +12,7 @@ Palette:
 - violet: `#7437F5`;
 - blue: `#4877F4`;
 - cyan: `#42E5E8`;
-- route point: `#C7FF3D`.
+- route point: `#42E5E8`.
 
 Run `tool/generate_brand_assets.sh` from the repository root to regenerate every
 platform bitmap and ICO from these SVG masters.

@@ -18,8 +18,7 @@
   <rect width="1024" height="1024" rx="224" fill="url(#background)"/>
   <rect x="18" y="18" width="988" height="988" rx="210" fill="none" stroke="#35316E" stroke-width="4"/>
   <path d="M744 256A318 318 0 1 0 760 738" fill="none" stroke="url(#ring)" stroke-width="112" stroke-linecap="round"/>
-  <path d="M249 488H492V564H249C264 540 264 512 249 488Z" fill="#5047D6" opacity="0.72"/>
   <path d="M250 780C351 766 441 670 536 548C625 434 704 387 786 366C687 428 610 510 526 616C430 738 333 808 250 780Z" fill="url(#route)"/>
   <path d="M250 780C302 811 347 804 397 771C352 786 313 780 283 755Z" fill="#7A33F2"/>
-  <circle cx="812" cy="355" r="49" fill="#C7FF3D"/>
+  <circle cx="812" cy="355" r="49" fill="#42E5E8"/>
 </svg>
