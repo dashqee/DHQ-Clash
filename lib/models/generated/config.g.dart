@@ -8,7 +8,7 @@ part of '../config.dart';
 
 _AppSettingProps _$AppSettingPropsFromJson(Map<String, dynamic> json) =>
     _AppSettingProps(
-      locale: json['locale'] as String?,
+      locale: json['locale'] as String? ?? 'ru',
       dashboardWidgets: json['dashboardWidgets'] == null
           ? defaultDashboardWidgets
           : dashboardWidgetsSafeFormJson(json['dashboardWidgets'] as List?),

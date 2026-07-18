@@ -216,7 +216,7 @@ abstract class SnifferConfig with _$SnifferConfig {
 @freezed
 abstract class Tun with _$Tun {
   const factory Tun({
-    @Default(false) bool enable,
+    @Default(true) bool enable,
     @Default(appName) String device,
     @JsonKey(name: 'auto-route') @Default(false) bool autoRoute,
     @Default(TunStack.mixed) TunStack stack,

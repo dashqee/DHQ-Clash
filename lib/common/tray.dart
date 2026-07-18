@@ -115,7 +115,8 @@ class Tray {
     }
     menuItems.add(MenuItem.separator());
     if (system.isMacOS) {
-      for (final group in trayState.groups) {
+      const maxVisibleGroups = 5;
+      for (final group in trayState.groups.take(maxVisibleGroups)) {
         final List<MenuItem> subMenuItems = [];
         for (final proxy in group.all) {
           subMenuItems.add(
