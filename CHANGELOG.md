@@ -1,3 +1,9 @@
+## v1.0.7
+
+- Update the bundled mihomo core to 1.19.29
+
+- Move application update checks to `app.dhqclash.com` while keeping the existing payment flows on `dhqclash.com`
+
 ## v1.0.6
 
 - Refresh the UI with a Material 3 Expressive theme: unified shapes, pill buttons, bolder typography, and expressive motion
