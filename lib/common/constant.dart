@@ -122,7 +122,18 @@ const proxiesListStoreKey = PageStorageKey<String>('proxies_list');
 const toolsStoreKey = PageStorageKey<String>('tools');
 const profilesStoreKey = PageStorageKey<String>('profiles');
 
-const defaultPrimaryColor = 0XFFD8C0C3;
+// "Fruit mix" — vibrant, appetizing fruit hues shipped as the default palette.
+// Tangerine is the active default (a warm, friendly seed; red is intentionally
+// avoided as the primary because it reads as "disconnected/error" here).
+const fruitStrawberry = 0xFFEF5350;
+const fruitTangerine = 0xFFFF7043;
+const fruitLemon = 0xFFFFCA28;
+const fruitKiwi = 0xFF9CCC65;
+const fruitBlueberry = 0xFF42A5F5;
+const fruitGrape = 0xFFAB47BC;
+const fruitDragonfruit = 0xFFEC407A;
+
+const defaultPrimaryColor = fruitTangerine;
 
 double getWidgetHeight(num lines) {
   final space = 14.mAp;
@@ -136,13 +147,13 @@ const mainIsolate = 'FlClashMainIsolate';
 const serviceIsolate = 'FlClashServiceIsolate';
 
 const defaultPrimaryColors = [
-  0xFF795548,
-  0xFF03A9F4,
-  0xFFFFFF00,
-  0XFFBBC9CC,
-  0XFFABD397,
-  defaultPrimaryColor,
-  0XFF665390,
+  fruitStrawberry,
+  fruitTangerine,
+  fruitLemon,
+  fruitKiwi,
+  fruitBlueberry,
+  fruitGrape,
+  fruitDragonfruit,
 ];
 
 const scriptTemplate = '''

@@ -14,6 +14,10 @@ import 'package:flutter/foundation.dart';
 class Request {
   late final Dio dio;
   late final Dio _clashDio;
+
+  /// Mirrors [_clashDio] but always connects directly, ignoring the local
+  /// mixed-proxy. Used as a fallback when the proxied fetch is refused.
+  late final Dio _directDio;
   String? userAgent;
 
   Request() {
@@ -29,13 +33,50 @@ class Request {
         return client;
       },
     );
+    _directDio = Dio();
+    _directDio.httpClientAdapter = IOHttpClientAdapter(
+      createHttpClient: () {
+        final client = HttpClient();
+        client.userAgent = globalState.ua;
+        client.findProxy = (_) => 'DIRECT';
+        return client;
+      },
+    );
+  }
+
+  /// Fetch [url] through the clash proxy, but retry once directly if the
+  /// request went through the local mixed-proxy port and that port refused the
+  /// connection. This happens while the core is starting/reconfiguring: the
+  /// download is routed to `localhost:<mixedPort>` (see
+  /// [FlClashHttpOverrides.handleFindProxy]) which is briefly not listening,
+  /// surfacing as `SocketException` (errno 1225 = WSAECONNREFUSED on Windows).
+  /// Common trigger: installing a profile from a deep link while connected.
+  Future<Response<T>> _getWithDirectFallback<T>(
+    String url,
+    Options options,
+  ) async {
+    final wasProxied = FlClashHttpOverrides.handleFindProxy(
+      Uri.parse(url),
+    ).startsWith('PROXY');
+    try {
+      return await _clashDio.get<T>(url, options: options);
+    } on DioException catch (e) {
+      if (wasProxied && e.error is SocketException) {
+        commonPrint.log(
+          'proxied fetch refused, retrying direct: $url',
+          logLevel: LogLevel.warning,
+        );
+        return _directDio.get<T>(url, options: options);
+      }
+      rethrow;
+    }
   }
 
   Future<Response<Uint8List>> getFileResponseForUrl(String url) async {
     try {
-      return await _clashDio.get<Uint8List>(
+      return await _getWithDirectFallback<Uint8List>(
         url,
-        options: Options(responseType: ResponseType.bytes),
+        Options(responseType: ResponseType.bytes),
       );
     } catch (e) {
       commonPrint.log('getFileResponseForUrl error ${e.toString()}');
@@ -52,11 +93,10 @@ class Request {
   }
 
   Future<Response<String>> getTextResponseForUrl(String url) async {
-    final response = await _clashDio.get<String>(
+    return _getWithDirectFallback<String>(
       url,
-      options: Options(responseType: ResponseType.plain),
+      Options(responseType: ResponseType.plain),
     );
-    return response;
   }
 
   Future<MemoryImage?> getImage(String url) async {

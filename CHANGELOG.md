@@ -1,3 +1,13 @@
+## v1.0.6
+
+- Refresh the UI with a Material 3 Expressive theme: unified shapes, pill buttons, bolder typography, and expressive motion
+
+- Ship a "fruit mix" default color palette (existing clients on the old default are migrated once; custom themes are kept)
+
+- Fix deep-link profile install often failing with a `localhost` connection error while connected — the subscription download now retries directly when the local proxy port refuses the connection
+
+- Fix outdated/flaky unit tests around startup defaults and preferences initialization
+
 ## v0.8.94
 
 - Fix macos performance issue

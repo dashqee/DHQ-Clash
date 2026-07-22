@@ -15,8 +15,14 @@ class Preferences {
 
   Preferences._internal() {
     SharedPreferences.getInstance()
-        .then((value) => sharedPreferencesCompleter.complete(value))
-        .onError((_, _) => sharedPreferencesCompleter.complete(null));
+        .then((value) => _completeOnce(value))
+        .onError((_, _) => _completeOnce(null));
+  }
+
+  void _completeOnce(SharedPreferences? value) {
+    if (!sharedPreferencesCompleter.isCompleted) {
+      sharedPreferencesCompleter.complete(value);
+    }
   }
 
   factory Preferences() {
