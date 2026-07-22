@@ -253,7 +253,6 @@ class AppSidebarContainer extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
                 IconButton(
                   onPressed: () {
                     ref
@@ -268,7 +267,15 @@ class AppSidebarContainer extends ConsumerWidget {
                     color: context.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
+                SidebarVersionControl(
+                  version: globalState.packageInfo.version,
+                  checkUpdateLabel: context.appLocalizations.checkUpdate,
+                  onCheckUpdate: () {
+                    ref.read(commonActionProvider.notifier).checkForUpdate();
+                  },
+                ),
+                const SizedBox(height: 8),
               ],
             ),
           ),
@@ -282,6 +289,42 @@ class AppSidebarContainer extends ConsumerWidget {
                 return child;
               },
             ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class SidebarVersionControl extends StatelessWidget {
+  final String version;
+  final String checkUpdateLabel;
+  final VoidCallback onCheckUpdate;
+
+  const SidebarVersionControl({
+    super.key,
+    required this.version,
+    required this.checkUpdateLabel,
+    required this.onCheckUpdate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'v$version',
+          style: context.textTheme.labelSmall?.copyWith(
+            color: context.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        IconButton(
+          tooltip: checkUpdateLabel,
+          onPressed: onCheckUpdate,
+          icon: Icon(
+            Icons.system_update_alt,
+            color: context.colorScheme.onSurfaceVariant,
           ),
         ),
       ],

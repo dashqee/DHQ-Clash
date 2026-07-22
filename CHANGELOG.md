@@ -1,3 +1,9 @@
+## v1.0.8
+
+- Keep the app version and update control visible at the bottom of the desktop sidebar
+
+- Simplify the About page and point Telegram, project, and core links to the current DHQClash resources
+
 ## v1.0.7
 
 - Update the bundled mihomo core to 1.19.29
