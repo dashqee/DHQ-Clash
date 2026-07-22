@@ -20,7 +20,8 @@ void main() {
     test('default value is defaultAppSettingProps', () {
       final value = container.read(appSettingProvider);
       expect(value.onlyStatisticsProxy, false);
-      expect(value.autoLaunch, false);
+      // Startup automation ships on by default (see AppSettingProps defaults).
+      expect(value.autoLaunch, true);
       expect(value.closeConnections, true);
       expect(value.isAnimateToPage, true);
     });
