@@ -131,6 +131,18 @@ class CoreService extends CoreHandlerInterface {
   @override
   Future<bool> shutdown(bool isUser) async {
     _shutdownCompleter = Completer();
+    // Ask the core to unwind before pulling it out from under itself:
+    // handleShutdown -> executor.Shutdown() closes the TUN device and the
+    // listeners it owns. The desktop core installs no signal handler (see
+    // core/main.go), so a bare kill leaves that teardown to the kernel.
+    // Skipped when nothing is connected — a crashed core resets the transport
+    // completer, so this never waits on a process that is already gone.
+    if (completer.isCompleted) {
+      await invoke<bool>(
+        method: ActionMethod.shutdown,
+        timeout: const Duration(seconds: 2),
+      );
+    }
     if (system.isWindows) {
       await request.stopCoreByHelper();
     }
