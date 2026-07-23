@@ -44,7 +44,7 @@ const trustedInstallHosts = ['144.31.155.223.sslip.io'];
 // Base URL of our Mini App backend, which mirrors GitHub Releases for in-app
 // updates (github.com is unreachable in the VPN's target regions). Update
 // together with the production domain.
-const updateBaseUrl = 'https://app.dhqclash.com';
+const updateBaseUrl = 'https://api.dhqclash.app';
 
 bool isTrustedInstallUrl(String url) {
   final uri = Uri.tryParse(url);

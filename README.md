@@ -40,8 +40,9 @@ DHQClash работает на Android, Windows и macOS, поддерживае
 
 ## Установка
 
-Скачивайте приложение только со страницы
-[последнего релиза](https://github.com/dashqee/DHQ-Clash/releases/latest).
+Скачивайте приложение с официальной
+[страницы загрузки](https://dhqclash.app/#downloads). Резервный источник —
+[GitHub Releases](https://github.com/dashqee/DHQ-Clash/releases/latest).
 
 | Платформа | Какой файл выбрать |
 | --- | --- |
