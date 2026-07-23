@@ -163,9 +163,13 @@ class CommonAction extends _$CommonAction {
       filename: filename,
       sha256Hex: sha256Hex,
       onProgress: (p) => progress.value = p,
+      // Desktop installs are unattended: once the new build is staged the app
+      // has to go down cleanly (system proxy off, DNS restored, core stopped)
+      // before the installer swaps it out and relaunches it.
+      onQuit: () => ref.read(systemActionProvider.notifier).handleExit(),
     );
 
-    // Close the progress dialog (on Windows the app has already exited).
+    // Close the progress dialog (on desktop the app has already exited).
     final ctx = globalState.navigatorKey.currentContext;
     if (ctx != null && Navigator.of(ctx).canPop()) {
       Navigator.of(ctx).pop();
