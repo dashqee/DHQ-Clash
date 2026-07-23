@@ -1,3 +1,7 @@
+## v1.1.1
+
+- Fix Windows in-app updates not starting the downloaded installer by replacing the detached PowerShell command with a self-cleaning system watcher and persistent Inno Setup diagnostics
+
 ## v1.1.0
 
 - Unify the app around the expressive DHQClash visual system with fixed dark surfaces, violet, blue and cyan accents, and consistent navigation, cards, controls and dialogs
