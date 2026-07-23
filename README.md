@@ -1,139 +1,175 @@
-<div>
-
-[**简体中文**](README_zh_CN.md)
-
-</div>
-
-## FlClash
-
-[![Downloads](https://img.shields.io/github/downloads/chen08209/FlClash/total?style=flat-square&logo=github)](https://github.com/chen08209/FlClash/releases/)[![Last Version](https://img.shields.io/github/release/chen08209/FlClash/all.svg?style=flat-square)](https://github.com/chen08209/FlClash/releases/)[![License](https://img.shields.io/github/license/chen08209/FlClash?style=flat-square)](LICENSE)
-
-[![Channel](https://img.shields.io/badge/Telegram-Channel-blue?style=flat-square&logo=telegram)](https://t.me/FlClash)
-
-A multi-platform proxy client based on ClashMeta, simple and easy to use, open-source and ad-free.
-
-on Desktop:
-<p style="text-align: center;">
-    <img alt="desktop" src="snapshots/desktop.gif">
+<p align="center">
+  <img src="assets/images/icon.png" width="112" alt="DHQClash">
 </p>
 
-on Mobile:
-<p style="text-align: center;">
-    <img alt="mobile" src="snapshots/mobile.gif">
+<h1 align="center">DHQClash</h1>
+
+<p align="center">
+  Кроссплатформенное приложение для управления сетевыми конфигурациями на базе
+  <a href="https://github.com/MetaCubeX/mihomo">mihomo</a>.
 </p>
 
-## Features
+<p align="center">
+  <a href="https://github.com/dashqee/DHQ-Clash/releases/latest"><img alt="Последняя версия" src="https://img.shields.io/github/v/release/dashqee/DHQ-Clash?style=flat-square"></a>
+  <a href="https://github.com/dashqee/DHQ-Clash/releases"><img alt="Загрузки" src="https://img.shields.io/github/downloads/dashqee/DHQ-Clash/total?style=flat-square"></a>
+  <a href="LICENSE"><img alt="Лицензия GPL-3.0" src="https://img.shields.io/github/license/dashqee/DHQ-Clash?style=flat-square"></a>
+  <a href="https://t.me/dhqclashconfigbot"><img alt="Telegram" src="https://img.shields.io/badge/Telegram-бот-229ED9?style=flat-square&logo=telegram&logoColor=white"></a>
+</p>
 
-✈️ Multi-platform: Android, Windows, macOS and Linux
+DHQClash работает на Android, Windows и macOS, поддерживает конфигурации по URL,
+из файла и QR-кода, автоматически обновляет профили и показывает состояние
+подключения в одном интерфейсе.
 
-💻 Adaptive multiple screen sizes, Multiple color themes available
+<p align="center">
+  <img alt="DHQClash на компьютере" src="snapshots/desktop.gif">
+</p>
 
-💡 Based on Material You Design, [Surfboard](https://github.com/getsurfboard/surfboard)-like UI
+## Возможности
 
-☁️ Supports data sync via WebDAV
+- единый интерфейс для Android, Windows и macOS;
+- добавление профиля по ссылке, из локального файла или QR-кода;
+- выбор активного профиля и нужной группы прямо в приложении;
+- ручное и автоматическое обновление URL-профилей;
+- системный режим, TUN, DNS и дополнительные параметры mihomo;
+- статистика трафика, список подключений и журнал работы;
+- светлая и тёмная темы, адаптивный интерфейс Material 3;
+- резервное копирование настроек и синхронизация через WebDAV;
+- встроенная проверка новых версий приложения.
 
-✨ Support subscription link, Dark mode
+## Установка
 
-## Use
+Скачивайте приложение только со страницы
+[последнего релиза](https://github.com/dashqee/DHQ-Clash/releases/latest).
 
-### Linux
+| Платформа | Какой файл выбрать |
+| --- | --- |
+| Android | `android-arm64-v8a.apk` для большинства современных устройств; `armeabi-v7a.apk` для старых 32-битных устройств; `x86_64.apk` для совместимых эмуляторов |
+| Windows | `windows-amd64-setup.exe` для обычной установки или `windows-amd64.zip` для переносной версии |
+| macOS на Apple Silicon | `macos-arm64.dmg` для Mac с процессором M1 и новее |
+| macOS на Intel | `macos-amd64.dmg` |
 
-⚠️ Make sure to install the following dependencies before using them
-
-   ```bash
-    sudo apt-get install libayatana-appindicator3-dev
-    sudo apt-get install libkeybinder-3.0-dev
-   ```
+Имена файлов содержат номер версии, например
+`DHQClash-1.0.8-windows-amd64-setup.exe`.
 
 ### Android
 
-Support the following actions
+1. Скачайте подходящий APK.
+2. Откройте файл и подтвердите установку из выбранного источника.
+3. При первом подключении разрешите приложению создать VPN-подключение.
 
-   ```bash
-    com.follow.clash.action.START
-    
-    com.follow.clash.action.STOP
-    
-    com.follow.clash.action.TOGGLE
-   ```
+### Windows
 
-## Download
+1. Запустите `windows-amd64-setup.exe` и завершите установку.
+2. Откройте DHQClash из меню «Пуск».
+3. Если для выбранного режима потребуются дополнительные права, приложение
+   запросит их при включении.
 
-<a href="https://chen08209.github.io/FlClash-fdroid-repo/repo?fingerprint=789D6D32668712EF7672F9E58DEEB15FBD6DCEEC5AE7A4371EA72F2AAE8A12FD"><img alt="Get it on F-Droid" src="snapshots/get-it-on-fdroid.svg" width="200px"/></a> <a href="https://github.com/chen08209/FlClash/releases"><img alt="Get it on GitHub" src="snapshots/get-it-on-github.svg" width="200px"/></a>
+### macOS
 
-### Homebrew
+1. Откройте DMG для своей архитектуры.
+2. Перетащите DHQClash в папку Applications.
+3. Если macOS остановит первый запуск, убедитесь, что файл скачан из официального
+   релиза, затем разрешите его в «Системные настройки → Конфиденциальность и
+   безопасность».
+
+## Быстрый старт
+
+1. Получите конфигурацию у своего поставщика или через
+   [Telegram-бот DHQClash](https://t.me/dhqclashconfigbot).
+2. Откройте раздел **Профили** и нажмите **Добавить профиль**.
+3. Выберите удобный способ:
+   - **URL** — вставьте ссылку на профиль;
+   - **Файл** — выберите сохранённый файл конфигурации;
+   - **QR-код** — отсканируйте код камерой на мобильном устройстве или выберите
+     изображение на компьютере.
+4. Нажмите на добавленную карточку, чтобы сделать профиль активным.
+5. Вернитесь на главный экран и нажмите кнопку запуска.
+6. Подтвердите системный запрос, если операционная система его покажет.
+
+После запуска текущая скорость, объём трафика и состояние подключения появятся
+на главном экране. Выбор направления для отдельных групп доступен в разделе
+**Прокси**.
+
+## Профили и обновления
+
+- Чтобы обновить все URL-профили, откройте **Профили** и нажмите значок
+  синхронизации в верхней части экрана.
+- Чтобы обновить один профиль, откройте меню `⋮` на его карточке и выберите
+  **Синхронизировать**.
+- Автоматическое обновление и его интервал настраиваются при редактировании
+  URL-профиля.
+- Начиная с версии 1.0.8 номер настольного приложения всегда виден внизу левого
+  сайдбара. Кнопка рядом с ним запускает ручную проверку обновления.
+- Автоматическую проверку новых версий можно включить в настройках приложения.
+
+## Если что-то не работает
+
+### Профиль добавлен, но подключения нет
+
+Убедитесь, что карточка профиля выбрана, системное разрешение выдано, а срок
+действия конфигурации не закончился. Затем синхронизируйте профиль и перезапустите
+подключение.
+
+### URL-профиль не обновляется
+
+Проверьте ссылку в меню редактирования профиля и попробуйте открыть её в обычном
+браузере. Если ссылка недоступна или сервер возвращает ошибку, обратитесь к тому,
+кто выдал конфигурацию.
+
+### После изменения настроек пропала сеть
+
+Остановите подключение, верните последние изменённые параметры и запустите его
+снова. Для диагностики откройте **Инструменты → Журналы**. Если проблема
+сохраняется, перезапустите приложение.
+
+### Где получить помощь
+
+Конфигурация и доступные действия находятся в
+[Telegram-боте DHQClash](https://t.me/dhqclashconfigbot). Техническую проблему
+можно описать в [GitHub Issues](https://github.com/dashqee/DHQ-Clash/issues),
+указав платформу, версию приложения и точный текст ошибки. Не публикуйте ссылки
+на личные конфигурации, токены и другие секреты.
+
+## Безопасность
+
+Конфигурация определяет обработку сетевых подключений внутри приложения.
+Добавляйте только те ссылки, файлы и QR-коды, источнику которых доверяете.
+Перед передачей журналов удаляйте из них адреса профилей, токены и персональные
+данные. Контрольные суммы официальных файлов публикуются в каждом релизе в
+`SHA256SUMS`.
+
+## Сборка из исходного кода
+
+Понадобятся Flutter, Go и платформенные инструменты для целевой ОС.
 
 ```bash
-brew tap chen08209/tap
-brew install --cask flclash
+git clone --recurse-submodules https://github.com/dashqee/DHQ-Clash.git
+cd DHQ-Clash
+flutter pub get
+flutter test
+dart setup.dart android   # или windows, macos, linux
 ```
 
-## Build
+Если репозиторий уже клонирован без подмодулей:
 
-1. Update submodules
-   ```bash
-   git submodule update --init --recursive
-   ```
+```bash
+git submodule update --init --recursive
+```
 
-2. Install `Flutter` and `Golang` environment
+Перед отправкой изменений рекомендуется выполнить проверки, используемые в CI:
 
-3. Build Application
+```bash
+flutter analyze --no-fatal-infos
+flutter test --reporter expanded
+```
 
-    - android
+Подробные команды и правила разработки находятся в
+[`AGENTS.md`](AGENTS.md) и каталоге [`.agents/`](.agents/).
 
-        1. Install `Android SDK`, `Android NDK`
+## Проект и лицензия
 
-        2. Set `ANDROID_NDK` environment variable
+- приложение: [dashqee/DHQ-Clash](https://github.com/dashqee/DHQ-Clash);
+- ядро: [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo);
+- основа проекта: [chen08209/FlClash](https://github.com/chen08209/FlClash).
 
-        3. Run build script
-
-           ```bash
-           dart setup.dart android
-           ```
-
-    - windows
-
-        1. Requires a Windows client
-
-        2. Install `GCC`, `Inno Setup`
-
-        3. Run build script
-
-           ```bash
-           dart setup.dart windows
-           ```
-
-    - linux
-
-        1. Requires a Linux client
-
-        2. Dependencies are auto-installed by setup script, or manually:
-           ```bash
-           sudo apt-get install -y libayatana-appindicator3-dev libkeybinder-3.0-dev
-           ```
-
-        3. Run build script
-
-           ```bash
-           dart setup.dart linux
-           ```
-
-    - macOS
-
-        1. Requires a macOS client
-
-        2. Run build script
-
-           ```bash
-           dart setup.dart macos
-           ```
-
-## Star
-
-The easiest way to support developers is to click on the star (⭐) at the top of the page.
-
-<p style="text-align: center;">
-    <a href="https://api.star-history.com/svg?repos=chen08209/FlClash&Date">
-        <img alt="start" width=50% src="https://api.star-history.com/svg?repos=chen08209/FlClash&Date"/>
-    </a>
-</p>
+Исходный код распространяется по лицензии [GNU GPL v3](LICENSE).
