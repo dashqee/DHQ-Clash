@@ -39,6 +39,14 @@ begin
   Result := True;
 end;
 
+// Our own flag, passed by the in-app updater (see AppUpdater._installWindows).
+// The stock postinstall [Run] entry is skipped in silent mode, so a silent
+// self-update would leave the user with no app running; this brings it back.
+function WantsRelaunch(): Boolean;
+begin
+  Result := CmdLineParamExists('/RELAUNCH');
+end;
+
 [Languages]
 {% for locale in LOCALES %}
 {% if locale.lang == 'en' %}Name: "english"; MessagesFile: "compiler:Default.isl"{% endif %}
@@ -98,3 +106,4 @@ Root: HKA; Subkey: "Software\Classes\dhqclash\shell\open\command"; ValueType: st
 
 [Run]
 Filename: "{app}\\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY_NAME}}}"; Flags: {% if PRIVILEGES_REQUIRED == 'admin' %}runascurrentuser{% endif %} nowait postinstall skipifsilent
+Filename: "{app}\\{{EXECUTABLE_NAME}}"; Flags: {% if PRIVILEGES_REQUIRED == 'admin' %}runascurrentuser{% endif %} nowait; Check: WantsRelaunch

@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/plugins/app.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 /// (platform, arch) as the /api/app/latest backend expects them, or null on a
@@ -34,14 +35,20 @@ class AppUpdater {
 
   /// Download the artifact, verify its sha256 (when provided), then hand it to
   /// the OS installer. Returns null on success or a short error string.
+  ///
+  /// On desktop the install is unattended: the new build is staged while the
+  /// app is still running, [onQuit] shuts the core down cleanly, and a detached
+  /// watcher relaunches us once the process is gone. [onQuit] is therefore
+  /// expected not to return — it ends in `exit()`.
   static Future<String?> downloadAndInstall({
     required String url,
     required String filename,
     required String sha256Hex,
     void Function(double progress)? onProgress,
+    Future<void> Function()? onQuit,
   }) async {
     final dir = await getTemporaryDirectory();
-    final savePath = '${dir.path}/$filename';
+    final savePath = p.join(dir.path, filename);
     try {
       await File(savePath).parent.create(recursive: true);
       await request.downloadUpdate(url, savePath, onProgress: onProgress);
@@ -59,7 +66,7 @@ class AppUpdater {
       }
     }
 
-    return _install(savePath);
+    return _install(savePath, dir.path, onQuit);
   }
 
   static Future<String> _sha256OfFile(String path) async {
@@ -67,32 +74,250 @@ class AppUpdater {
     return digest.toString();
   }
 
-  static Future<String?> _install(String path) async {
+  static Future<String?> _install(
+    String path,
+    String tempDirPath,
+    Future<void> Function()? onQuit,
+  ) async {
     try {
       if (Platform.isAndroid) {
+        // Android always shows the package installer; a silent self-update is
+        // only available to device-owner apps.
         final ok = await app?.installApk(path) ?? false;
         return ok ? null : 'install failed';
       }
       if (Platform.isWindows) {
-        // Inno Setup silent install; the running app must exit so the installer
-        // can replace its files, and the installer relaunches it.
-        await Process.start(
-          path,
-          ['/SILENT', '/NORESTART', '/CLOSEAPPLICATIONS', '/RESTARTAPPLICATIONS'],
-          mode: ProcessStartMode.detached,
-        );
-        exit(0);
+        return _installWindows(path, onQuit);
       }
       if (Platform.isMacOS) {
-        // No Developer ID signing yet — just open the .dmg and let the user
-        // drag the app over; a silent in-place swap would trip Gatekeeper.
-        await Process.run('open', [path]);
-        return null;
+        return _installMacos(path, tempDirPath, onQuit);
       }
     } catch (e) {
       commonPrint.log('update install failed: $e', logLevel: LogLevel.error);
       return 'install failed';
     }
     return 'unsupported platform';
+  }
+
+  /// Wrap [value] for use inside a single-quoted POSIX shell word.
+  static String _sh(String value) => "'${value.replaceAll("'", "'\\''")}'";
+
+  /// Wrap [command] in `do shell script ... with administrator privileges`,
+  /// escaping it for the AppleScript string literal it lands in.
+  static List<String> _osascriptAdmin(String command) {
+    final escaped = command.replaceAll(r'\', r'\\').replaceAll('"', r'\"');
+    return ['-e', 'do shell script "$escaped" with administrator privileges'];
+  }
+
+  /// Spawn a script that outlives us: it waits for pid [pid] to disappear, runs
+  /// [body], and is never awaited.
+  static Future<void> _spawnWatcher({
+    required String scriptPath,
+    required String body,
+  }) async {
+    final script =
+        '''
+#!/bin/sh
+i=0
+while /bin/kill -0 $pid 2>/dev/null && [ \$i -lt 600 ]; do
+  /bin/sleep 0.2
+  i=\$((i+1))
+done
+$body
+''';
+    await File(scriptPath).writeAsString(script);
+    await Process.start('/bin/sh', [
+      scriptPath,
+    ], mode: ProcessStartMode.detached);
+  }
+
+  /// The `.app` directory the running executable lives in, or null when we are
+  /// not running from a bundle at all.
+  static String? _macAppBundlePath() {
+    var dir = p.dirname(Platform.resolvedExecutable);
+    while (dir != p.dirname(dir)) {
+      if (dir.endsWith('.app')) return dir;
+      dir = p.dirname(dir);
+    }
+    return null;
+  }
+
+  static bool _isWritable(String dirPath) {
+    final probe = File(p.join(dirPath, '.dhqclash-write-probe-$pid'));
+    try {
+      probe.createSync();
+      probe.deleteSync();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Swap the running `.app` for the one inside the freshly downloaded `.dmg`,
+  /// then relaunch — the same shape as Tauri's macOS updater, which is what
+  /// Clash Verge uses. The old bundle is *renamed* rather than deleted so the
+  /// still-running process keeps its mapped executable and dylibs alive, and
+  /// the actual relaunch is done by a detached watcher once we are gone.
+  static Future<String?> _installMacos(
+    String dmgPath,
+    String tempDirPath,
+    Future<void> Function()? onQuit,
+  ) async {
+    final appBundle = _macAppBundlePath();
+    // Under App Translocation we run from a randomized read-only copy (this is
+    // what happens when the app is launched straight out of the .dmg), so there
+    // is no install to replace: fall back to the manual drag-and-drop.
+    if (appBundle == null || appBundle.contains('/AppTranslocation/')) {
+      await Process.run('open', [dmgPath]);
+      return null;
+    }
+
+    final stamp = DateTime.now().millisecondsSinceEpoch;
+    final mountPoint = p.join(tempDirPath, 'dhqclash-update-mount-$stamp');
+    final staging = p.join(tempDirPath, 'dhqclash-update-$stamp.app');
+    final backup = p.join(tempDirPath, 'dhqclash-backup-$stamp.app');
+
+    final attach = await Process.run('/usr/bin/hdiutil', [
+      'attach',
+      dmgPath,
+      '-nobrowse',
+      '-noautoopen',
+      '-readonly',
+      '-quiet',
+      '-mountpoint',
+      mountPoint,
+    ]);
+    if (attach.exitCode != 0) {
+      commonPrint.log(
+        'update hdiutil attach failed: ${attach.stderr}',
+        logLevel: LogLevel.error,
+      );
+      return 'install failed';
+    }
+
+    String? newApp;
+    try {
+      // followLinks: false keeps the /Applications drop target the .dmg layout
+      // ships out of the way.
+      for (final entry in Directory(mountPoint).listSync(followLinks: false)) {
+        if (entry is Directory && entry.path.endsWith('.app')) {
+          newApp = entry.path;
+          break;
+        }
+      }
+      if (newApp != null) {
+        final copy = await Process.run('/usr/bin/ditto', [newApp, staging]);
+        if (copy.exitCode != 0) {
+          commonPrint.log(
+            'update ditto failed: ${copy.stderr}',
+            logLevel: LogLevel.error,
+          );
+          newApp = null;
+        }
+      }
+    } finally {
+      await Process.run('/usr/bin/hdiutil', [
+        'detach',
+        mountPoint,
+        '-quiet',
+        '-force',
+      ]);
+    }
+    if (newApp == null) {
+      await Directory(
+        staging,
+      ).delete(recursive: true).catchError((_) => Directory(staging));
+      return 'install failed';
+    }
+
+    // We downloaded the .dmg ourselves, so nothing carries a quarantine flag —
+    // clear it anyway, because a quarantined bundle would make the relaunch pop
+    // Gatekeeper instead of just starting.
+    await Process.run('/usr/bin/xattr', [
+      '-dr',
+      'com.apple.quarantine',
+      staging,
+    ]);
+
+    // The core binary is made setuid root when the user authorizes TUN mode
+    // (see System.authorizeCore); a fresh bundle loses that, so re-apply it in
+    // the same privileged step instead of asking again on the next launch.
+    final coreWasPrivileged = await system.checkIsAdmin();
+    final newCorePath = p.join(appBundle, 'Contents', 'MacOS', 'FlClashCore');
+    final needsPrivileges =
+        coreWasPrivileged || !_isWritable(p.dirname(appBundle));
+
+    final swap = [
+      'mv -f ${_sh(appBundle)} ${_sh(backup)}',
+      'mv -f ${_sh(staging)} ${_sh(appBundle)}',
+      if (coreWasPrivileged) ...[
+        'chown root:admin ${_sh(newCorePath)}',
+        'chmod +sx ${_sh(newCorePath)}',
+      ],
+    ].join(' && ');
+
+    final result = needsPrivileges
+        ? await Process.run('osascript', _osascriptAdmin(swap))
+        : await Process.run('/bin/sh', ['-c', swap]);
+
+    if (result.exitCode != 0) {
+      commonPrint.log(
+        'update swap failed: ${result.stderr}',
+        logLevel: LogLevel.error,
+      );
+      // Put the old bundle back if we got as far as moving it away, then let
+      // the user finish by hand.
+      if (!Directory(appBundle).existsSync() &&
+          Directory(backup).existsSync()) {
+        await Process.run('/bin/mv', ['-f', backup, appBundle]);
+      }
+      await Directory(
+        staging,
+      ).delete(recursive: true).catchError((_) => Directory(staging));
+      await Process.run('open', [dmgPath]);
+      return null;
+    }
+
+    await _spawnWatcher(
+      scriptPath: p.join(tempDirPath, 'dhqclash-relaunch-$stamp.sh'),
+      body:
+          '''
+/bin/rm -rf ${_sh(backup)} ${_sh(staging)} ${_sh(dmgPath)}
+/usr/bin/touch ${_sh(appBundle)}
+/usr/bin/open ${_sh(appBundle)}
+/bin/rm -f "\$0"
+''',
+    );
+
+    await _quit(onQuit);
+    return null;
+  }
+
+  /// Inno Setup runs unattended with `/SILENT`; `/RELAUNCH` is our own flag,
+  /// handled by the `[Run]` entry in windows/packaging/exe/inno_setup.iss. The
+  /// installer is started by a detached watcher rather than directly, so the
+  /// core and the system proxy are torn down before its KillProcesses step
+  /// gets a chance to kill us mid-shutdown.
+  static Future<String?> _installWindows(
+    String installerPath,
+    Future<void> Function()? onQuit,
+  ) async {
+    await Process.start('powershell', [
+      '-NoProfile',
+      '-NonInteractive',
+      '-Command',
+      'Wait-Process -Id $pid -ErrorAction SilentlyContinue; '
+          "Start-Process -FilePath '$installerPath' "
+          "-ArgumentList '/SILENT','/NORESTART','/RELAUNCH'",
+    ], mode: ProcessStartMode.detached);
+    await _quit(onQuit);
+    return null;
+  }
+
+  static Future<void> _quit(Future<void> Function()? onQuit) async {
+    if (onQuit == null) {
+      exit(0);
+    }
+    await onQuit();
   }
 }
