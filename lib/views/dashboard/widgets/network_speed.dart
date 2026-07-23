@@ -81,7 +81,7 @@ class _NetworkSpeedState extends State<NetworkSpeed> {
                       ).copyWith(bottom: 0, left: 0, right: 0),
                       child: LineChart(
                         gradient: true,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: AppTheme.cyan,
                         points: _getPoints(traffics),
                       ),
                     ),

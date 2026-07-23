@@ -36,13 +36,6 @@ class ApplicationState extends ConsumerState<Application> {
     },
   );
 
-  ColorScheme _getAppColorScheme({
-    required Brightness brightness,
-    int? primaryColor,
-  }) {
-    return ref.read(genColorSchemeProvider(brightness));
-  }
-
   @override
   void initState() {
     super.initState();
@@ -151,7 +144,6 @@ class ApplicationState extends ConsumerState<Application> {
         final locale = ref.watch(
           appSettingProvider.select((state) => state.locale),
         );
-        final themeProps = ref.watch(themeSettingProvider);
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           navigatorKey: globalState.navigatorKey,
@@ -162,10 +154,12 @@ class ApplicationState extends ConsumerState<Application> {
             GlobalWidgetsLocalizations.delegate,
           ],
           builder: (_, child) {
-            return AppEnvManager(
-              child: _buildApp(
-                child: _buildPlatformState(
-                  child: _buildState(child: _buildPlatformApp(child: child!)),
+            return BrandBackground(
+              child: AppEnvManager(
+                child: _buildApp(
+                  child: _buildPlatformState(
+                    child: _buildState(child: _buildPlatformApp(child: child!)),
+                  ),
                 ),
               ),
             );
@@ -174,20 +168,10 @@ class ApplicationState extends ConsumerState<Application> {
           title: appName,
           locale: utils.getLocaleForString(locale),
           supportedLocales: AppLocalizations.delegate.supportedLocales,
-          themeMode: themeProps.themeMode,
-          theme: AppTheme.build(
-            pageTransitionsTheme: _pageTransitionsTheme,
-            colorScheme: _getAppColorScheme(
-              brightness: Brightness.light,
-              primaryColor: themeProps.primaryColor,
-            ),
-          ),
+          themeMode: ThemeMode.dark,
+          theme: AppTheme.build(pageTransitionsTheme: _pageTransitionsTheme),
           darkTheme: AppTheme.build(
             pageTransitionsTheme: _pageTransitionsTheme,
-            colorScheme: _getAppColorScheme(
-              brightness: Brightness.dark,
-              primaryColor: themeProps.primaryColor,
-            ).toPureBlack(themeProps.pureBlack),
           ),
           home: child!,
         );

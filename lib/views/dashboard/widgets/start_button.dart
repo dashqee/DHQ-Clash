@@ -106,30 +106,55 @@ class _StartButtonState extends ConsumerState<StartButton>
                           )
                           .width +
                       16;
-            return FloatingActionButton(
-              clipBehavior: Clip.antiAlias,
-              materialTapTargetSize: MaterialTapTargetSize.padded,
-              heroTag: null,
-              onPressed: () {
-                handleSwitchStart();
-              },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    height: 56,
-                    padding: EdgeInsets.only(
-                      left: 16,
-                      right: 16 - 8 * _animation.value,
-                    ),
-                    alignment: Alignment.centerLeft,
-                    child: AnimatedIcon(
-                      icon: AnimatedIcons.play_pause,
-                      progress: _animation,
-                    ),
+            return DecoratedBox(
+              decoration: const ShapeDecoration(
+                gradient: AppTheme.brandGradient,
+                shape: StadiumBorder(
+                  side: BorderSide(color: Color(0x26FFFFFF)),
+                ),
+                shadows: [
+                  BoxShadow(
+                    color: Color(0x594877F4),
+                    blurRadius: 30,
+                    offset: Offset(0, 12),
                   ),
-                  SizedBox(width: textWidth * _animation.value, child: child!),
                 ],
+              ),
+              child: FloatingActionButton(
+                clipBehavior: Clip.antiAlias,
+                materialTapTargetSize: MaterialTapTargetSize.padded,
+                heroTag: null,
+                elevation: 0,
+                hoverElevation: 0,
+                focusElevation: 0,
+                highlightElevation: 0,
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.transparent,
+                shape: const StadiumBorder(),
+                onPressed: () {
+                  handleSwitchStart();
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      height: 56,
+                      padding: EdgeInsets.only(
+                        left: 16,
+                        right: 16 - 8 * _animation.value,
+                      ),
+                      alignment: Alignment.centerLeft,
+                      child: AnimatedIcon(
+                        icon: AnimatedIcons.play_pause,
+                        progress: _animation,
+                      ),
+                    ),
+                    SizedBox(
+                      width: textWidth * _animation.value,
+                      child: child!,
+                    ),
+                  ],
+                ),
               ),
             );
           },
