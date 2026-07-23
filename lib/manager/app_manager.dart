@@ -214,10 +214,8 @@ class AppSidebarContainer extends ConsumerWidget {
               children: [
                 if (system.isMacOS) const SizedBox(height: 22),
                 const SizedBox(height: 10),
-                if (!system.isMacOS) ...[
-                  const ClipRect(child: AppIcon()),
-                  const SizedBox(height: 12),
-                ],
+                const ClipRect(child: AppIcon()),
+                const SizedBox(height: 12),
                 Expanded(
                   child: ScrollConfiguration(
                     behavior: HiddenBarScrollBehavior(),
