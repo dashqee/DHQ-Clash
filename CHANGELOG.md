@@ -1,4 +1,4 @@
-## Unreleased
+## v1.0.9
 
 - Move application update checks to `api.dhqclash.app`; legacy endpoints remain available
 
