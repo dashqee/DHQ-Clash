@@ -52,7 +52,7 @@ DHQClash работает на Android, Windows и macOS, поддерживае
 | macOS на Intel | `macos-amd64.dmg` |
 
 Имена файлов содержат номер версии, например
-`DHQClash-1.0.10-windows-amd64-setup.exe`.
+`DHQClash-1.1.0-windows-amd64-setup.exe`.
 
 ### Android
 

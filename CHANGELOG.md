@@ -1,3 +1,11 @@
+## v1.1.0
+
+- Unify the app around the expressive DHQClash visual system with fixed dark surfaces, violet, blue and cyan accents, and consistent navigation, cards, controls and dialogs
+
+- Redesign the dashboard around the real connection status, outbound mode, runtime, network speed and an informational traffic counter without artificial limits
+
+- Remove custom color themes while keeping text scaling as an accessibility setting
+
 ## v1.0.10
 
 - Install updates without leaving the app on macOS and Windows: the new build is downloaded, the app shuts down, replaces itself and starts back up on its own
