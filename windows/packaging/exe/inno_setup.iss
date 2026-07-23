@@ -42,9 +42,21 @@ end;
 // Our own flag, passed by the in-app updater (see AppUpdater._installWindows).
 // The stock postinstall [Run] entry is skipped in silent mode, so a silent
 // self-update would leave the user with no app running; this brings it back.
+// Inno has no built-in "was this parameter passed" helper, so walk the command
+// line ourselves.
 function WantsRelaunch(): Boolean;
+var
+  i: Integer;
 begin
-  Result := CmdLineParamExists('/RELAUNCH');
+  Result := False;
+  for i := 1 to ParamCount do
+  begin
+    if CompareText(ParamStr(i), '/RELAUNCH') = 0 then
+    begin
+      Result := True;
+      Exit;
+    end;
+  end;
 end;
 
 [Languages]

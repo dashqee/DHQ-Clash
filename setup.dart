@@ -67,7 +67,53 @@ Future<void> main(List<String> args) async {
     androidArch: androidArch,
     verbose: verbose,
   );
-  exit(exitCode);
+  exit(exitCode != 0 ? exitCode : _verifyArtifacts(rootDir, targets));
+}
+
+/// Extension flutter_distributor leaves in `dist/` for each package target.
+const _targetExtensions = <String, String>{
+  'exe': '.exe',
+  'zip': '.zip',
+  'dmg': '.dmg',
+  'apk': '.apk',
+  'deb': '.deb',
+  'rpm': '.rpm',
+  'appimage': '.appimage',
+};
+
+/// flutter_distributor logs `MakeError` and still exits 0 when a packager fails
+/// (a broken Inno script, say), so a release can end up missing an installer
+/// with every job green. Check that each requested target actually produced
+/// something.
+///
+/// Only the top level of `dist/` is inspected: a failed run leaves its staging
+/// directory behind, and the app binary inside it would otherwise pass for the
+/// installer that was never built.
+int _verifyArtifacts(String rootDir, String targets) {
+  final distDir = Directory(p.join(rootDir, 'dist'));
+  final names = distDir.existsSync()
+      ? distDir
+            .listSync()
+            .whereType<File>()
+            .map((file) => p.basename(file.path).toLowerCase())
+            .toList()
+      : <String>[];
+
+  final missing = targets
+      .split(',')
+      .map((target) => target.trim())
+      .where((target) {
+        final extension = _targetExtensions[target];
+        return extension != null &&
+            !names.any((name) => name.endsWith(extension));
+      })
+      .toList();
+
+  if (missing.isEmpty) return 0;
+  stderr.writeln(
+    'Packaging exited 0 but produced no artifact for: ${missing.join(', ')}',
+  );
+  return 1;
 }
 
 ArgParser createSetupArgParser() {
