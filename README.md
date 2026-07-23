@@ -20,9 +20,11 @@ DHQClash работает на Android, Windows и macOS, поддерживае
 из файла и QR-кода, автоматически обновляет профили и показывает состояние
 подключения в одном интерфейсе.
 
-<p align="center">
-  <img alt="DHQClash на компьютере" src="snapshots/desktop.gif">
-</p>
+[//]: # (`<p align="center">)
+
+[//]: # (  <img alt="DHQClash на компьютере" src="snapshots/desktop.gif">)
+
+[//]: # (</p>`)
 
 ## Возможности
 
