@@ -1,3 +1,9 @@
+## v1.0.10
+
+- Install updates without leaving the app on macOS and Windows: the new build is downloaded, the app shuts down, replaces itself and starts back up on its own
+
+- Shut the core down cleanly on exit, so TUN and the system proxy are always released
+
 ## v1.0.9
 
 - Move application update checks to `api.dhqclash.app`; legacy endpoints remain available
