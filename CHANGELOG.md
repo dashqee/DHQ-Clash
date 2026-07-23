@@ -1,3 +1,7 @@
+## v1.1.2
+
+- Launch Windows in-app updates directly through the system elevation flow, keep the app open through UAC confirmation, then wait for its clean shutdown inside the installer before replacing files and relaunching
+
 ## v1.1.1
 
 - Fix Windows in-app updates not starting the downloaded installer by replacing the detached PowerShell command with a self-cleaning system watcher and persistent Inno Setup diagnostics
