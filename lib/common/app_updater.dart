@@ -11,23 +11,13 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 @visibleForTesting
-String windowsUpdateWatcherScript() {
-  return r'''@echo off
-setlocal DisableDelayedExpansion
-set /a tries=0
-
-:wait_for_app
-"%SystemRoot%\System32\tasklist.exe" /FI "PID eq %DHQCLASH_UPDATER_PID%" /NH 2>nul | "%SystemRoot%\System32\find.exe" "%DHQCLASH_UPDATER_PID%" >nul
-if errorlevel 1 goto install
-set /a tries+=1
-if %tries% GEQ 120 goto install
-"%SystemRoot%\System32\ping.exe" 127.0.0.1 -n 2 >nul
-goto wait_for_app
-
-:install
-"%DHQCLASH_INSTALLER%" /SILENT /NORESTART /RELAUNCH /LOG="%TEMP%\DHQClash-update-install.log"
-del "%~f0"
-''';
+String windowsInstallerArguments({
+  required int updaterPid,
+  required String logPath,
+}) {
+  final escapedLogPath = logPath.replaceAll('"', r'\"');
+  return '/SILENT /NORESTART /RELAUNCH /UPDATERPID=$updaterPid '
+      '/LOG="$escapedLogPath"';
 }
 
 /// (platform, arch) as the /api/app/latest backend expects them, or null on a
@@ -314,34 +304,27 @@ $body
     return null;
   }
 
-  /// Inno Setup runs unattended with `/SILENT`; `/RELAUNCH` is our own flag,
-  /// handled by the `[Run]` entry in windows/packaging/exe/inno_setup.iss.
-  ///
-  /// Use a small detached `cmd.exe` watcher instead of PowerShell. PowerShell
-  /// can be disabled by enterprise policy, and failures in a detached command
-  /// are otherwise invisible after the app exits. The watcher only relies on
-  /// Windows system tools, waits for our clean shutdown, and asks Inno to keep
-  /// a diagnostic log if setup cannot complete.
+  /// Start Inno Setup through ShellExecuteW before shutting down. This keeps the
+  /// app visible while Windows shows UAC and lets us report a launch failure
+  /// instead of disappearing. Setup receives our PID and waits for the clean
+  /// shutdown before replacing files and relaunching the app.
   static Future<String?> _installWindows(
     String installerPath,
     String tempDirPath,
     Future<void> Function()? onQuit,
   ) async {
-    final watcherPath = p.join(tempDirPath, 'dhqclash-update-watcher-$pid.cmd');
-    await File(watcherPath).writeAsString(windowsUpdateWatcherScript());
-
-    final cmd =
-        Platform.environment['ComSpec'] ?? r'C:\Windows\System32\cmd.exe';
-    await Process.start(
-      cmd,
-      ['/d', '/s', '/c', r'call "%DHQCLASH_WATCHER%"'],
-      environment: {
-        'DHQCLASH_UPDATER_PID': '$pid',
-        'DHQCLASH_INSTALLER': installerPath,
-        'DHQCLASH_WATCHER': watcherPath,
-      },
-      mode: ProcessStartMode.detached,
+    final arguments = windowsInstallerArguments(
+      updaterPid: pid,
+      logPath: p.join(tempDirPath, 'DHQClash-update-install.log'),
     );
+    final launched = windows?.runas(installerPath, arguments) ?? false;
+    if (!launched) {
+      commonPrint.log(
+        'update installer launch rejected: $installerPath',
+        logLevel: LogLevel.error,
+      );
+      return 'install failed';
+    }
     await _quit(onQuit);
     return null;
   }

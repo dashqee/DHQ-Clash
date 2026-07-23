@@ -2,14 +2,18 @@ import 'package:fl_clash/common/app_updater.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('Windows update watcher waits, logs, and relaunches', () {
-    final script = windowsUpdateWatcherScript();
+  test('Windows installer waits for the updater, logs, and relaunches', () {
+    final arguments = windowsInstallerArguments(
+      updaterPid: 4242,
+      logPath: r'C:\Users\Test User\AppData\Local\Temp\install.log',
+    );
 
-    expect(script, contains('PID eq %DHQCLASH_UPDATER_PID%'));
-    expect(script, contains('"%DHQCLASH_INSTALLER%" /SILENT'));
-    expect(script, contains('/NORESTART /RELAUNCH'));
-    expect(script, contains(r'/LOG="%TEMP%\DHQClash-update-install.log"'));
-    expect(script, contains('del "%~f0"'));
-    expect(script, isNot(contains('powershell')));
+    expect(arguments, startsWith('/SILENT'));
+    expect(arguments, contains('/NORESTART /RELAUNCH'));
+    expect(arguments, contains('/UPDATERPID=4242'));
+    expect(
+      arguments,
+      contains(r'/LOG="C:\Users\Test User\AppData\Local\Temp\install.log"'),
+    );
   });
 }
