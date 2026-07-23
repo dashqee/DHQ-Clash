@@ -1,3 +1,7 @@
+## Unreleased
+
+- Move application update checks to `api.dhqclash.app`; legacy endpoints remain available
+
 ## v1.0.8
 
 - Keep the app version and update control visible at the bottom of the desktop sidebar
