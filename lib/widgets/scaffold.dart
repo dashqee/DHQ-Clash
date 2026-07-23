@@ -87,16 +87,17 @@ class CommonScaffoldState extends State<CommonScaffold> {
 
   Widget _buildSearchingAppBarTheme(Widget child) {
     final ThemeData theme = Theme.of(context);
-    final ColorScheme colorScheme = theme.colorScheme;
     return Theme(
       data: theme.copyWith(
         appBarTheme: theme.appBarTheme.copyWith(
-          backgroundColor: colorScheme.brightness == Brightness.dark
-              ? Colors.grey[900]
-              : Colors.white,
-          iconTheme: theme.primaryIconTheme.copyWith(color: Colors.grey),
-          titleTextStyle: theme.textTheme.titleLarge,
-          toolbarTextStyle: theme.textTheme.bodyMedium,
+          backgroundColor: AppTheme.surfaceHigh,
+          iconTheme: theme.primaryIconTheme.copyWith(color: AppTheme.muted),
+          titleTextStyle: theme.textTheme.titleLarge?.copyWith(
+            color: AppTheme.text,
+          ),
+          toolbarTextStyle: theme.textTheme.bodyMedium?.copyWith(
+            color: AppTheme.text,
+          ),
         ),
         inputDecorationTheme: InputDecorationTheme(
           hintStyle: theme.inputDecorationTheme.hintStyle,

@@ -161,7 +161,13 @@ class AppSidebarContainer extends ConsumerWidget {
     required BuildContext context,
     required Widget child,
   }) {
-    return Material(color: context.colorScheme.surfaceContainer, child: child);
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        color: AppTheme.surface,
+        border: Border(right: BorderSide(color: AppTheme.line)),
+      ),
+      child: Material(color: Colors.transparent, child: child),
+    );
     // if (!system.isMacOS) {
     //   return Material(
     //     color: context.colorScheme.surfaceContainer,
@@ -221,16 +227,10 @@ class AppSidebarContainer extends ConsumerWidget {
                         Expanded(
                           child: NavigationRail(
                             scrollable: true,
-                            minExtendedWidth: 200,
+                            minWidth: 92,
+                            minExtendedWidth: 216,
+                            groupAlignment: -0.72,
                             backgroundColor: Colors.transparent,
-                            selectedLabelTextStyle: context
-                                .textTheme
-                                .labelLarge!
-                                .copyWith(color: context.colorScheme.onSurface),
-                            unselectedLabelTextStyle: context
-                                .textTheme
-                                .labelLarge!
-                                .copyWith(color: context.colorScheme.onSurface),
                             destinations: navigationItems
                                 .map(
                                   (e) => NavigationRailDestination(
@@ -254,6 +254,10 @@ class AppSidebarContainer extends ConsumerWidget {
                   ),
                 ),
                 IconButton(
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppTheme.surfaceHigh,
+                    side: const BorderSide(color: AppTheme.line),
+                  ),
                   onPressed: () {
                     ref
                         .read(appSettingProvider.notifier)
@@ -262,10 +266,7 @@ class AppSidebarContainer extends ConsumerWidget {
                               state.copyWith(showLabel: !state.showLabel),
                         );
                   },
-                  icon: Icon(
-                    Icons.menu,
-                    color: context.colorScheme.onSurfaceVariant,
-                  ),
+                  icon: const Icon(Icons.menu, color: AppTheme.muted),
                 ),
                 const SizedBox(height: 8),
                 SidebarVersionControl(

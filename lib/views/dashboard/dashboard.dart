@@ -9,6 +9,7 @@ import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import 'widgets/start_button.dart';
 
@@ -232,7 +233,8 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
   @override
   Widget build(BuildContext context) {
     final dashboardState = ref.watch(dashboardStateProvider);
-    final columns = max(4 * ((dashboardState.contentWidth / 280).ceil()), 8);
+    final gridWidth = min(dashboardState.contentWidth, 1120);
+    final columns = max(4 * ((gridWidth / 280).ceil()), 8);
     final spacing = 14.mAp;
     final children = [
       ...dashboardState.dashboardWidgets
@@ -259,34 +261,217 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
         body: Align(
           alignment: Alignment.topCenter,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16).copyWith(bottom: 88),
-            child: isEdit
-                ? SystemBackBlock(
-                    child: CommonPopScope(
-                      child: SuperGrid(
-                        key: key,
-                        crossAxisCount: columns,
-                        crossAxisSpacing: spacing,
-                        mainAxisSpacing: spacing,
-                        children: children,
-                        onUpdate: () {
-                          _handleSave();
+            padding: const EdgeInsets.all(20).copyWith(bottom: 96),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1120),
+              child: isEdit
+                  ? SystemBackBlock(
+                      child: CommonPopScope(
+                        child: SuperGrid(
+                          key: key,
+                          crossAxisCount: columns,
+                          crossAxisSpacing: spacing,
+                          mainAxisSpacing: spacing,
+                          children: children,
+                          onUpdate: () {
+                            _handleSave();
+                          },
+                        ),
+                        onPop: (context) {
+                          _handleUpdateIsEdit();
+                          return false;
                         },
                       ),
-                      onPop: (context) {
-                        _handleUpdateIsEdit();
-                        return false;
-                      },
+                    )
+                  : Column(
+                      children: [
+                        const _ConnectionOverview(),
+                        const SizedBox(height: 20),
+                        Grid(
+                          crossAxisCount: columns,
+                          crossAxisSpacing: spacing,
+                          mainAxisSpacing: spacing,
+                          children: children,
+                        ),
+                      ],
                     ),
-                  )
-                : Grid(
-                    crossAxisCount: columns,
-                    crossAxisSpacing: spacing,
-                    mainAxisSpacing: spacing,
-                    children: children,
-                  ),
+            ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ConnectionOverview extends ConsumerWidget {
+  const _ConnectionOverview();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appLocalizations = context.appLocalizations;
+    final coreStatus = ref.watch(coreStatusProvider);
+    final mode = ref.watch(
+      patchClashConfigProvider.select((state) => state.mode),
+    );
+    final runTime = ref.watch(runTimeProvider);
+    final statusColor = switch (coreStatus) {
+      CoreStatus.connected => AppTheme.cyan,
+      CoreStatus.connecting => AppTheme.blue,
+      CoreStatus.disconnected => AppTheme.danger,
+    };
+    final statusLabel = switch (coreStatus) {
+      CoreStatus.connected => appLocalizations.connected,
+      CoreStatus.connecting => appLocalizations.connecting,
+      CoreStatus.disconnected => appLocalizations.disconnected,
+    };
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceHigh.withValues(alpha: 0.78),
+        border: Border.all(color: AppTheme.line),
+        borderRadius: AppTheme.borderRadiusXl,
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x29000000),
+            blurRadius: 36,
+            offset: Offset(0, 18),
+          ),
+        ],
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 620;
+          final status = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: AppTheme.borderRadiusMd,
+                  border: Border.all(
+                    color: statusColor.withValues(alpha: 0.22),
+                  ),
+                ),
+                child: Icon(Icons.monitor_heart_outlined, color: statusColor),
+              ),
+              const SizedBox(width: 16),
+              Flexible(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      appLocalizations.status.toUpperCase(),
+                      style: context.textTheme.labelSmall?.copyWith(
+                        color: AppTheme.muted,
+                        letterSpacing: 1.4,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(statusLabel, style: context.textTheme.titleLarge),
+                    const SizedBox(height: 3),
+                    Text(
+                      '${appLocalizations.mode}: ${Intl.message(mode.name)}',
+                      style: context.textTheme.bodySmall?.copyWith(
+                        color: AppTheme.muted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+          final metrics = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _OverviewMetric(
+                label: appLocalizations.mode,
+                value: Intl.message(mode.name),
+              ),
+              const SizedBox(width: 10),
+              _OverviewMetric(
+                label: appLocalizations.time,
+                value: coreStatus == CoreStatus.connected
+                    ? utils.getTimeText(runTime)
+                    : '—',
+                accent: coreStatus == CoreStatus.connected,
+              ),
+            ],
+          );
+          if (compact) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                status,
+                const SizedBox(height: 18),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: metrics,
+                ),
+              ],
+            );
+          }
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: status),
+              const SizedBox(width: 24),
+              metrics,
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _OverviewMetric extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool accent;
+
+  const _OverviewMetric({
+    required this.label,
+    required this.value,
+    this.accent = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minWidth: 116),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: AppTheme.borderRadiusSm,
+        border: Border.all(color: AppTheme.line),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: context.textTheme.labelSmall?.copyWith(
+              color: AppTheme.muted,
+              letterSpacing: 1.1,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: context.textTheme.titleMedium?.copyWith(
+              color: accent ? AppTheme.lime : AppTheme.text,
+            ),
+          ),
+        ],
       ),
     );
   }

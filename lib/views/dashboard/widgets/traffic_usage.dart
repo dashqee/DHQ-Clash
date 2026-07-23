@@ -49,8 +49,8 @@ class TrafficUsage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appLocalizations = context.appLocalizations;
-    final primaryColor = globalState.theme.darken3PrimaryContainer;
-    final secondaryColor = globalState.theme.darken2SecondaryContainer;
+    const primaryColor = AppTheme.blue;
+    const secondaryColor = AppTheme.violet;
     return SizedBox(
       height: getWidgetHeight(2),
       child: RepaintBoundary(
@@ -65,6 +65,8 @@ class TrafficUsage extends StatelessWidget {
               final totalTraffic = ref.watch(totalTrafficProvider);
               final upTotalTrafficValue = totalTraffic.up;
               final downTotalTrafficValue = totalTraffic.down;
+              final totalTrafficValue =
+                  upTotalTrafficValue + downTotalTrafficValue;
               return Padding(
                 padding: baseInfoEdgeInsets.copyWith(top: 0),
                 child: Column(
@@ -81,15 +83,43 @@ class TrafficUsage extends StatelessWidget {
                           children: [
                             AspectRatio(
                               aspectRatio: 1,
-                              child: DonutChart(
-                                data: [
-                                  DonutChartData(
-                                    value: upTotalTrafficValue.toDouble(),
-                                    color: primaryColor,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  DonutChart(
+                                    data: [
+                                      DonutChartData(
+                                        value: upTotalTrafficValue.toDouble(),
+                                        color: primaryColor,
+                                      ),
+                                      DonutChartData(
+                                        value: downTotalTrafficValue.toDouble(),
+                                        color: secondaryColor,
+                                      ),
+                                    ],
                                   ),
-                                  DonutChartData(
-                                    value: downTotalTrafficValue.toDouble(),
-                                    color: secondaryColor,
+                                  Padding(
+                                    padding: const EdgeInsets.all(18),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            totalTrafficValue.traffic.value,
+                                            style:
+                                                context.textTheme.titleMedium,
+                                          ),
+                                          Text(
+                                            totalTrafficValue.traffic.unit,
+                                            style: context.textTheme.labelSmall
+                                                ?.copyWith(
+                                                  color: AppTheme.muted,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -183,13 +213,17 @@ class TrafficUsage extends StatelessWidget {
                     ),
                     _buildTrafficDataItem(
                       context,
-                      Icon(Icons.arrow_upward, color: primaryColor, size: 14),
+                      const Icon(
+                        Icons.arrow_upward,
+                        color: primaryColor,
+                        size: 14,
+                      ),
                       upTotalTrafficValue,
                     ),
                     const SizedBox(height: 8),
                     _buildTrafficDataItem(
                       context,
-                      Icon(
+                      const Icon(
                         Icons.arrow_downward,
                         color: secondaryColor,
                         size: 14,

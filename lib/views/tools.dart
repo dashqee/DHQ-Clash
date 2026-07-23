@@ -162,9 +162,8 @@ class _ThemeItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListItem.open(
-      leading: const Icon(Icons.style),
-      title: Text(context.appLocalizations.theme),
-      subtitle: Text(context.appLocalizations.themeDesc),
+      leading: const Icon(Icons.text_fields),
+      title: Text(context.appLocalizations.textScale),
       delegate: const OpenDelegate(widget: ThemeView()),
     );
   }

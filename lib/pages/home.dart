@@ -1,4 +1,3 @@
-import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/manager/app_manager.dart';
 import 'package:fl_clash/models/common.dart';
@@ -25,29 +24,26 @@ class HomePage extends StatelessWidget {
     return HomeBackScopeContainer(
       child: AppSidebarContainer(
         child: Material(
-          color: context.colorScheme.surface,
+          color: Colors.transparent,
           child: Consumer(
             builder: (context, ref, child) {
               final state = ref.watch(navigationStateProvider);
               final isMobile = state.viewMode == ViewMode.mobile;
               final navigationItems = state.navigationItems;
               final currentIndex = state.currentIndex;
-              final bottomNavigationBar = NavigationBarTheme(
-                data: _NavigationBarDefaultsM3(context),
-                child: NavigationBar(
-                  destinations: navigationItems
-                      .map(
-                        (e) => NavigationDestination(
-                          icon: e.icon,
-                          label: Intl.message(e.label.name),
-                        ),
-                      )
-                      .toList(),
-                  onDestinationSelected: (index) {
-                    _handleToPage(navigationItems[index].label);
-                  },
-                  selectedIndex: currentIndex,
-                ),
+              final bottomNavigationBar = NavigationBar(
+                destinations: navigationItems
+                    .map(
+                      (e) => NavigationDestination(
+                        icon: e.icon,
+                        label: Intl.message(e.label.name),
+                      ),
+                    )
+                    .toList(),
+                onDestinationSelected: (index) {
+                  _handleToPage(navigationItems[index].label);
+                },
+                selectedIndex: currentIndex,
               );
               if (isMobile) {
                 return Column(
@@ -199,63 +195,6 @@ class _HomePageViewState extends ConsumerState<_HomePageView> {
         return widget.pageBuilder(context, index);
       },
     );
-  }
-}
-
-class _NavigationBarDefaultsM3 extends NavigationBarThemeData {
-  _NavigationBarDefaultsM3(this.context)
-    : super(
-        height: 80.0,
-        elevation: 3.0,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-      );
-
-  final BuildContext context;
-  late final ColorScheme _colors = Theme.of(context).colorScheme;
-  late final TextTheme _textTheme = Theme.of(context).textTheme;
-
-  @override
-  Color? get backgroundColor => _colors.surfaceContainer;
-
-  @override
-  Color? get shadowColor => Colors.transparent;
-
-  @override
-  Color? get surfaceTintColor => Colors.transparent;
-
-  @override
-  WidgetStateProperty<IconThemeData?>? get iconTheme {
-    return WidgetStateProperty.resolveWith((Set<WidgetState> states) {
-      return IconThemeData(
-        size: 24.0,
-        color: states.contains(WidgetState.disabled)
-            ? _colors.onSurfaceVariant.opacity38
-            : states.contains(WidgetState.selected)
-            ? _colors.onSecondaryContainer
-            : _colors.onSurfaceVariant,
-      );
-    });
-  }
-
-  @override
-  Color? get indicatorColor => _colors.secondaryContainer;
-
-  @override
-  ShapeBorder? get indicatorShape => const StadiumBorder();
-
-  @override
-  WidgetStateProperty<TextStyle?>? get labelTextStyle {
-    return WidgetStateProperty.resolveWith((Set<WidgetState> states) {
-      final TextStyle style = _textTheme.labelMedium!;
-      return style.apply(
-        overflow: TextOverflow.ellipsis,
-        color: states.contains(WidgetState.disabled)
-            ? _colors.onSurfaceVariant.opacity38
-            : states.contains(WidgetState.selected)
-            ? _colors.onSurface
-            : _colors.onSurfaceVariant,
-      );
-    });
   }
 }
 

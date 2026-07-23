@@ -43,11 +43,17 @@ class InfoHeader extends StatelessWidget {
               mainAxisSize: MainAxisSize.max,
               children: [
                 if (info.iconData != null) ...[
-                  Icon(
-                    info.iconData,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceHigh,
+                      borderRadius: BorderRadius.circular(AppTheme.radiusXs),
+                      border: Border.all(color: AppTheme.line),
+                    ),
+                    child: Icon(info.iconData, size: 18, color: AppTheme.cyan),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
                 ],
                 Flexible(
                   flex: 1,
@@ -57,7 +63,8 @@ class InfoHeader extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: context.colorScheme.onSurfaceVariant,
+                        color: AppTheme.muted,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -134,23 +141,16 @@ class CommonCard extends StatelessWidget {
     if (type == CommonCardType.filled) {
       return BorderSide.none;
     }
-    final hoverColor = isSelected
-        ? colorScheme.primary.opacity80
-        : colorScheme.primary.opacity60;
+    final hoverColor = isSelected ? AppTheme.cyan : AppTheme.lineStrong;
     if (states.contains(WidgetState.hovered) ||
         states.contains(WidgetState.focused) ||
         states.contains(WidgetState.pressed)) {
       return BorderSide(color: hoverColor);
     }
-    return BorderSide(
-      color: isSelected
-          ? colorScheme.primary
-          : colorScheme.surfaceContainerHighest,
-    );
+    return BorderSide(color: isSelected ? AppTheme.cyan : AppTheme.line);
   }
 
   Color? _buildBackgroundColor(BuildContext context) {
-    final colorScheme = context.colorScheme;
     // if (isError) {
     //   if (type == CommonCardType.filled) {
     //     return isSelected
@@ -163,14 +163,14 @@ class CommonCard extends StatelessWidget {
     // }
     if (type == CommonCardType.filled) {
       if (isSelected) {
-        return colorScheme.secondaryContainer.opacity80;
+        return AppTheme.surfaceHover;
       }
-      return colorScheme.surfaceContainerHigh;
+      return AppTheme.surfaceHigh;
     }
     if (isSelected) {
-      return colorScheme.secondaryContainer;
+      return AppTheme.surfaceHover;
     }
-    return colorScheme.surfaceContainerLow;
+    return AppTheme.surface;
   }
 
   Color? _buildForegroundColor(BuildContext context) {
@@ -185,9 +185,9 @@ class CommonCard extends StatelessWidget {
       return colorScheme.onSurfaceVariant;
     }
     if (isSelected) {
-      return colorScheme.onSecondaryContainer;
+      return AppTheme.text;
     }
-    return colorScheme.onSurfaceVariant;
+    return AppTheme.muted;
   }
 
   Color? _buildIconColor(BuildContext context) {
@@ -195,7 +195,7 @@ class CommonCard extends StatelessWidget {
     if (isError) {
       return colorScheme.error;
     }
-    return colorScheme.primary;
+    return AppTheme.cyan;
   }
 
   @override
@@ -232,7 +232,9 @@ class CommonCard extends StatelessWidget {
               shape:
                   shape ??
                   RoundedSuperellipseBorder(
-                    borderRadius: BorderRadius.circular(radius ?? 14),
+                    borderRadius: BorderRadius.circular(
+                      radius ?? AppTheme.radiusLg,
+                    ),
                   ),
               iconSize: 20,
               iconColor: _buildIconColor(context),
@@ -259,7 +261,9 @@ class CommonCard extends StatelessWidget {
               shape:
                   shape ??
                   RoundedSuperellipseBorder(
-                    borderRadius: BorderRadius.circular(radius ?? 14),
+                    borderRadius: BorderRadius.circular(
+                      radius ?? AppTheme.radiusLg,
+                    ),
                   ),
               iconSize: 20,
               iconColor: _buildIconColor(context),
