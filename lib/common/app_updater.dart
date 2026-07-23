@@ -6,8 +6,29 @@ import 'package:crypto/crypto.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/plugins/app.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+
+@visibleForTesting
+String windowsUpdateWatcherScript() {
+  return r'''@echo off
+setlocal DisableDelayedExpansion
+set /a tries=0
+
+:wait_for_app
+"%SystemRoot%\System32\tasklist.exe" /FI "PID eq %DHQCLASH_UPDATER_PID%" /NH 2>nul | "%SystemRoot%\System32\find.exe" "%DHQCLASH_UPDATER_PID%" >nul
+if errorlevel 1 goto install
+set /a tries+=1
+if %tries% GEQ 120 goto install
+"%SystemRoot%\System32\ping.exe" 127.0.0.1 -n 2 >nul
+goto wait_for_app
+
+:install
+"%DHQCLASH_INSTALLER%" /SILENT /NORESTART /RELAUNCH /LOG="%TEMP%\DHQClash-update-install.log"
+del "%~f0"
+''';
+}
 
 /// (platform, arch) as the /api/app/latest backend expects them, or null on a
 /// platform we don't ship self-updates for (iOS, Linux, arm64 Windows).
@@ -87,7 +108,7 @@ class AppUpdater {
         return ok ? null : 'install failed';
       }
       if (Platform.isWindows) {
-        return _installWindows(path, onQuit);
+        return _installWindows(path, tempDirPath, onQuit);
       }
       if (Platform.isMacOS) {
         return _installMacos(path, tempDirPath, onQuit);
@@ -294,22 +315,33 @@ $body
   }
 
   /// Inno Setup runs unattended with `/SILENT`; `/RELAUNCH` is our own flag,
-  /// handled by the `[Run]` entry in windows/packaging/exe/inno_setup.iss. The
-  /// installer is started by a detached watcher rather than directly, so the
-  /// core and the system proxy are torn down before its KillProcesses step
-  /// gets a chance to kill us mid-shutdown.
+  /// handled by the `[Run]` entry in windows/packaging/exe/inno_setup.iss.
+  ///
+  /// Use a small detached `cmd.exe` watcher instead of PowerShell. PowerShell
+  /// can be disabled by enterprise policy, and failures in a detached command
+  /// are otherwise invisible after the app exits. The watcher only relies on
+  /// Windows system tools, waits for our clean shutdown, and asks Inno to keep
+  /// a diagnostic log if setup cannot complete.
   static Future<String?> _installWindows(
     String installerPath,
+    String tempDirPath,
     Future<void> Function()? onQuit,
   ) async {
-    await Process.start('powershell', [
-      '-NoProfile',
-      '-NonInteractive',
-      '-Command',
-      'Wait-Process -Id $pid -ErrorAction SilentlyContinue; '
-          "Start-Process -FilePath '$installerPath' "
-          "-ArgumentList '/SILENT','/NORESTART','/RELAUNCH'",
-    ], mode: ProcessStartMode.detached);
+    final watcherPath = p.join(tempDirPath, 'dhqclash-update-watcher-$pid.cmd');
+    await File(watcherPath).writeAsString(windowsUpdateWatcherScript());
+
+    final cmd =
+        Platform.environment['ComSpec'] ?? r'C:\Windows\System32\cmd.exe';
+    await Process.start(
+      cmd,
+      ['/d', '/s', '/c', r'call "%DHQCLASH_WATCHER%"'],
+      environment: {
+        'DHQCLASH_UPDATER_PID': '$pid',
+        'DHQCLASH_INSTALLER': installerPath,
+        'DHQCLASH_WATCHER': watcherPath,
+      },
+      mode: ProcessStartMode.detached,
+    );
     await _quit(onQuit);
     return null;
   }
