@@ -19,6 +19,58 @@ ArchitecturesAllowed={{ARCH}}
 ArchitecturesInstallIn64BitMode={{ARCH}}
 
 [Code]
+const
+  SYNCHRONIZE = $00100000;
+
+function OpenProcess(
+  dwDesiredAccess: LongWord;
+  bInheritHandle: Boolean;
+  dwProcessId: LongWord
+): THandle;
+  external 'OpenProcess@kernel32.dll stdcall';
+function WaitForSingleObject(hHandle: THandle; dwMilliseconds: LongWord): LongWord;
+  external 'WaitForSingleObject@kernel32.dll stdcall';
+function CloseHandle(hObject: THandle): Boolean;
+  external 'CloseHandle@kernel32.dll stdcall';
+
+function UpdaterProcessId(): LongWord;
+var
+  i: Integer;
+  Parameter: String;
+  Prefix: String;
+begin
+  Result := 0;
+  Prefix := '/UPDATERPID=';
+  for i := 1 to ParamCount do
+  begin
+    Parameter := ParamStr(i);
+    if CompareText(Copy(Parameter, 1, Length(Prefix)), Prefix) = 0 then
+    begin
+      Result := StrToIntDef(Copy(Parameter, Length(Prefix) + 1, MaxInt), 0);
+      Exit;
+    end;
+  end;
+end;
+
+procedure WaitForUpdater;
+var
+  UpdaterPid: LongWord;
+  UpdaterHandle: THandle;
+begin
+  UpdaterPid := UpdaterProcessId();
+  if UpdaterPid = 0 then
+    Exit;
+
+  UpdaterHandle := OpenProcess(SYNCHRONIZE, False, UpdaterPid);
+  if UpdaterHandle <> 0 then
+  begin
+    { The app normally exits within three seconds. The timeout prevents a
+      broken shutdown from blocking a manually launched installer forever. }
+    WaitForSingleObject(UpdaterHandle, 120000);
+    CloseHandle(UpdaterHandle);
+  end;
+end;
+
 procedure KillProcesses;
 var
   Processes: TArrayOfString;
@@ -35,6 +87,7 @@ end;
 
 function InitializeSetup(): Boolean;
 begin
+  WaitForUpdater;
   KillProcesses;
   Result := True;
 end;
