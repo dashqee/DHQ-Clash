@@ -1,3 +1,7 @@
+## v1.1.3
+
+- Restore the DHQClash app icon in the macOS sidebar while keeping the native title-bar clearance
+
 ## v1.1.2
 
 - Launch Windows in-app updates directly through the system elevation flow, keep the app open through UAC confirmation, then wait for its clean shutdown inside the installer before replacing files and relaunching
