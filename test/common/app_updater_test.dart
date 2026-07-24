@@ -16,4 +16,37 @@ void main() {
       contains(r'/LOG="C:\Users\Test User\AppData\Local\Temp\install.log"'),
     );
   });
+
+  test(
+    'macOS writable update does not request admin for existing TUN access',
+    () {
+      final plan = macOSUpdateAccessPlan(
+        coreHasElevatedAccess: true,
+        appDirectoryIsWritable: true,
+      );
+
+      expect(plan.requiresAdmin, isFalse);
+      expect(plan.preserveCoreAccess, isFalse);
+    },
+  );
+
+  test('macOS privileged update preserves existing TUN access', () {
+    final plan = macOSUpdateAccessPlan(
+      coreHasElevatedAccess: true,
+      appDirectoryIsWritable: false,
+    );
+
+    expect(plan.requiresAdmin, isTrue);
+    expect(plan.preserveCoreAccess, isTrue);
+  });
+
+  test('macOS update does not install TUN access when it was absent', () {
+    final plan = macOSUpdateAccessPlan(
+      coreHasElevatedAccess: false,
+      appDirectoryIsWritable: false,
+    );
+
+    expect(plan.requiresAdmin, isTrue);
+    expect(plan.preserveCoreAccess, isFalse);
+  });
 }
