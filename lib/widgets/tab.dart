@@ -1109,6 +1109,7 @@ class _RenderSegmentedControl<T extends Object> extends RenderBox
   }
 
   void _paintThumb(PaintingContext context, Offset offset, Rect thumbRect) {
+    final gradient = thumbGradient;
     final RSuperellipse thumbRSuperellipse = RSuperellipse.fromRectAndRadius(
       thumbRect.shift(offset),
       _kThumbRadius,
@@ -1122,8 +1123,9 @@ class _RenderSegmentedControl<T extends Object> extends RenderBox
     context.canvas.drawRSuperellipse(
       thumbRSuperellipse,
       Paint()
-        ..color = thumbColor
-        ..shader = thumbGradient?.createShader(thumbRect.shift(offset)),
+        // macOS modulates shader opacity with the paint color alpha.
+        ..color = gradient == null ? thumbColor : Colors.white
+        ..shader = gradient?.createShader(thumbRect.shift(offset)),
     );
   }
 
