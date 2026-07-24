@@ -197,7 +197,7 @@ void main() {
 
   group('parseReleaseBody', () {
     test('extracts bullet points', () {
-      const body = '- Feature 1\n- Feature 2\n- Bug fix';
+      const body = '- Feature 1\n* Feature 2\n+ Bug fix';
       final result = utils.parseReleaseBody(body);
       expect(result, ['Feature 1', 'Feature 2', 'Bug fix']);
     });
@@ -210,6 +210,32 @@ void main() {
       const body = 'Header\n- Item 1\nFooter\n- Item 2';
       final result = utils.parseReleaseBody(body);
       expect(result, ['Item 1', 'Item 2']);
+    });
+  });
+
+  group('formatReleaseNotes', () {
+    test('formats GitHub release markdown for the update dialog', () {
+      const body = '''
+## What's Changed
+
+* **Feature** by [author](https://example.com)
+1. Open settings
+
+`SHA256SUMS`
+''';
+
+      expect(utils.formatReleaseNotes(body), '''
+What's Changed
+
+• Feature by author (https://example.com)
+1. Open settings
+
+SHA256SUMS''');
+    });
+
+    test('returns empty formatted notes for null and blank input', () {
+      expect(utils.formatReleaseNotes(null), isEmpty);
+      expect(utils.formatReleaseNotes(' \n '), isEmpty);
     });
   });
 

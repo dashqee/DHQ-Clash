@@ -75,7 +75,8 @@ class CommonAction extends _$CommonAction {
   Future<void> checkForUpdate() async {
     final updateChannel = ref.read(appSettingProvider).updateChannel;
     final data = await globalState.safeRun<Map<String, dynamic>?>(
-      () => request.checkForUpdate(channel: updateChannel),
+      () =>
+          request.checkForUpdate(channel: updateChannel, includeCurrent: true),
       title: currentAppLocalizations.checkUpdate,
     );
     await checkUpdateResultHandle(data: data, isUser: true);
@@ -88,26 +89,39 @@ class CommonAction extends _$CommonAction {
     if (data != null) {
       final tagName = (data['version'] ?? '').toString();
       final body = (data['notes'] ?? '').toString();
-      final submits = utils.parseReleaseBody(body);
+      final releaseNotes = utils.formatReleaseNotes(body);
+      final hasUpdate =
+          data['_hasUpdate'] as bool? ??
+          utils.compareVersions(tagName, globalState.packageInfo.version) > 0;
       final context = globalState.navigatorKey.currentContext!;
       final textTheme = context.textTheme;
       final res = await globalState.showMessage(
-        title: currentAppLocalizations.discoverNewVersion,
+        title: hasUpdate
+            ? currentAppLocalizations.discoverNewVersion
+            : currentAppLocalizations.latestVersion,
         message: TextSpan(
           text: '$tagName \n',
           style: textTheme.headlineSmall,
           children: [
-            TextSpan(text: '\n', style: textTheme.bodyMedium),
-            for (final submit in submits)
-              TextSpan(text: '- $submit \n', style: textTheme.bodyMedium),
+            TextSpan(
+              text:
+                  '\n${currentAppLocalizations.releaseNotes}\n\n'
+                  '${releaseNotes.isEmpty ? currentAppLocalizations.noInfo : releaseNotes}',
+              style: textTheme.bodyMedium,
+            ),
           ],
         ),
-        confirmText: currentAppLocalizations.goDownload,
-        cancelText: isUser ? null : currentAppLocalizations.noLongerRemind,
+        confirmText: hasUpdate ? currentAppLocalizations.goDownload : null,
+        cancelText: hasUpdate && !isUser
+            ? currentAppLocalizations.noLongerRemind
+            : null,
+        cancelable: hasUpdate,
+        maxWidth: 480,
+        maxHeight: 420,
       );
-      if (res == true) {
+      if (hasUpdate && res == true) {
         await _downloadAndInstallUpdate(data);
-      } else if (!isUser && res == false) {
+      } else if (hasUpdate && !isUser && res == false) {
         ref
             .read(appSettingProvider.notifier)
             .update((state) => state.copyWith(autoCheckUpdate: false));
