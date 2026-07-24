@@ -110,13 +110,19 @@ class Request {
     return MemoryImage(data);
   }
 
-  Future<Map<String, dynamic>?> checkForUpdate() async {
+  Future<Map<String, dynamic>?> checkForUpdate({
+    UpdateChannel channel = UpdateChannel.stable,
+  }) async {
     final pa = updatePlatformArch();
     if (pa == null) return null;
     try {
       final response = await dio.get(
         '$updateBaseUrl/api/app/latest',
-        queryParameters: {'platform': pa.$1, 'arch': pa.$2},
+        queryParameters: {
+          'platform': pa.$1,
+          'arch': pa.$2,
+          'channel': channel.name,
+        },
         options: Options(responseType: ResponseType.json),
       );
       if (response.statusCode != 200) return null;
@@ -124,8 +130,7 @@ class Request {
       if (data['update'] != true) return null;
       final remoteVersion = (data['version'] ?? '').toString();
       final version = globalState.packageInfo.version;
-      final hasUpdate =
-          utils.compareVersions(remoteVersion.replaceAll('v', ''), version) > 0;
+      final hasUpdate = utils.compareVersions(remoteVersion, version) > 0;
       if (!hasUpdate) return null;
       return data;
     } catch (e) {

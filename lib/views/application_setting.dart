@@ -1,5 +1,8 @@
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/providers/config.dart';
+import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -268,6 +271,54 @@ class AutoCheckUpdateItem extends ConsumerWidget {
   }
 }
 
+class UpdateChannelItem extends ConsumerWidget {
+  const UpdateChannelItem({super.key});
+
+  String _channelLabel(UpdateChannel channel, AppLocalizations localizations) {
+    return switch (channel) {
+      UpdateChannel.stable => localizations.stableUpdateChannel,
+      UpdateChannel.beta => localizations.betaUpdateChannel,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appLocalizations = context.appLocalizations;
+    final updateChannel = ref.watch(
+      appSettingProvider.select((state) => state.updateChannel),
+    );
+    return ListItem<UpdateChannel>.options(
+      title: Text(appLocalizations.updateChannel),
+      subtitle: Text(_channelLabel(updateChannel, appLocalizations)),
+      delegate: OptionsDelegate<UpdateChannel>(
+        title: appLocalizations.updateChannel,
+        options: UpdateChannel.values,
+        value: updateChannel,
+        textBuilder: (value) => _channelLabel(value, appLocalizations),
+        onChanged: (value) async {
+          if (value == null || value == updateChannel) {
+            return;
+          }
+          if (value == UpdateChannel.beta) {
+            final confirmed = await globalState.showMessage(
+              title: appLocalizations.betaUpdateWarningTitle,
+              message: TextSpan(
+                text: appLocalizations.betaUpdateWarningDescription,
+              ),
+            );
+            if (confirmed != true) {
+              return;
+            }
+          }
+          ref
+              .read(appSettingProvider.notifier)
+              .update((state) => state.copyWith(updateChannel: value));
+        },
+      ),
+    );
+  }
+}
+
 class ApplicationSettingView extends StatelessWidget {
   const ApplicationSettingView({super.key});
 
@@ -287,6 +338,7 @@ class ApplicationSettingView extends StatelessWidget {
       const UsageItem(),
       if (system.isAndroid) const CrashlyticsItem(),
       const AutoCheckUpdateItem(),
+      const UpdateChannelItem(),
     ];
     return BaseScaffold(
       title: context.appLocalizations.application,

@@ -93,6 +93,13 @@ extension UsedProxyExtension on UsedProxy {
 
 enum Mode { rule, global, direct }
 
+enum UpdateChannel {
+  @JsonValue('stable')
+  stable,
+  @JsonValue('beta')
+  beta,
+}
+
 enum ViewMode { mobile, laptop, desktop }
 
 enum LogLevel { debug, info, warning, error, silent }

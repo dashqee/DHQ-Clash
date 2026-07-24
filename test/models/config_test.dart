@@ -105,6 +105,7 @@ void main() {
       expect(restored.closeConnections, true);
       expect(restored.isAnimateToPage, true);
       expect(restored.autoCheckUpdate, true);
+      expect(restored.updateChannel, UpdateChannel.stable);
       expect(restored.showLabel, false);
       expect(restored.minimizeOnExit, true);
       expect(restored.restoreStrategy, RestoreStrategy.compatible);
@@ -126,6 +127,7 @@ void main() {
         onlyStatisticsProxy: true,
         autoLaunch: true,
         closeConnections: false,
+        updateChannel: UpdateChannel.beta,
         testUrl: 'https://custom.test',
         customUserAgent: 'CustomUA/1.0',
       );
@@ -137,6 +139,7 @@ void main() {
       expect(restored.onlyStatisticsProxy, true);
       expect(restored.autoLaunch, true);
       expect(restored.closeConnections, false);
+      expect(restored.updateChannel, UpdateChannel.beta);
       expect(restored.testUrl, 'https://custom.test');
       expect(restored.customUserAgent, 'CustomUA/1.0');
     });

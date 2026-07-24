@@ -205,6 +205,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "batteryOptimizationStatusTip": MessageLookupByLibrary.simpleMessage(
       "Из-за особенностей системы этот статус не всегда может быть точным.",
     ),
+    "betaUpdateChannel": MessageLookupByLibrary.simpleMessage("Бета"),
+    "betaUpdateWarningDescription": MessageLookupByLibrary.simpleMessage(
+      "Бета-сборки могут содержать ошибки. Вы будете получать тестовые обновления до стабильного релиза.",
+    ),
+    "betaUpdateWarningTitle": MessageLookupByLibrary.simpleMessage(
+      "Переключиться на бета-обновления?",
+    ),
     "bind": MessageLookupByLibrary.simpleMessage("Привязать"),
     "blacklistMode": MessageLookupByLibrary.simpleMessage(
       "Режим черного списка",
@@ -1000,6 +1007,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Стратегия разделения не может быть пустой",
     ),
     "ssidsEmpty": MessageLookupByLibrary.simpleMessage("SSIDs is empty"),
+    "stableUpdateChannel": MessageLookupByLibrary.simpleMessage("Стабильный"),
     "stackMode": MessageLookupByLibrary.simpleMessage("Режим стека"),
     "standard": MessageLookupByLibrary.simpleMessage("Стандартный"),
     "standardModeDesc": MessageLookupByLibrary.simpleMessage(
@@ -1084,6 +1092,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "unnamed": MessageLookupByLibrary.simpleMessage("Без имени"),
     "update": MessageLookupByLibrary.simpleMessage("Обновить"),
+    "updateChannel": MessageLookupByLibrary.simpleMessage("Канал обновлений"),
     "upload": MessageLookupByLibrary.simpleMessage("Загрузка"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage(

@@ -102,6 +102,7 @@ jobs:
       - name: Get Flutter Dependency
         run: |
           flutter --version
+          dart tool/release_version.dart "${{ github.ref_name }}" "${{ github.run_number }}"
           flutter pub get
 
       - name: Build

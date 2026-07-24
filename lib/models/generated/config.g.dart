@@ -21,6 +21,9 @@ _AppSettingProps _$AppSettingPropsFromJson(Map<String, dynamic> json) =>
       testUrl: json['testUrl'] as String? ?? defaultTestUrl,
       isAnimateToPage: json['isAnimateToPage'] as bool? ?? true,
       autoCheckUpdate: json['autoCheckUpdate'] as bool? ?? true,
+      updateChannel:
+          $enumDecodeNullable(_$UpdateChannelEnumMap, json['updateChannel']) ??
+          UpdateChannel.stable,
       showLabel: json['showLabel'] as bool? ?? false,
       disclaimerAccepted: json['disclaimerAccepted'] as bool? ?? false,
       crashlyticsTip: json['crashlyticsTip'] as bool? ?? false,
@@ -53,6 +56,7 @@ Map<String, dynamic> _$AppSettingPropsToJson(_AppSettingProps instance) =>
       'testUrl': instance.testUrl,
       'isAnimateToPage': instance.isAnimateToPage,
       'autoCheckUpdate': instance.autoCheckUpdate,
+      'updateChannel': _$UpdateChannelEnumMap[instance.updateChannel]!,
       'showLabel': instance.showLabel,
       'disclaimerAccepted': instance.disclaimerAccepted,
       'crashlyticsTip': instance.crashlyticsTip,
@@ -64,6 +68,11 @@ Map<String, dynamic> _$AppSettingPropsToJson(_AppSettingProps instance) =>
       'showTrayTitle': instance.showTrayTitle,
       'customUserAgent': instance.customUserAgent,
     };
+
+const _$UpdateChannelEnumMap = {
+  UpdateChannel.stable: 'stable',
+  UpdateChannel.beta: 'beta',
+};
 
 const _$RestoreStrategyEnumMap = {
   RestoreStrategy.compatible: 'compatible',

@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 
 import '../setup.dart' as setup;
+import '../tool/release_version.dart' as release_version;
 
 void main() {
   group('setup.dart', () {
@@ -31,6 +32,31 @@ void main() {
         'dart-define-from-file=env.json',
         'split-per-abi',
       ]);
+    });
+  });
+
+  group('release version', () {
+    test('uses prerelease tag and a dated Android build number', () {
+      final pubspec = release_version.withReleaseVersion(
+        'name: fl_clash\nversion: 1.1.5+2026072406\n',
+        tag: 'v1.2.0-beta.2',
+        runNumber: 17,
+        now: DateTime.utc(2026, 7, 25),
+      );
+
+      expect(pubspec, contains('version: 1.2.0-beta.2+2026072517'));
+    });
+
+    test('rejects branch names as release versions', () {
+      expect(
+        () => release_version.withReleaseVersion(
+          'version: 1.1.5+1\n',
+          tag: 'feature/test',
+          runNumber: 1,
+          now: DateTime.utc(2026),
+        ),
+        throwsFormatException,
+      );
     });
   });
 }

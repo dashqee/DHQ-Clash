@@ -156,6 +156,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "batteryOptimizationStatusTip": MessageLookupByLibrary.simpleMessage(
       "システムの影響により、この状態は必ずしも正確とは限りません。",
     ),
+    "betaUpdateChannel": MessageLookupByLibrary.simpleMessage("ベータ"),
+    "betaUpdateWarningDescription": MessageLookupByLibrary.simpleMessage(
+      "ベータ版には不具合が含まれる場合があります。安定版の公開前にテスト更新を受け取ります。",
+    ),
+    "betaUpdateWarningTitle": MessageLookupByLibrary.simpleMessage(
+      "ベータ更新に切り替えますか？",
+    ),
     "bind": MessageLookupByLibrary.simpleMessage("バインド"),
     "blacklistMode": MessageLookupByLibrary.simpleMessage("ブラックリストモード"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("バイパスドメイン"),
@@ -771,6 +778,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "分流戦略は空にできません",
     ),
     "ssidsEmpty": MessageLookupByLibrary.simpleMessage("SSIDs is empty"),
+    "stableUpdateChannel": MessageLookupByLibrary.simpleMessage("安定版"),
     "stackMode": MessageLookupByLibrary.simpleMessage("スタックモード"),
     "standard": MessageLookupByLibrary.simpleMessage("標準"),
     "standardModeDesc": MessageLookupByLibrary.simpleMessage(
@@ -831,6 +839,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "unknownNetworkError": MessageLookupByLibrary.simpleMessage("不明なネットワークエラー"),
     "unnamed": MessageLookupByLibrary.simpleMessage("無題"),
     "update": MessageLookupByLibrary.simpleMessage("更新"),
+    "updateChannel": MessageLookupByLibrary.simpleMessage("更新チャンネル"),
     "upload": MessageLookupByLibrary.simpleMessage("アップロード"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage("URL経由でプロファイルを取得"),

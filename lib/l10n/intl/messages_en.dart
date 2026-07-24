@@ -204,6 +204,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "batteryOptimizationStatusTip": MessageLookupByLibrary.simpleMessage(
       "Affected by the system, this status may not always be accurate.",
     ),
+    "betaUpdateChannel": MessageLookupByLibrary.simpleMessage("Beta"),
+    "betaUpdateWarningDescription": MessageLookupByLibrary.simpleMessage(
+      "Beta builds may contain bugs. You will receive preview updates before the stable release.",
+    ),
+    "betaUpdateWarningTitle": MessageLookupByLibrary.simpleMessage(
+      "Switch to beta updates?",
+    ),
     "bind": MessageLookupByLibrary.simpleMessage("Bind"),
     "blacklistMode": MessageLookupByLibrary.simpleMessage("Blacklist mode"),
     "bypassDomain": MessageLookupByLibrary.simpleMessage("Bypass domain"),
@@ -949,6 +956,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Split strategy cannot be empty",
     ),
     "ssidsEmpty": MessageLookupByLibrary.simpleMessage("SSIDs is empty"),
+    "stableUpdateChannel": MessageLookupByLibrary.simpleMessage("Stable"),
     "stackMode": MessageLookupByLibrary.simpleMessage("Stack mode"),
     "standard": MessageLookupByLibrary.simpleMessage("Standard"),
     "standardModeDesc": MessageLookupByLibrary.simpleMessage(
@@ -1023,6 +1031,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "unnamed": MessageLookupByLibrary.simpleMessage("Unnamed"),
     "update": MessageLookupByLibrary.simpleMessage("Update"),
+    "updateChannel": MessageLookupByLibrary.simpleMessage("Update channel"),
     "upload": MessageLookupByLibrary.simpleMessage("Upload"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage(

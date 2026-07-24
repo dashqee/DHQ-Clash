@@ -394,6 +394,51 @@ class AppLocalizations {
     );
   }
 
+  /// `Update channel`
+  String get updateChannel {
+    return Intl.message(
+      'Update channel',
+      name: 'updateChannel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Stable`
+  String get stableUpdateChannel {
+    return Intl.message(
+      'Stable',
+      name: 'stableUpdateChannel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Beta`
+  String get betaUpdateChannel {
+    return Intl.message('Beta', name: 'betaUpdateChannel', desc: '', args: []);
+  }
+
+  /// `Switch to beta updates?`
+  String get betaUpdateWarningTitle {
+    return Intl.message(
+      'Switch to beta updates?',
+      name: 'betaUpdateWarningTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Beta builds may contain bugs. You will receive preview updates before the stable release.`
+  String get betaUpdateWarningDescription {
+    return Intl.message(
+      'Beta builds may contain bugs. You will receive preview updates before the stable release.',
+      name: 'betaUpdateWarningDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `AccessControl`
   String get accessControl {
     return Intl.message(

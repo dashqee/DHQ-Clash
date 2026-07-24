@@ -126,6 +126,25 @@ void main() {
     test('handles missing minor/patch', () {
       expect(utils.compareVersions('1', '1.0.0'), 0);
     });
+
+    test('orders prerelease versions before stable versions', () {
+      expect(utils.compareVersions('1.1.6-beta.1', '1.1.6'), lessThan(0));
+      expect(utils.compareVersions('1.1.6', '1.1.6-beta.2'), greaterThan(0));
+    });
+
+    test('orders sequential beta versions', () {
+      expect(
+        utils.compareVersions('v1.1.6-beta.2', '1.1.6-beta.1'),
+        greaterThan(0),
+      );
+    });
+
+    test('preserves prerelease identifiers after a leading v', () {
+      expect(
+        utils.compareVersions('v1.1.6-dev.2', '1.1.6-dev.1'),
+        greaterThan(0),
+      );
+    });
   });
 
   group('getViewMode', () {

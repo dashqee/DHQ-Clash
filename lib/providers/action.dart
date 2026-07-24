@@ -66,14 +66,16 @@ class CommonAction extends _$CommonAction {
   }
 
   Future<void> autoCheckUpdate() async {
-    if (!ref.read(appSettingProvider).autoCheckUpdate) return;
-    final res = await request.checkForUpdate();
+    final appSetting = ref.read(appSettingProvider);
+    if (!appSetting.autoCheckUpdate) return;
+    final res = await request.checkForUpdate(channel: appSetting.updateChannel);
     checkUpdateResultHandle(data: res);
   }
 
   Future<void> checkForUpdate() async {
+    final updateChannel = ref.read(appSettingProvider).updateChannel;
     final data = await globalState.safeRun<Map<String, dynamic>?>(
-      request.checkForUpdate,
+      () => request.checkForUpdate(channel: updateChannel),
       title: currentAppLocalizations.checkUpdate,
     );
     await checkUpdateResultHandle(data: data, isUser: true);
