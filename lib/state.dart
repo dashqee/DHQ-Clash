@@ -175,6 +175,8 @@ class GlobalState {
     String? cancelText,
     bool cancelable = true,
     bool? dismissible,
+    double maxWidth = 300,
+    double maxHeight = 200,
   }) async {
     return showCommonDialog<bool>(
       context: context,
@@ -184,6 +186,7 @@ class GlobalState {
           final appLocalizations = context.appLocalizations;
           return CommonDialog(
             title: title ?? appLocalizations.tip,
+            maxWidth: maxWidth,
             actions: [
               if (cancelable)
                 TextButton(
@@ -200,8 +203,8 @@ class GlobalState {
               ),
             ],
             child: Container(
-              width: 300,
-              constraints: const BoxConstraints(maxHeight: 200),
+              width: maxWidth,
+              constraints: BoxConstraints(maxHeight: maxHeight),
               child: SingleChildScrollView(
                 child: SelectableText.rich(
                   TextSpan(

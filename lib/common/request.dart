@@ -112,6 +112,7 @@ class Request {
 
   Future<Map<String, dynamic>?> checkForUpdate({
     UpdateChannel channel = UpdateChannel.stable,
+    bool includeCurrent = false,
   }) async {
     final pa = updatePlatformArch();
     if (pa == null) return null;
@@ -131,8 +132,8 @@ class Request {
       final remoteVersion = (data['version'] ?? '').toString();
       final version = globalState.packageInfo.version;
       final hasUpdate = utils.compareVersions(remoteVersion, version) > 0;
-      if (!hasUpdate) return null;
-      return data;
+      if (!hasUpdate && !includeCurrent) return null;
+      return {...data, '_hasUpdate': hasUpdate};
     } catch (e) {
       commonPrint.log('checkForUpdate failed', logLevel: LogLevel.warning);
       return null;

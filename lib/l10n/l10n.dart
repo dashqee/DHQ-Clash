@@ -1029,6 +1029,26 @@ class AppLocalizations {
     );
   }
 
+  /// `Latest version`
+  String get latestVersion {
+    return Intl.message(
+      'Latest version',
+      name: 'latestVersion',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `What's new`
+  String get releaseNotes {
+    return Intl.message(
+      'What\'s new',
+      name: 'releaseNotes',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Discover the new version`
   String get discoverNewVersion {
     return Intl.message(

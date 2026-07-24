@@ -130,6 +130,8 @@
   "addressTip": "Пожалуйста, введите действительный адрес WebDAV",
   "password": "Пароль",
   "checkUpdate": "Проверить обновления",
+  "latestVersion": "Последняя версия",
+  "releaseNotes": "Что нового",
   "discoverNewVersion": "Обнаружена новая версия",
   "checkUpdateError": "Текущее приложение уже является последней версией",
   "goDownload": "Перейти к загрузке",

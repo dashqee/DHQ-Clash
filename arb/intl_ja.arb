@@ -130,6 +130,8 @@
   "addressTip": "有効なWebDAVアドレスを入力",
   "password": "パスワード",
   "checkUpdate": "更新を確認",
+  "latestVersion": "最新バージョン",
+  "releaseNotes": "新着情報",
   "discoverNewVersion": "新バージョンを発見",
   "checkUpdateError": "アプリは最新版です",
   "goDownload": "ダウンロードへ",

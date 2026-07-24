@@ -158,9 +158,9 @@ class Utils {
   }
 
   int compareVersions(String version1, String version2) {
-    return Version.parse(_normalizeVersion(version1)).compareTo(
-      Version.parse(_normalizeVersion(version2)),
-    );
+    return Version.parse(
+      _normalizeVersion(version1),
+    ).compareTo(Version.parse(_normalizeVersion(version2)));
   }
 
   String _normalizeVersion(String value) {
@@ -214,13 +214,33 @@ class Utils {
 
   List<String> parseReleaseBody(String? body) {
     if (body == null) return [];
-    const pattern = r'- \s*(.*)';
-    final regex = RegExp(pattern);
+    final regex = RegExp(r'^\s*[-*+]\s+(.+)$', multiLine: true);
     return regex
         .allMatches(body)
         .map((match) => match.group(1) ?? '')
         .where((item) => item.isNotEmpty)
         .toList();
+  }
+
+  String formatReleaseNotes(String? body) {
+    if (body == null || body.trim().isEmpty) return '';
+    final markdownLink = RegExp(r'\[([^\]]+)\]\(([^)]+)\)');
+    final heading = RegExp(r'^\s*#{1,6}\s+');
+    final bullet = RegExp(r'^\s*[-*+]\s+');
+    final lines = body.split('\n').map((line) {
+      var value = line.trimRight();
+      value = value.replaceFirst(heading, '');
+      value = value.replaceFirstMapped(bullet, (_) => '• ');
+      value = value.replaceAllMapped(
+        markdownLink,
+        (match) => '${match.group(1)} (${match.group(2)})',
+      );
+      return value
+          .replaceAll('**', '')
+          .replaceAll('__', '')
+          .replaceAll('`', '');
+    });
+    return lines.join('\n').replaceAll(RegExp(r'\n{3,}'), '\n\n').trim();
   }
 
   ViewMode getViewMode(double viewWidth) {

@@ -130,6 +130,8 @@
   "addressTip": "Please enter a valid WebDAV address",
   "password": "Password",
   "checkUpdate": "Check for updates",
+  "latestVersion": "Latest version",
+  "releaseNotes": "What's new",
   "discoverNewVersion": "Discover the new version",
   "checkUpdateError": "The current application is already the latest version",
   "goDownload": "Go to download",
