@@ -1,3 +1,6 @@
+## v1.1.4
+- Small bump to deliver in-app updates
+
 ## v1.1.3
 
 - Restore the DHQClash app icon in the macOS sidebar while keeping the native title-bar clearance
