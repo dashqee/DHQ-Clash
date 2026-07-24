@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/list.dart';
@@ -69,6 +70,19 @@ class AboutView extends StatelessWidget {
                             globalState.packageInfo.version,
                             style: Theme.of(context).textTheme.labelLarge,
                           ),
+                          if (ref.watch(
+                                appSettingProvider.select(
+                                  (state) => state.updateChannel,
+                                ),
+                              ) ==
+                              UpdateChannel.beta)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Chip(
+                                visualDensity: VisualDensity.compact,
+                                label: Text(appLocalizations.betaUpdateChannel),
+                              ),
+                            ),
                         ],
                       ),
                     ],

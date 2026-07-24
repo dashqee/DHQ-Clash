@@ -24,14 +24,21 @@ void main() {
       expect(value.autoLaunch, true);
       expect(value.closeConnections, true);
       expect(value.isAnimateToPage, true);
+      expect(value.updateChannel, UpdateChannel.stable);
     });
 
     test('can update state', () {
       container
           .read(appSettingProvider.notifier)
-          .update((_) => const AppSettingProps(autoLaunch: true));
+          .update(
+            (_) => const AppSettingProps(
+              autoLaunch: true,
+              updateChannel: UpdateChannel.beta,
+            ),
+          );
       final value = container.read(appSettingProvider);
       expect(value.autoLaunch, true);
+      expect(value.updateChannel, UpdateChannel.beta);
     });
   });
 
