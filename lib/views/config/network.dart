@@ -1,5 +1,6 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/providers/action.dart';
 import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
@@ -50,6 +51,116 @@ class TUNItem extends ConsumerWidget {
               .read(patchClashConfigProvider.notifier)
               .update((state) => state.copyWith.tun(enable: value));
         },
+      ),
+    );
+  }
+}
+
+class MacOSTunHelperItem extends ConsumerStatefulWidget {
+  final Future<bool> Function()? checkInstalled;
+  final Future<AuthorizeCode> Function()? install;
+  final Future<void> Function()? onInstalled;
+
+  const MacOSTunHelperItem({
+    super.key,
+    this.checkInstalled,
+    this.install,
+    this.onInstalled,
+  });
+
+  @override
+  ConsumerState<MacOSTunHelperItem> createState() => _MacOSTunHelperItemState();
+}
+
+class _MacOSTunHelperItemState extends ConsumerState<MacOSTunHelperItem> {
+  bool? _installed;
+  bool _installing = false;
+
+  Future<bool> _checkInstalled() {
+    return widget.checkInstalled?.call() ?? system.checkIsAdmin();
+  }
+
+  Future<AuthorizeCode> _install() {
+    return widget.install?.call() ??
+        system.authorizeCore(forceMacOSHelperInstall: true);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshStatus();
+  }
+
+  Future<void> _refreshStatus() async {
+    final installed = await _checkInstalled();
+    if (!mounted) return;
+    setState(() {
+      _installed = installed;
+    });
+  }
+
+  Future<void> _handleInstall() async {
+    if (_installing || _installed == true) return;
+    setState(() {
+      _installing = true;
+    });
+
+    var installed = false;
+    try {
+      final code = await _install();
+      if (code == AuthorizeCode.success) {
+        if (widget.onInstalled != null) {
+          await widget.onInstalled!();
+        } else {
+          await ref.read(coreActionProvider.notifier).restartCore();
+        }
+      }
+      installed = await _checkInstalled();
+    } catch (error) {
+      commonPrint.log(
+        'macOS TUN access install failed: $error',
+        logLevel: LogLevel.warning,
+      );
+    }
+    if (!mounted) return;
+    setState(() {
+      _installed = installed;
+      _installing = false;
+    });
+    context.showNotifier(
+      installed
+          ? context.appLocalizations.macosTunHelperInstallSuccess
+          : context.appLocalizations.macosTunHelperInstallFailed,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appLocalizations = context.appLocalizations;
+    final installed = _installed == true;
+    return ListItem(
+      title: Text(appLocalizations.macosTunHelper),
+      subtitle: Text(
+        installed
+            ? appLocalizations.macosTunHelperInstalled
+            : appLocalizations.macosTunHelperDesc,
+      ),
+      trailing: CommonMinFilledButtonTheme(
+        child: FilledButton.tonal(
+          onPressed: _installed == false && !_installing
+              ? _handleInstall
+              : null,
+          child: _installing || _installed == null
+              ? const SizedBox.square(
+                  dimension: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(
+                  installed
+                      ? appLocalizations.authorized
+                      : appLocalizations.macosTunHelperInstall,
+                ),
+        ),
       ),
     );
   }
@@ -358,6 +469,7 @@ class NetworkListView extends StatelessWidget {
         title: appLocalizations.options,
         items: [
           if (system.isDesktop) const TUNItem(),
+          if (system.isMacOS) const MacOSTunHelperItem(),
           if (system.isMacOS) const AutoSetSystemDnsItem(),
           const TunStackItem(),
           if (!system.isDesktop) ...[

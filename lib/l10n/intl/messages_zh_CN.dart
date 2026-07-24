@@ -387,6 +387,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "loopback": MessageLookupByLibrary.simpleMessage("回环解锁工具"),
     "loopbackDesc": MessageLookupByLibrary.simpleMessage("用于UWP回环解锁"),
     "loose": MessageLookupByLibrary.simpleMessage("宽松"),
+    "macosTunHelper": MessageLookupByLibrary.simpleMessage("TUN 权限"),
+    "macosTunHelperDesc": MessageLookupByLibrary.simpleMessage(
+      "授予核心提升的权限。仅 TUN 模式需要。",
+    ),
+    "macosTunHelperInstall": MessageLookupByLibrary.simpleMessage("安装"),
+    "macosTunHelperInstallFailed": MessageLookupByLibrary.simpleMessage(
+      "未能安装 TUN 权限",
+    ),
+    "macosTunHelperInstallSuccess": MessageLookupByLibrary.simpleMessage(
+      "TUN 权限安装成功",
+    ),
+    "macosTunHelperInstalled": MessageLookupByLibrary.simpleMessage(
+      "已安装 TUN 权限",
+    ),
     "matchSourceIp": MessageLookupByLibrary.simpleMessage("匹配来源IP"),
     "maxFailedTimes": MessageLookupByLibrary.simpleMessage("最大失败次数"),
     "memoryInfo": MessageLookupByLibrary.simpleMessage("内存信息"),

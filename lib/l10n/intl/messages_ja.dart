@@ -437,6 +437,20 @@ class MessageLookup extends MessageLookupByLibrary {
     "loopback": MessageLookupByLibrary.simpleMessage("ループバック解除ツール"),
     "loopbackDesc": MessageLookupByLibrary.simpleMessage("UWPループバック解除用"),
     "loose": MessageLookupByLibrary.simpleMessage("疎"),
+    "macosTunHelper": MessageLookupByLibrary.simpleMessage("TUN アクセス権"),
+    "macosTunHelperDesc": MessageLookupByLibrary.simpleMessage(
+      "コアに昇格権限を付与します。TUN モードでのみ必要です。",
+    ),
+    "macosTunHelperInstall": MessageLookupByLibrary.simpleMessage("インストール"),
+    "macosTunHelperInstallFailed": MessageLookupByLibrary.simpleMessage(
+      "TUN アクセス権をインストールできませんでした",
+    ),
+    "macosTunHelperInstallSuccess": MessageLookupByLibrary.simpleMessage(
+      "TUN アクセス権をインストールしました",
+    ),
+    "macosTunHelperInstalled": MessageLookupByLibrary.simpleMessage(
+      "TUN アクセス権はインストール済みです",
+    ),
     "matchSourceIp": MessageLookupByLibrary.simpleMessage("送信元IPをマッチング"),
     "maxFailedTimes": MessageLookupByLibrary.simpleMessage("最大失敗回数"),
     "memoryInfo": MessageLookupByLibrary.simpleMessage("メモリ情報"),
