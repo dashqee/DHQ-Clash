@@ -1,8 +1,7 @@
 name: release
 
 # Tag v* → signed android + windows + macos builds → GitHub Release.
-# Kept separate from upstream's build.yaml, which is wired to chen08209's
-# Telegram channel, Homebrew tap and F-Droid repo.
+# Kept separate from the legacy build workflow.
 on:
   push:
     tags:

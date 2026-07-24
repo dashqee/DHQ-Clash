@@ -42,7 +42,8 @@ class TUNButton extends StatelessWidget {
           iconData: Icons.stacked_line_chart,
         ),
         child: Container(
-          padding: baseInfoEdgeInsets.copyWith(top: 4, bottom: 8, right: 8),
+          alignment: Alignment.center,
+          padding: baseInfoEdgeInsets.copyWith(top: 0, bottom: 0, right: 16),
           child: Row(
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -68,6 +69,7 @@ class TUNButton extends StatelessWidget {
                     ),
                   );
                   return Switch(
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     value: enable,
                     onChanged: (value) {
                       ref
@@ -114,7 +116,8 @@ class SystemProxyButton extends StatelessWidget {
           iconData: Icons.shuffle,
         ),
         child: Container(
-          padding: baseInfoEdgeInsets.copyWith(top: 4, bottom: 8, right: 8),
+          alignment: Alignment.center,
+          padding: baseInfoEdgeInsets.copyWith(top: 0, bottom: 0, right: 16),
           child: Row(
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -188,7 +191,8 @@ class VpnButton extends StatelessWidget {
         },
         info: const Info(label: 'VPN', iconData: Icons.stacked_line_chart),
         child: Container(
-          padding: baseInfoEdgeInsets.copyWith(top: 4, bottom: 8, right: 8),
+          alignment: Alignment.center,
+          padding: baseInfoEdgeInsets.copyWith(top: 0, bottom: 0, right: 16),
           child: Row(
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -212,6 +216,7 @@ class VpnButton extends StatelessWidget {
                     vpnSettingProvider.select((state) => state.enable),
                   );
                   return Switch(
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     value: enable,
                     onChanged: (value) {
                       ref

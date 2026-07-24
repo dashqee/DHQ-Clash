@@ -1,10 +1,10 @@
 script_template: inno_setup.iss
-# NB: new AppId — the fork must never upgrade-in-place over an upstream FlClash
+# NB: the AppId is stable so DHQClash upgrades in place.
 # install (or vice versa).
 app_id: 4EAF3FAC-D1B3-4721-8B0F-27CAF2954346
 app_name: DHQClash
 publisher: dashqee
-publisher_url: https://github.com/dashqee/FlClash
+publisher_url: https://github.com/dashqee/DHQ-Clash
 display_name: DHQ Clash
 executable_name: DHQClash.exe
 output_base_file_name: DHQClash.exe

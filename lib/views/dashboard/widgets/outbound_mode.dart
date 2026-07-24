@@ -97,8 +97,41 @@ class OutboundMode extends StatelessWidget {
   }
 }
 
-class OutboundModeV2 extends StatelessWidget {
+class OutboundModeV2 extends ConsumerStatefulWidget {
   const OutboundModeV2({super.key});
+
+  @override
+  ConsumerState<OutboundModeV2> createState() => _OutboundModeV2State();
+}
+
+class _OutboundModeV2State extends ConsumerState<OutboundModeV2>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _gradientController;
+
+  @override
+  void initState() {
+    super.initState();
+    _gradientController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    ref.listenManual(patchClashConfigProvider.select((state) => state.mode), (
+      _,
+      mode,
+    ) {
+      if (mode == Mode.rule) {
+        _gradientController.forward(from: 0);
+      } else {
+        _gradientController.reset();
+      }
+    }, fireImmediately: true);
+  }
+
+  @override
+  void dispose() {
+    _gradientController.dispose();
+    super.dispose();
+  }
 
   void _handleChangeMode(Mode mode) {
     globalState.container.read(setupActionProvider.notifier).changeMode(mode);
@@ -124,7 +157,7 @@ class OutboundModeV2 extends StatelessWidget {
               patchClashConfigProvider.select((state) => state.mode),
             );
             final thumbColor = switch (mode) {
-              Mode.rule => context.colorScheme.secondaryContainer,
+              Mode.rule => Colors.transparent,
               Mode.global => globalState.theme.darken3PrimaryContainer,
               Mode.direct => context.colorScheme.tertiaryContainer,
             };
@@ -137,42 +170,65 @@ class OutboundModeV2 extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         constraints: const BoxConstraints.expand(),
-                        child: CommonTabBar<Mode>(
-                          children: Map.fromEntries(
-                            Mode.values.map(
-                              (item) => MapEntry(
-                                item,
-                                Container(
-                                  clipBehavior: Clip.antiAlias,
-                                  alignment: Alignment.center,
-                                  decoration: const BoxDecoration(),
-                                  height: height - 8.ap - 24,
-                                  padding: const EdgeInsets.all(4),
-                                  child: Text(
-                                    Intl.message(item.name),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.adjustSize(1)
-                                        .copyWith(
-                                          color: item == mode
-                                              ? _getTextColor(context, item)
-                                              : null,
-                                        ),
+                        child: AnimatedBuilder(
+                          animation: _gradientController,
+                          builder: (_, _) {
+                            final shimmerOffset =
+                                sin(pi * _gradientController.value) * 0.4;
+                            return CommonTabBar<Mode>(
+                              children: Map.fromEntries(
+                                Mode.values.map(
+                                  (item) => MapEntry(
+                                    item,
+                                    Container(
+                                      clipBehavior: Clip.antiAlias,
+                                      alignment: Alignment.center,
+                                      decoration: const BoxDecoration(),
+                                      height: height - 8.ap - 24,
+                                      padding: const EdgeInsets.all(4),
+                                      child: Text(
+                                        Intl.message(item.name),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleSmall
+                                            ?.adjustSize(1)
+                                            .copyWith(
+                                              color: item == mode
+                                                  ? _getTextColor(context, item)
+                                                  : null,
+                                            ),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 0),
-                          groupValue: mode,
-                          onValueChanged: (value) {
-                            if (value == null) {
-                              return;
-                            }
-                            _handleChangeMode(value);
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 0,
+                              ),
+                              groupValue: mode,
+                              onValueChanged: (value) {
+                                if (value == null) {
+                                  return;
+                                }
+                                _handleChangeMode(value);
+                              },
+                              thumbColor: thumbColor,
+                              thumbGradient: mode == Mode.rule
+                                  ? LinearGradient(
+                                      begin: Alignment(
+                                        -1 + shimmerOffset,
+                                        -0.15,
+                                      ),
+                                      end: Alignment(1 + shimmerOffset, 0.15),
+                                      colors: const [
+                                        AppTheme.violet,
+                                        AppTheme.blue,
+                                        AppTheme.cyan,
+                                      ],
+                                    )
+                                  : null,
+                            );
                           },
-                          thumbColor: thumbColor,
                         ),
                       ),
                     ),

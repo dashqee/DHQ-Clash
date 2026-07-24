@@ -13,7 +13,6 @@
   <a href="https://github.com/dashqee/DHQ-Clash/releases/latest"><img alt="Последняя версия" src="https://img.shields.io/github/v/release/dashqee/DHQ-Clash?style=flat-square"></a>
   <a href="https://github.com/dashqee/DHQ-Clash/releases"><img alt="Загрузки" src="https://img.shields.io/github/downloads/dashqee/DHQ-Clash/total?style=flat-square"></a>
   <a href="LICENSE"><img alt="Лицензия GPL-3.0" src="https://img.shields.io/github/license/dashqee/DHQ-Clash?style=flat-square"></a>
-  <a href="https://t.me/dhqclashconfigbot"><img alt="Telegram" src="https://img.shields.io/badge/Telegram-бот-229ED9?style=flat-square&logo=telegram&logoColor=white"></a>
 </p>
 
 DHQClash работает на Android, Windows и macOS, поддерживает конфигурации по URL,
@@ -77,8 +76,7 @@ DHQClash работает на Android, Windows и macOS, поддерживае
 
 ## Быстрый старт
 
-1. Получите конфигурацию у своего поставщика или через
-   [Telegram-бот DHQClash](https://t.me/dhqclashconfigbot).
+1. Получите конфигурацию у своего поставщика.
 2. Откройте раздел **Профили** и нажмите **Добавить профиль**.
 3. Выберите удобный способ:
    - **URL** — вставьте ссылку на профиль;
@@ -127,9 +125,8 @@ DHQClash работает на Android, Windows и macOS, поддерживае
 
 ### Где получить помощь
 
-Конфигурация и доступные действия находятся в
-[Telegram-боте DHQClash](https://t.me/dhqclashconfigbot). Техническую проблему
-можно описать в [GitHub Issues](https://github.com/dashqee/DHQ-Clash/issues),
+Техническую проблему можно описать в
+[GitHub Issues](https://github.com/dashqee/DHQ-Clash/issues),
 указав платформу, версию приложения и точный текст ошибки. Не публикуйте ссылки
 на личные конфигурации, токены и другие секреты.
 
@@ -173,6 +170,5 @@ flutter test --reporter expanded
 
 - приложение: [dashqee/DHQ-Clash](https://github.com/dashqee/DHQ-Clash);
 - ядро: [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo);
-- основа проекта: [chen08209/FlClash](https://github.com/chen08209/FlClash).
 
 Исходный код распространяется по лицензии [GNU GPL v3](LICENSE).

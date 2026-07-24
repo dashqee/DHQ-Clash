@@ -62,6 +62,7 @@ class CommonTabBar<T extends Object> extends StatefulWidget {
     this.disabledChildren = const <Never>{},
     this.groupValue,
     required this.thumbColor,
+    this.thumbGradient,
     this.padding = _kHorizontalItemPadding,
     this.backgroundColor,
     this.proportionalWidth = false,
@@ -76,6 +77,7 @@ class CommonTabBar<T extends Object> extends StatefulWidget {
   final ValueChanged<T?> onValueChanged;
   final Color? backgroundColor;
   final Color thumbColor;
+  final Gradient? thumbGradient;
   final bool proportionalWidth;
   final EdgeInsetsGeometry padding;
 
@@ -391,6 +393,7 @@ class _CommonTabBarState<T extends Object> extends State<CommonTabBar<T>>
               key: segmentedControlRenderWidgetKey,
               highlightedIndex: highlightedIndex,
               thumbColor: widget.thumbColor,
+              thumbGradient: widget.thumbGradient,
               thumbScale: thumbScaleAnimation.value,
               state: this,
               children: children,
@@ -596,6 +599,7 @@ class _CommonTabBarRenderWidget<T extends Object>
     super.children,
     required this.highlightedIndex,
     required this.thumbColor,
+    required this.thumbGradient,
     required this.thumbScale,
     required this.state,
     required this.proportionalWidth,
@@ -603,6 +607,7 @@ class _CommonTabBarRenderWidget<T extends Object>
 
   final int? highlightedIndex;
   final Color thumbColor;
+  final Gradient? thumbGradient;
   final double thumbScale;
   final bool proportionalWidth;
   final _CommonTabBarState<T> state;
@@ -612,6 +617,7 @@ class _CommonTabBarRenderWidget<T extends Object>
     return _RenderSegmentedControl<T>(
       highlightedIndex: highlightedIndex,
       thumbColor: thumbColor,
+      thumbGradient: thumbGradient,
       thumbScale: thumbScale,
       proportionalWidth: proportionalWidth,
       state: state,
@@ -626,6 +632,7 @@ class _CommonTabBarRenderWidget<T extends Object>
     assert(renderObject.state == state);
     renderObject
       ..thumbColor = thumbColor
+      ..thumbGradient = thumbGradient
       ..thumbScale = thumbScale
       ..highlightedIndex = highlightedIndex
       ..proportionalWidth = proportionalWidth;
@@ -650,11 +657,13 @@ class _RenderSegmentedControl<T extends Object> extends RenderBox
   _RenderSegmentedControl({
     required int? highlightedIndex,
     required Color thumbColor,
+    required Gradient? thumbGradient,
     required double thumbScale,
     required bool proportionalWidth,
     required this.state,
   }) : _highlightedIndex = highlightedIndex,
        _thumbColor = thumbColor,
+       _thumbGradient = thumbGradient,
        _thumbScale = thumbScale,
        _proportionalWidth = proportionalWidth;
 
@@ -708,6 +717,17 @@ class _RenderSegmentedControl<T extends Object> extends RenderBox
       return;
     }
     _thumbColor = value;
+    markNeedsPaint();
+  }
+
+  Gradient? get thumbGradient => _thumbGradient;
+  Gradient? _thumbGradient;
+
+  set thumbGradient(Gradient? value) {
+    if (_thumbGradient == value) {
+      return;
+    }
+    _thumbGradient = value;
     markNeedsPaint();
   }
 
@@ -1101,7 +1121,9 @@ class _RenderSegmentedControl<T extends Object> extends RenderBox
 
     context.canvas.drawRSuperellipse(
       thumbRSuperellipse,
-      Paint()..color = thumbColor,
+      Paint()
+        ..color = thumbColor
+        ..shader = thumbGradient?.createShader(thumbRect.shift(offset)),
     );
   }
 
