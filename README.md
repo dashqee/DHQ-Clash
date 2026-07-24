@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/images/icon.png" width="112" alt="DHQClash">
+  <img src="assets/images/icon.png" width="300" alt="DHQClash">
 </p>
 
 <h1 align="center">DHQClash</h1>
