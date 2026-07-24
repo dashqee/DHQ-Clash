@@ -254,7 +254,7 @@ $body
     // (see System.authorizeCore); a fresh bundle loses that, so re-apply it in
     // the same privileged step instead of asking again on the next launch.
     final coreWasPrivileged = await system.checkIsAdmin();
-    final newCorePath = p.join(appBundle, 'Contents', 'MacOS', 'FlClashCore');
+    final newCorePath = p.join(appBundle, 'Contents', 'MacOS', 'DHQClashCore');
     final needsPrivileges =
         coreWasPrivileged || !_isWritable(p.dirname(appBundle));
 

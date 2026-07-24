@@ -133,7 +133,7 @@ Windows helper auth:
 
 Build configuration defaults live in `build_tool/lib/src/options.dart` and can be overridden via `build_config.yaml`.
 
-Architecture detection is automatic. The `--description` flag passed to `flutter_distributor` adds arch suffixes to artifact names, such as `FlClash-0.8.93-macos-arm64.dmg`.
+Architecture detection is automatic. The `--description` flag passed to `flutter_distributor` adds arch suffixes to artifact names, such as `DHQClash-1.1.3-macos-arm64.dmg`.
 
 ## Local Plugins
 

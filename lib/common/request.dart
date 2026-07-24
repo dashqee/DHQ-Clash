@@ -28,7 +28,7 @@ class Request {
         final client = HttpClient();
         client.findProxy = (Uri uri) {
           client.userAgent = globalState.ua;
-          return FlClashHttpOverrides.handleFindProxy(uri);
+          return AppHttpOverrides.handleFindProxy(uri);
         };
         return client;
       },
@@ -48,14 +48,14 @@ class Request {
   /// request went through the local mixed-proxy port and that port refused the
   /// connection. This happens while the core is starting/reconfiguring: the
   /// download is routed to `localhost:<mixedPort>` (see
-  /// [FlClashHttpOverrides.handleFindProxy]) which is briefly not listening,
+  /// [AppHttpOverrides.handleFindProxy]) which is briefly not listening,
   /// surfacing as `SocketException` (errno 1225 = WSAECONNREFUSED on Windows).
   /// Common trigger: installing a profile from a deep link while connected.
   Future<Response<T>> _getWithDirectFallback<T>(
     String url,
     Options options,
   ) async {
-    final wasProxied = FlClashHttpOverrides.handleFindProxy(
+    final wasProxied = AppHttpOverrides.handleFindProxy(
       Uri.parse(url),
     ).startsWith('PROXY');
     try {

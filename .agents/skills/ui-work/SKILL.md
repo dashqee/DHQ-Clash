@@ -1,6 +1,6 @@
 ---
 name: ui-work
-description: Use when changing FlClash Flutter UI, widgets, screens, Material You styling, navigation surfaces, or user-facing interactions.
+description: Use when changing DHQClash Flutter UI, widgets, screens, Material You styling, navigation surfaces, or user-facing interactions.
 ---
 
 # UI Work

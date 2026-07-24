@@ -13,7 +13,7 @@
 // app_links 7.1.2 exports only SendAppLink(HWND) — the no-arg
 // SendAppLinkToInstance() helper landed in a later release — so we locate the
 // running window ourselves. Matching is by window class + full exe path (not
-// window title): FlClash uses a hidden/custom title bar, so a FindWindow-by-title
+// window title): DHQClash uses a hidden/custom title bar, so a FindWindow-by-title
 // lookup is unreliable. This mirrors what newer app_links does internally.
 static bool ForwardAppLinkToRunningInstance() {
   struct State { HWND found; wchar_t ourExe[MAX_PATH]; } state = {};

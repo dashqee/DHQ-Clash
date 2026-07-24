@@ -99,15 +99,12 @@ int _verifyArtifacts(String rootDir, String targets) {
             .toList()
       : <String>[];
 
-  final missing = targets
-      .split(',')
-      .map((target) => target.trim())
-      .where((target) {
-        final extension = _targetExtensions[target];
-        return extension != null &&
-            !names.any((name) => name.endsWith(extension));
-      })
-      .toList();
+  final missing = targets.split(',').map((target) => target.trim()).where((
+    target,
+  ) {
+    final extension = _targetExtensions[target];
+    return extension != null && !names.any((name) => name.endsWith(extension));
+  }).toList();
 
   if (missing.isEmpty) return 0;
   stderr.writeln(
@@ -210,7 +207,7 @@ Future<int> _package(
     'git',
     'https://github.com/chen08209/flutter_distributor.git',
     '--git-ref',
-    'FlClash',
+    'cdeeef2d8f8325bb6ae0bc86b39f56e4325d1a58',
     '--git-path',
     'packages/flutter_distributor',
   ]);

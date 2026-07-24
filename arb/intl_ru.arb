@@ -1,5 +1,5 @@
 {
-  "rule": "Правило",
+  "rule": "Правила",
   "global": "Глобальный",
   "direct": "Прямой",
   "dashboard": "Панель управления",
@@ -169,7 +169,6 @@
   "proxyGroup": "Группа прокси",
   "go": "Перейти",
   "externalLink": "Внешняя ссылка",
-  "otherContributors": "Другие участники",
   "autoCloseConnections": "Автоматическое закрытие соединений",
   "autoCloseConnectionsDesc": "Автоматически закрывать соединения после смены узла",
   "onlyStatisticsProxy": "Только статистика прокси",

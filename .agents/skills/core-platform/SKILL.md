@@ -1,6 +1,6 @@
 ---
 name: core-platform
-description: Use when changing FlClash core integration, platform managers, Go core communication, desktop/mobile platform behavior, or Windows helper flow.
+description: Use when changing DHQClash core integration, platform managers, Go core communication, desktop/mobile platform behavior, or Windows helper flow.
 ---
 
 # Core And Platform

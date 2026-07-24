@@ -1,3 +1,10 @@
+## v1.1.5
+
+- Complete the DHQClash rebrand across runtime identifiers, platform builds, packaging, release metadata and project documentation
+- Remove the Telegram release publisher, bot links and obsolete contributor avatars
+- Fix dashboard switch alignment on macOS
+- Make Rules the default outbound mode label and highlight it with an animated brand gradient
+
 ## v1.1.4
 - Small bump to deliver in-app updates
 

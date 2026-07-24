@@ -18,13 +18,6 @@ class AboutView extends StatelessWidget {
       title: appLocalizations.more,
       items: [
         ListItem(
-          title: const Text('Telegram'),
-          onTap: () {
-            globalState.openUrl(telegramUrl);
-          },
-          trailing: const Icon(Icons.launch),
-        ),
-        ListItem(
           title: Text(appLocalizations.project),
           onTap: () {
             globalState.openUrl('https://github.com/$repository');
