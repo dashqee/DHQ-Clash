@@ -432,6 +432,9 @@ class SetupAction extends _$SetupAction {
         case AuthorizeCode.success:
           await ref.read(coreActionProvider.notifier).restartCore();
           return Result.error('');
+        case AuthorizeCode.networkExtension:
+          enableTun = false;
+          break;
         case AuthorizeCode.none:
           break;
         case AuthorizeCode.error:
@@ -597,6 +600,9 @@ class CoreAction extends _$CoreAction {
         case AuthorizeCode.success:
           await restartCore();
           return Result.error('');
+        case AuthorizeCode.networkExtension:
+          enableTun = false;
+          break;
         case AuthorizeCode.none:
           break;
         case AuthorizeCode.error:
@@ -658,6 +664,7 @@ class SystemAction extends _$SystemAction {
     try {
       await Future.wait([
         if (needSave) preferences.saveConfig(ref.read(configProvider)),
+        if (system.isMacOS && macosTun.isPrepared) macosTun.stop(),
         if (macOS != null) macOS!.updateDns(true),
         if (proxy != null) proxy!.stopProxy(),
         if (tray != null) tray!.destroy(),

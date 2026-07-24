@@ -72,6 +72,19 @@ class System {
     if (system.isAndroid) {
       return AuthorizeCode.error;
     }
+    if (system.isMacOS) {
+      try {
+        if (macosTun.isPrepared ||
+            (await macosTun.isAvailable && await macosTun.prepare())) {
+          return AuthorizeCode.networkExtension;
+        }
+      } catch (error) {
+        commonPrint.log(
+          'Network Extension activation failed: $error',
+          logLevel: LogLevel.warning,
+        );
+      }
+    }
     final isAdmin = await checkIsAdmin();
     if (isAdmin) {
       return AuthorizeCode.none;

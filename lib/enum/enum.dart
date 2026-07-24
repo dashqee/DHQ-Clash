@@ -270,7 +270,7 @@ enum ActionMethod {
   getCurrentProfileName,
 }
 
-enum AuthorizeCode { none, success, error }
+enum AuthorizeCode { none, success, networkExtension, error }
 
 enum WindowsHelperServiceStatus { none, presence, running }
 

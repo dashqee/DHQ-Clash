@@ -108,6 +108,9 @@ class _CoreContainerState extends ConsumerState<CoreManager>
     if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
       context.showNotifier(message);
     }
+    if (system.isMacOS && macosTun.isPrepared) {
+      await macosTun.stop();
+    }
     await coreController.shutdown(false);
     super.onCrash(message);
   }

@@ -4,6 +4,8 @@ import window_manager
 import LaunchAtLogin
 
 class MainFlutterWindow: NSWindow {
+    private var macosTunPlugin: MacosTunPlugin?
+
     override func awakeFromNib() {
         let flutterViewController = FlutterViewController()
         let windowFrame = self.frame
@@ -26,6 +28,10 @@ class MainFlutterWindow: NSWindow {
                 result(FlutterMethodNotImplemented)
             }
         }
+
+        macosTunPlugin = MacosTunPlugin(
+            binaryMessenger: flutterViewController.engine.binaryMessenger
+        )
         
         RegisterGeneratedPlugins(registry: flutterViewController)
         super.awakeFromNib()

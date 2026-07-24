@@ -100,7 +100,11 @@ class ApplicationState extends ConsumerState<Application> {
     if (system.isDesktop) {
       return WindowManager(
         child: TrayManager(
-          child: HotKeyManager(child: ProxyManager(child: child)),
+          child: HotKeyManager(
+            child: ProxyManager(
+              child: system.isMacOS ? MacosTunManager(child: child) : child,
+            ),
+          ),
         ),
       );
     }
