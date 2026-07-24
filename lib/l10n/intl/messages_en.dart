@@ -553,6 +553,20 @@ class MessageLookup extends MessageLookupByLibrary {
       "Used for UWP loopback unlocking",
     ),
     "loose": MessageLookupByLibrary.simpleMessage("Loose"),
+    "macosTunHelper": MessageLookupByLibrary.simpleMessage("TUN access"),
+    "macosTunHelperDesc": MessageLookupByLibrary.simpleMessage(
+      "Grants the core elevated permissions. Required only for TUN mode.",
+    ),
+    "macosTunHelperInstall": MessageLookupByLibrary.simpleMessage("Install"),
+    "macosTunHelperInstallFailed": MessageLookupByLibrary.simpleMessage(
+      "TUN access was not installed",
+    ),
+    "macosTunHelperInstallSuccess": MessageLookupByLibrary.simpleMessage(
+      "TUN access installed",
+    ),
+    "macosTunHelperInstalled": MessageLookupByLibrary.simpleMessage(
+      "TUN access is installed",
+    ),
     "matchSourceIp": MessageLookupByLibrary.simpleMessage("Match source IP"),
     "maxFailedTimes": MessageLookupByLibrary.simpleMessage("Max failed times"),
     "memoryInfo": MessageLookupByLibrary.simpleMessage("Memory info"),

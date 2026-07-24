@@ -574,6 +574,20 @@ class MessageLookup extends MessageLookupByLibrary {
       "Используется для разблокировки Loopback UWP",
     ),
     "loose": MessageLookupByLibrary.simpleMessage("Свободный"),
+    "macosTunHelper": MessageLookupByLibrary.simpleMessage("Права для TUN"),
+    "macosTunHelperDesc": MessageLookupByLibrary.simpleMessage(
+      "Выдаёт core повышенные права. Требуется только для режима TUN.",
+    ),
+    "macosTunHelperInstall": MessageLookupByLibrary.simpleMessage("Установить"),
+    "macosTunHelperInstallFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось установить права для TUN",
+    ),
+    "macosTunHelperInstallSuccess": MessageLookupByLibrary.simpleMessage(
+      "Права для TUN установлены",
+    ),
+    "macosTunHelperInstalled": MessageLookupByLibrary.simpleMessage(
+      "Права для TUN установлены",
+    ),
     "matchSourceIp": MessageLookupByLibrary.simpleMessage(
       "Сопоставить исходный IP",
     ),

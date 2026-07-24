@@ -42,7 +42,7 @@ class System {
   }
 
   Future<bool> checkIsAdmin() async {
-    final corePath = appPath.corePath.replaceAll(' ', '\\\\ ');
+    final corePath = appPath.corePath;
     if (system.isWindows) {
       final result = await windows?.checkService();
       return result == WindowsHelperServiceStatus.running;
@@ -68,7 +68,9 @@ class System {
     return "'${value.replaceAll("'", "'\\''")}'";
   }
 
-  Future<AuthorizeCode> authorizeCore() async {
+  Future<AuthorizeCode> authorizeCore({
+    bool forceMacOSHelperInstall = false,
+  }) async {
     if (system.isAndroid) {
       return AuthorizeCode.error;
     }
@@ -86,6 +88,12 @@ class System {
     }
 
     if (system.isMacOS) {
+      final shouldAttempt = await preferences.claimMacOSHelperInstallAttempt(
+        force: forceMacOSHelperInstall,
+      );
+      if (!shouldAttempt) {
+        return AuthorizeCode.error;
+      }
       final escapedPath = _shellEscape(appPath.corePath);
       final shell = 'chown root:admin $escapedPath && chmod +sx $escapedPath';
       final arguments = [

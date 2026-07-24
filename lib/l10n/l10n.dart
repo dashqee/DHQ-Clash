@@ -289,6 +289,66 @@ class AppLocalizations {
     );
   }
 
+  /// `TUN access`
+  String get macosTunHelper {
+    return Intl.message(
+      'TUN access',
+      name: 'macosTunHelper',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Grants the core elevated permissions. Required only for TUN mode.`
+  String get macosTunHelperDesc {
+    return Intl.message(
+      'Grants the core elevated permissions. Required only for TUN mode.',
+      name: 'macosTunHelperDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `TUN access is installed`
+  String get macosTunHelperInstalled {
+    return Intl.message(
+      'TUN access is installed',
+      name: 'macosTunHelperInstalled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Install`
+  String get macosTunHelperInstall {
+    return Intl.message(
+      'Install',
+      name: 'macosTunHelperInstall',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `TUN access installed`
+  String get macosTunHelperInstallSuccess {
+    return Intl.message(
+      'TUN access installed',
+      name: 'macosTunHelperInstallSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `TUN access was not installed`
+  String get macosTunHelperInstallFailed {
+    return Intl.message(
+      'TUN access was not installed',
+      name: 'macosTunHelperInstallFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Minimize on exit`
   String get minimizeOnExit {
     return Intl.message(

@@ -20,6 +20,18 @@ String windowsInstallerArguments({
       '/LOG="$escapedLogPath"';
 }
 
+@visibleForTesting
+({bool requiresAdmin, bool preserveCoreAccess}) macOSUpdateAccessPlan({
+  required bool coreHasElevatedAccess,
+  required bool appDirectoryIsWritable,
+}) {
+  final requiresAdmin = !appDirectoryIsWritable;
+  return (
+    requiresAdmin: requiresAdmin,
+    preserveCoreAccess: requiresAdmin && coreHasElevatedAccess,
+  );
+}
+
 /// (platform, arch) as the /api/app/latest backend expects them, or null on a
 /// platform we don't ship self-updates for (iOS, Linux, arm64 Windows).
 (String, String)? updatePlatformArch() {
@@ -250,24 +262,27 @@ $body
       staging,
     ]);
 
-    // The core binary is made setuid root when the user authorizes TUN mode
-    // (see System.authorizeCore); a fresh bundle loses that, so re-apply it in
-    // the same privileged step instead of asking again on the next launch.
-    final coreWasPrivileged = await system.checkIsAdmin();
+    // Never show an administrator prompt solely to preserve TUN access. If
+    // replacing the app already requires administrator privileges, preserve
+    // access in that same operation. Otherwise the new core starts without
+    // elevated access and the user can grant it later from Network settings.
+    final coreHasElevatedAccess = await system.checkIsAdmin();
+    final accessPlan = macOSUpdateAccessPlan(
+      coreHasElevatedAccess: coreHasElevatedAccess,
+      appDirectoryIsWritable: _isWritable(p.dirname(appBundle)),
+    );
     final newCorePath = p.join(appBundle, 'Contents', 'MacOS', 'DHQClashCore');
-    final needsPrivileges =
-        coreWasPrivileged || !_isWritable(p.dirname(appBundle));
 
     final swap = [
       'mv -f ${_sh(appBundle)} ${_sh(backup)}',
       'mv -f ${_sh(staging)} ${_sh(appBundle)}',
-      if (coreWasPrivileged) ...[
+      if (accessPlan.preserveCoreAccess) ...[
         'chown root:admin ${_sh(newCorePath)}',
         'chmod +sx ${_sh(newCorePath)}',
       ],
     ].join(' && ');
 
-    final result = needsPrivileges
+    final result = accessPlan.requiresAdmin
         ? await Process.run('osascript', _osascriptAdmin(swap))
         : await Process.run('/bin/sh', ['-c', swap]);
 
