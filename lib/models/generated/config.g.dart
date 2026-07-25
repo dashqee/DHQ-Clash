@@ -24,6 +24,7 @@ _AppSettingProps _$AppSettingPropsFromJson(Map<String, dynamic> json) =>
       updateChannel:
           $enumDecodeNullable(_$UpdateChannelEnumMap, json['updateChannel']) ??
           UpdateChannel.stable,
+      updateChannelExplicit: json['updateChannelExplicit'] as bool? ?? false,
       showLabel: json['showLabel'] as bool? ?? false,
       disclaimerAccepted: json['disclaimerAccepted'] as bool? ?? false,
       crashlyticsTip: json['crashlyticsTip'] as bool? ?? false,
@@ -57,6 +58,7 @@ Map<String, dynamic> _$AppSettingPropsToJson(_AppSettingProps instance) =>
       'isAnimateToPage': instance.isAnimateToPage,
       'autoCheckUpdate': instance.autoCheckUpdate,
       'updateChannel': _$UpdateChannelEnumMap[instance.updateChannel]!,
+      'updateChannelExplicit': instance.updateChannelExplicit,
       'showLabel': instance.showLabel,
       'disclaimerAccepted': instance.disclaimerAccepted,
       'crashlyticsTip': instance.crashlyticsTip,

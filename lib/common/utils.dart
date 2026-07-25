@@ -165,17 +165,41 @@ class Utils {
 
   UpdateChannel effectiveUpdateChannel(
     UpdateChannel configuredChannel,
-    String currentVersion,
-  ) {
+    String currentVersion, {
+    bool explicitlySelected = false,
+  }) {
+    if (explicitlySelected) {
+      return configuredChannel;
+    }
     try {
-      if (Version.parse(_normalizeVersion(currentVersion)).isPreRelease) {
-        return UpdateChannel.beta;
-      }
+      return Version.parse(_normalizeVersion(currentVersion)).isPreRelease
+          ? UpdateChannel.beta
+          : UpdateChannel.stable;
     } on FormatException {
       // Keep the configured channel if the platform returns a non-semver
       // package version.
     }
     return configuredChannel;
+  }
+
+  bool isUpdateAvailable({
+    required String remoteVersion,
+    required String currentVersion,
+    required UpdateChannel channel,
+  }) {
+    final comparison = compareVersions(remoteVersion, currentVersion);
+    if (comparison > 0) {
+      return true;
+    }
+    if (channel != UpdateChannel.stable || comparison == 0) {
+      return false;
+    }
+    try {
+      return Version.parse(_normalizeVersion(currentVersion)).isPreRelease &&
+          !Version.parse(_normalizeVersion(remoteVersion)).isPreRelease;
+    } on FormatException {
+      return false;
+    }
   }
 
   String _normalizeVersion(String value) {

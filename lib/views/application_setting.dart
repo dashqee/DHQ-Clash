@@ -312,7 +312,12 @@ class UpdateChannelItem extends ConsumerWidget {
           }
           ref
               .read(appSettingProvider.notifier)
-              .update((state) => state.copyWith(updateChannel: value));
+              .update(
+                (state) => state.copyWith(
+                  updateChannel: value,
+                  updateChannelExplicit: true,
+                ),
+              );
         },
       ),
     );

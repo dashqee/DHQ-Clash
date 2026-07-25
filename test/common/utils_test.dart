@@ -148,31 +148,47 @@ void main() {
   });
 
   group('effectiveUpdateChannel', () {
-    test('keeps the configured channel for stable builds', () {
+    test('keeps explicitly configured channels for stable builds', () {
       expect(
-        utils.effectiveUpdateChannel(UpdateChannel.stable, '1.1.9'),
+        utils.effectiveUpdateChannel(
+          UpdateChannel.stable,
+          '1.1.9',
+          explicitlySelected: true,
+        ),
         UpdateChannel.stable,
       );
       expect(
-        utils.effectiveUpdateChannel(UpdateChannel.beta, '1.1.9'),
+        utils.effectiveUpdateChannel(
+          UpdateChannel.beta,
+          '1.1.9',
+          explicitlySelected: true,
+        ),
         UpdateChannel.beta,
       );
     });
 
-    test('keeps prerelease builds on the beta channel', () {
+    test('defaults prerelease builds to the beta channel', () {
       expect(
         utils.effectiveUpdateChannel(UpdateChannel.stable, '1.1.9-beta.2'),
         UpdateChannel.beta,
       );
     });
 
-    test('accepts a leading v and build metadata', () {
+    test('keeps an explicitly selected stable prerelease channel', () {
       expect(
         utils.effectiveUpdateChannel(
           UpdateChannel.stable,
           'v1.1.9-beta.2+2026072517',
+          explicitlySelected: true,
         ),
-        UpdateChannel.beta,
+        UpdateChannel.stable,
+      );
+    });
+
+    test('defaults stable builds back to the stable channel', () {
+      expect(
+        utils.effectiveUpdateChannel(UpdateChannel.beta, '1.1.9'),
+        UpdateChannel.stable,
       );
     });
 
@@ -180,6 +196,49 @@ void main() {
       expect(
         utils.effectiveUpdateChannel(UpdateChannel.stable, 'development'),
         UpdateChannel.stable,
+      );
+    });
+  });
+
+  group('isUpdateAvailable', () {
+    test('allows a prerelease client to migrate to the latest stable', () {
+      expect(
+        utils.isUpdateAvailable(
+          remoteVersion: '1.1.9',
+          currentVersion: '1.1.10-beta.1',
+          channel: UpdateChannel.stable,
+        ),
+        true,
+      );
+    });
+
+    test('does not downgrade a prerelease client on the beta channel', () {
+      expect(
+        utils.isUpdateAvailable(
+          remoteVersion: '1.1.9-beta.3',
+          currentVersion: '1.1.10-beta.1',
+          channel: UpdateChannel.beta,
+        ),
+        false,
+      );
+    });
+
+    test('accepts a newer release and rejects the current release', () {
+      expect(
+        utils.isUpdateAvailable(
+          remoteVersion: '1.1.10',
+          currentVersion: '1.1.10-beta.1',
+          channel: UpdateChannel.stable,
+        ),
+        true,
+      );
+      expect(
+        utils.isUpdateAvailable(
+          remoteVersion: '1.1.10-beta.1',
+          currentVersion: '1.1.10-beta.1',
+          channel: UpdateChannel.beta,
+        ),
+        false,
       );
     });
   });

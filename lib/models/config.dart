@@ -83,6 +83,7 @@ abstract class AppSettingProps with _$AppSettingProps {
     @Default(true) bool isAnimateToPage,
     @Default(true) bool autoCheckUpdate,
     @Default(UpdateChannel.stable) UpdateChannel updateChannel,
+    @Default(false) bool updateChannelExplicit,
     @Default(false) bool showLabel,
     @Default(false) bool disclaimerAccepted,
     @Default(false) bool crashlyticsTip,
@@ -100,9 +101,15 @@ abstract class AppSettingProps with _$AppSettingProps {
 
   factory AppSettingProps.safeFromJson(Map<String, Object?>? json) {
     try {
-      return json == null
-          ? defaultAppSettingProps
-          : AppSettingProps.fromJson(json);
+      if (json == null) {
+        return defaultAppSettingProps;
+      }
+      final normalizedJson = Map<String, Object?>.from(json);
+      normalizedJson.putIfAbsent(
+        'updateChannelExplicit',
+        () => normalizedJson['updateChannel'] == UpdateChannel.beta.name,
+      );
+      return AppSettingProps.fromJson(normalizedJson);
     } catch (_) {
       return defaultAppSettingProps;
     }
