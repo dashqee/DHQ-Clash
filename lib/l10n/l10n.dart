@@ -349,6 +349,56 @@ class AppLocalizations {
     );
   }
 
+  /// `Windows TUN helper`
+  String get windowsTunHelper {
+    return Intl.message(
+      'Windows TUN helper',
+      name: 'windowsTunHelper',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Finds and removes helper services from older FlClash and DHQClash versions, then installs the current service.`
+  String get windowsTunHelperDesc {
+    return Intl.message(
+      'Finds and removes helper services from older FlClash and DHQClash versions, then installs the current service.',
+      name: 'windowsTunHelperDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reinstall`
+  String get windowsTunHelperReinstall {
+    return Intl.message(
+      'Reinstall',
+      name: 'windowsTunHelperReinstall',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Windows TUN helper reinstalled`
+  String get windowsTunHelperReinstallSuccess {
+    return Intl.message(
+      'Windows TUN helper reinstalled',
+      name: 'windowsTunHelperReinstallSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not reinstall the Windows TUN helper`
+  String get windowsTunHelperReinstallFailed {
+    return Intl.message(
+      'Could not reinstall the Windows TUN helper',
+      name: 'windowsTunHelperReinstallFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Minimize on exit`
   String get minimizeOnExit {
     return Intl.message(

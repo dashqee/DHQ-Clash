@@ -39,6 +39,32 @@ void main() {
     expect(find.text('TUN access is installed'), findsOneWidget);
     expect(find.text('Authorized'), findsOneWidget);
   });
+
+  testWidgets('allows a manual Windows TUN helper reinstall', (tester) async {
+    var reinstallCalls = 0;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: _TestApp(
+          child: WindowsTunHelperItem(
+            reinstall: () async {
+              reinstallCalls++;
+              return true;
+            },
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Windows TUN helper'), findsOneWidget);
+    expect(find.text('Reinstall'), findsOneWidget);
+
+    await tester.tap(find.text('Reinstall'));
+    await tester.pumpAndSettle();
+
+    expect(reinstallCalls, 1);
+    expect(find.text('Reinstall'), findsOneWidget);
+  });
 }
 
 class _TestApp extends StatelessWidget {

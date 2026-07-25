@@ -761,6 +761,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "vpnTip": MessageLookupByLibrary.simpleMessage("重启VPN后改变生效"),
     "webDAVConfiguration": MessageLookupByLibrary.simpleMessage("WebDAV配置"),
     "whitelistMode": MessageLookupByLibrary.simpleMessage("白名单模式"),
+    "windowsTunHelper": MessageLookupByLibrary.simpleMessage("Windows TUN 助手"),
+    "windowsTunHelperDesc": MessageLookupByLibrary.simpleMessage(
+      "查找并移除旧版 FlClash 和 DHQClash 创建的助手服务，然后安装当前服务。",
+    ),
+    "windowsTunHelperReinstall": MessageLookupByLibrary.simpleMessage("重新安装"),
+    "windowsTunHelperReinstallFailed": MessageLookupByLibrary.simpleMessage(
+      "无法重新安装 Windows TUN 助手",
+    ),
+    "windowsTunHelperReinstallSuccess": MessageLookupByLibrary.simpleMessage(
+      "Windows TUN 助手已重新安装",
+    ),
     "yearsAgo": m25,
     "zh_CN": MessageLookupByLibrary.simpleMessage("中文简体"),
   };

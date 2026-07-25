@@ -1138,6 +1138,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "whitelistMode": MessageLookupByLibrary.simpleMessage(
       "Режим белого списка",
     ),
+    "windowsTunHelper": MessageLookupByLibrary.simpleMessage(
+      "Windows TUN helper",
+    ),
+    "windowsTunHelperDesc": MessageLookupByLibrary.simpleMessage(
+      "Находит и удаляет helper-службы старых версий FlClash и DHQClash, затем устанавливает свежую службу.",
+    ),
+    "windowsTunHelperReinstall": MessageLookupByLibrary.simpleMessage(
+      "Переустановить",
+    ),
+    "windowsTunHelperReinstallFailed": MessageLookupByLibrary.simpleMessage(
+      "Не удалось переустановить Windows TUN helper",
+    ),
+    "windowsTunHelperReinstallSuccess": MessageLookupByLibrary.simpleMessage(
+      "Windows TUN helper переустановлен",
+    ),
     "yearsAgo": m25,
     "zh_CN": MessageLookupByLibrary.simpleMessage("Упрощенный китайский"),
   };

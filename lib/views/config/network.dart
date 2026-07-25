@@ -166,6 +166,67 @@ class _MacOSTunHelperItemState extends ConsumerState<MacOSTunHelperItem> {
   }
 }
 
+class WindowsTunHelperItem extends ConsumerStatefulWidget {
+  final Future<bool> Function()? reinstall;
+
+  const WindowsTunHelperItem({super.key, this.reinstall});
+
+  @override
+  ConsumerState<WindowsTunHelperItem> createState() =>
+      _WindowsTunHelperItemState();
+}
+
+class _WindowsTunHelperItemState extends ConsumerState<WindowsTunHelperItem> {
+  bool _installing = false;
+
+  Future<void> _handleReinstall() async {
+    if (_installing) return;
+    setState(() {
+      _installing = true;
+    });
+    var installed = false;
+    try {
+      installed =
+          await widget.reinstall?.call() ??
+          await ref.read(coreActionProvider.notifier).reinstallWindowsHelper();
+    } catch (error) {
+      commonPrint.log(
+        'Windows TUN helper reinstall failed: $error',
+        logLevel: LogLevel.warning,
+      );
+    }
+    if (!mounted) return;
+    setState(() {
+      _installing = false;
+    });
+    context.showNotifier(
+      installed
+          ? context.appLocalizations.windowsTunHelperReinstallSuccess
+          : context.appLocalizations.windowsTunHelperReinstallFailed,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final appLocalizations = context.appLocalizations;
+    return ListItem(
+      title: Text(appLocalizations.windowsTunHelper),
+      subtitle: Text(appLocalizations.windowsTunHelperDesc),
+      trailing: CommonMinFilledButtonTheme(
+        child: FilledButton.tonal(
+          onPressed: _installing ? null : _handleReinstall,
+          child: _installing
+              ? const SizedBox.square(
+                  dimension: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(appLocalizations.windowsTunHelperReinstall),
+        ),
+      ),
+    );
+  }
+}
+
 class AllowBypassItem extends ConsumerWidget {
   const AllowBypassItem({super.key});
 
@@ -470,6 +531,7 @@ class NetworkListView extends StatelessWidget {
         items: [
           if (system.isDesktop) const TUNItem(),
           if (system.isMacOS) const MacOSTunHelperItem(),
+          if (system.isWindows) const WindowsTunHelperItem(),
           if (system.isMacOS) const AutoSetSystemDnsItem(),
           const TunStackItem(),
           if (!system.isDesktop) ...[

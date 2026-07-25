@@ -695,6 +695,22 @@ class CoreAction extends _$CoreAction {
     return Result.success(enableTun);
   }
 
+  Future<bool> reinstallWindowsHelper() async {
+    if (!system.isWindows) return false;
+    final wasStarted = ref.read(isStartProvider);
+    ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
+    await coreController.shutdown(false);
+    final installed = await system.reinstallWindowsHelper();
+    if (!installed) {
+      ref
+          .read(patchClashConfigProvider.notifier)
+          .update((state) => state.copyWith.tun(enable: false));
+      ref.read(realTunEnableProvider.notifier).value = false;
+      return false;
+    }
+    return restartCore(wasStarted);
+  }
+
   Future<bool> restartCore([bool start = false]) async {
     final isDisconnected =
         ref.read(coreStatusProvider) == CoreStatus.disconnected;
