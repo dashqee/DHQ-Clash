@@ -163,6 +163,14 @@ class Utils {
     ).compareTo(Version.parse(_normalizeVersion(version2)));
   }
 
+  String resolveAppVersion({
+    required String embeddedVersion,
+    required String packageVersion,
+  }) {
+    final version = embeddedVersion.trim();
+    return version.isEmpty ? packageVersion : version;
+  }
+
   UpdateChannel effectiveUpdateChannel(
     UpdateChannel configuredChannel,
     String currentVersion, {

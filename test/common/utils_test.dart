@@ -147,6 +147,25 @@ void main() {
     });
   });
 
+  group('resolveAppVersion', () {
+    test('uses embedded SemVer instead of normalized macOS bundle version', () {
+      expect(
+        utils.resolveAppVersion(
+          embeddedVersion: '1.1.10-beta.2',
+          packageVersion: '1.1.10.2',
+        ),
+        '1.1.10-beta.2',
+      );
+    });
+
+    test('falls back to platform package version for development builds', () {
+      expect(
+        utils.resolveAppVersion(embeddedVersion: '', packageVersion: '1.1.10'),
+        '1.1.10',
+      );
+    });
+  });
+
   group('effectiveUpdateChannel', () {
     test('keeps explicitly configured channels for stable builds', () {
       expect(

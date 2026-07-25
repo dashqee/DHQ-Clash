@@ -67,7 +67,7 @@ class AboutView extends StatelessWidget {
                             style: Theme.of(context).textTheme.headlineSmall,
                           ),
                           Text(
-                            globalState.packageInfo.version,
+                            globalState.appVersion,
                             style: Theme.of(context).textTheme.labelLarge,
                           ),
                           if (ref.watch(

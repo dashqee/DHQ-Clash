@@ -27,6 +27,7 @@ class GlobalState {
   bool isPre = true;
   late final String coreSHA256;
   late final PackageInfo packageInfo;
+  late final String appVersion;
   Function? updateCurrentDelayDebounce;
   late Measure measure;
   late CommonTheme theme;
@@ -82,6 +83,10 @@ class GlobalState {
     );
     final appStateOverrides = buildAppStateOverrides(appState);
     packageInfo = await PackageInfo.fromPlatform();
+    appVersion = utils.resolveAppVersion(
+      embeddedVersion: const String.fromEnvironment('APP_VERSION'),
+      packageVersion: packageInfo.version,
+    );
     final configMap = await preferences.getConfigMap();
     final migratedConfig = await migration.migrationIfNeeded(
       configMap,
@@ -104,7 +109,7 @@ class GlobalState {
     final appSettingProps = migratedConfig.appSettingProps;
     final updateChannel = utils.effectiveUpdateChannel(
       appSettingProps.updateChannel,
-      packageInfo.version,
+      appVersion,
       explicitlySelected: appSettingProps.updateChannelExplicit,
     );
     final config = migratedConfig.copyWith(
