@@ -83,7 +83,7 @@ class GlobalState {
     final appStateOverrides = buildAppStateOverrides(appState);
     packageInfo = await PackageInfo.fromPlatform();
     final configMap = await preferences.getConfigMap();
-    final config = await migration.migrationIfNeeded(
+    final migratedConfig = await migration.migrationIfNeeded(
       configMap,
       sync: (data) async {
         final newConfigMap = data.configMap;
@@ -100,6 +100,15 @@ class GlobalState {
         ]);
         return config;
       },
+    );
+    final appSettingProps = migratedConfig.appSettingProps;
+    final updateChannel = utils.effectiveUpdateChannel(
+      appSettingProps.updateChannel,
+      packageInfo.version,
+      explicitlySelected: appSettingProps.updateChannelExplicit,
+    );
+    final config = migratedConfig.copyWith(
+      appSettingProps: appSettingProps.copyWith(updateChannel: updateChannel),
     );
     final configOverrides = buildConfigOverrides(config);
     container = ProviderContainer(

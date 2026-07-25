@@ -26,6 +26,7 @@ void main() {
       expect(value.closeConnections, true);
       expect(value.isAnimateToPage, true);
       expect(value.updateChannel, UpdateChannel.stable);
+      expect(value.updateChannelExplicit, false);
     });
 
     test('can update state', () {
@@ -35,11 +36,13 @@ void main() {
             (_) => const AppSettingProps(
               autoLaunch: true,
               updateChannel: UpdateChannel.beta,
+              updateChannelExplicit: true,
             ),
           );
       final value = container.read(appSettingProvider);
       expect(value.autoLaunch, true);
       expect(value.updateChannel, UpdateChannel.beta);
+      expect(value.updateChannelExplicit, true);
     });
   });
 
