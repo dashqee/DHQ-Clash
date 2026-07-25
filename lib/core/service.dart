@@ -85,26 +85,40 @@ class CoreService extends CoreHandlerInterface {
     );
   }
 
-  Future<void> start() async {
+  Future<String> _waitForConnection(String source) async {
+    try {
+      await _transport.connectionCompleter.future.timeout(
+        const Duration(seconds: 10),
+      );
+      return '';
+    } on TimeoutException {
+      return 'Core started through $source but did not connect within 10 seconds.';
+    }
+  }
+
+  Future<String> start() async {
     if (_process != null) {
       await shutdown(false);
     }
     if (system.isWindows && await system.checkIsAdmin()) {
-      final isSuccess = await request.startCoreByHelper(_transport.address);
-      if (isSuccess) {
-        await _transport.connectionCompleter.future;
-        return;
+      final message = await request.startCoreByHelper(_transport.address);
+      if (message.isNotEmpty) {
+        commonPrint.log(message, logLevel: LogLevel.error);
+        return message;
       }
+      final connectionError = await _waitForConnection('the Windows helper');
+      if (connectionError.isNotEmpty) {
+        await request.stopCoreByHelper();
+      }
+      return connectionError;
     }
     try {
       _process = await Process.start(appPath.corePath, [_transport.address]);
     } catch (e) {
-      commonPrint.log(
-        'Failed to start core process: $e',
-        logLevel: LogLevel.error,
-      );
+      final message = 'Failed to start core process: $e';
+      commonPrint.log(message, logLevel: LogLevel.error);
       _handleInvokeCrashEvent();
-      return;
+      return message;
     }
     _process?.stdout.listen((_) {});
     _process?.stderr.listen((e) {
@@ -113,7 +127,12 @@ class CoreService extends CoreHandlerInterface {
         commonPrint.log(error, logLevel: LogLevel.warning);
       }
     });
-    await _transport.connectionCompleter.future;
+    final connectionError = await _waitForConnection('the app');
+    if (connectionError.isNotEmpty) {
+      _process?.kill();
+      _process = null;
+    }
+    return connectionError;
   }
 
   @override
@@ -165,8 +184,7 @@ class CoreService extends CoreHandlerInterface {
 
   @override
   Future<String> preload() async {
-    await start();
-    return '';
+    return start();
   }
 
   @override

@@ -29,8 +29,20 @@ void main() {
       );
 
       expect(command, contains('sc stop "$appHelperService"'));
-      expect(command, contains('sc delete "$appHelperService"'));
+      expect(command, isNot(contains('sc delete "$appHelperService"')));
+      expect(command, contains('sc config "$appHelperService"'));
+      expect(command, endsWith('&& sc start "$appHelperService"'));
+    });
+
+    test('creates the helper when the current service does not exist', () {
+      final command = windowsHelperRegistrationCommand(
+        currentStatus: WindowsHelperServiceStatus.none,
+        legacyServiceExists: false,
+        helperPath: r'C:\DHQClash\helper.exe',
+      );
+
       expect(command, contains('sc create "$appHelperService"'));
+      expect(command, isNot(contains('sc config "$appHelperService"')));
     });
   });
 }

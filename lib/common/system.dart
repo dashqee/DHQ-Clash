@@ -20,20 +20,26 @@ String windowsHelperRegistrationCommand({
   required bool legacyServiceExists,
   required String helperPath,
 }) {
-  final servicesToRemove = [
-    if (legacyServiceExists) _legacyHelperService,
-    if (currentStatus == WindowsHelperServiceStatus.presence) appHelperService,
-  ];
-  final commands = [
-    for (final serviceName in servicesToRemove) ...[
-      'sc stop "$serviceName" >nul 2>&1',
-      'taskkill /F /IM "$serviceName.exe" >nul 2>&1',
-      'sc delete "$serviceName" >nul 2>&1',
+  final cleanupCommands = [
+    if (legacyServiceExists) ...[
+      'sc stop "$_legacyHelperService" >nul 2>&1',
+      'taskkill /F /IM "$_legacyHelperService.exe" >nul 2>&1',
+      'sc delete "$_legacyHelperService" >nul 2>&1',
     ],
-    'sc create "$appHelperService" binPath= "$helperPath" start= auto',
-    'sc start "$appHelperService"',
+    if (currentStatus == WindowsHelperServiceStatus.presence) ...[
+      'sc stop "$appHelperService" >nul 2>&1',
+      'taskkill /F /IM "$appHelperService.exe" >nul 2>&1',
+    ],
   ];
-  return ['/c', commands.join(' & ')].join(' ');
+  final registerCommand = currentStatus == WindowsHelperServiceStatus.none
+      ? 'sc create "$appHelperService" binPath= "$helperPath" start= auto'
+      : 'sc config "$appHelperService" binPath= "$helperPath" start= auto';
+  final command = [
+    if (cleanupCommands.isNotEmpty) '${cleanupCommands.join(' & ')} &',
+    registerCommand,
+    '&& sc start "$appHelperService"',
+  ].join(' ');
+  return '/c $command';
 }
 
 class System {
@@ -261,8 +267,9 @@ class Windows {
     if (result.exitCode != 0) {
       return WindowsHelperServiceStatus.none;
     }
-    final output = result.stdout.toString();
-    if (output.contains('RUNNING') && await request.pingHelper()) {
+    // The textual state returned by sc.exe is localized. The authenticated
+    // health check is enough to prove that the registered helper is running.
+    if (await request.pingHelper()) {
       return WindowsHelperServiceStatus.running;
     }
     return WindowsHelperServiceStatus.presence;

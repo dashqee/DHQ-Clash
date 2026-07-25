@@ -212,7 +212,6 @@ class Request {
   }
 
   Future<bool> pingHelper() async {
-    if (kDebugMode) return true;
     try {
       final response = await dio
           .get(
@@ -223,13 +222,16 @@ class Request {
       if (response.statusCode != HttpStatus.ok) {
         return false;
       }
+      if (kDebugMode) {
+        return true;
+      }
       return (response.data as String) == globalState.coreSHA256;
     } catch (_) {
       return false;
     }
   }
 
-  Future<bool> startCoreByHelper(String arg) async {
+  Future<String> startCoreByHelper(String arg) async {
     try {
       final response = await dio
           .post(
@@ -239,12 +241,12 @@ class Request {
           )
           .timeout(const Duration(milliseconds: 2000));
       if (response.statusCode != HttpStatus.ok) {
-        return false;
+        return 'Windows TUN helper returned HTTP ${response.statusCode}.';
       }
       final data = response.data as String;
-      return data.isEmpty;
-    } catch (_) {
-      return false;
+      return data;
+    } catch (error) {
+      return 'Failed to start core through the Windows TUN helper: $error';
     }
   }
 

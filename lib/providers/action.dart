@@ -487,13 +487,29 @@ class SetupAction extends _$SetupAction {
       );
       switch (code) {
         case AuthorizeCode.success:
-          await ref.read(coreActionProvider.notifier).restartCore();
+          final restarted = await ref
+              .read(coreActionProvider.notifier)
+              .restartCore();
+          if (!restarted) {
+            ref
+                .read(patchClashConfigProvider.notifier)
+                .update((state) => state.copyWith.tun(enable: false));
+            ref.read(realTunEnableProvider.notifier).value = false;
+            final message = currentAppLocalizations.macosTunHelperInstallFailed;
+            globalState.showNotifier(message);
+            return Result.error(message);
+          }
           return Result.error('');
         case AuthorizeCode.none:
           break;
         case AuthorizeCode.error:
-          enableTun = false;
-          break;
+          ref
+              .read(patchClashConfigProvider.notifier)
+              .update((state) => state.copyWith.tun(enable: false));
+          ref.read(realTunEnableProvider.notifier).value = false;
+          final message = currentAppLocalizations.macosTunHelperInstallFailed;
+          globalState.showNotifier(message);
+          return Result.error(message);
       }
     }
     ref.read(realTunEnableProvider.notifier).value = enableTun;
@@ -652,25 +668,42 @@ class CoreAction extends _$CoreAction {
       final code = await system.authorizeCore();
       switch (code) {
         case AuthorizeCode.success:
-          await restartCore();
+          final restarted = await restartCore();
+          if (!restarted) {
+            ref
+                .read(patchClashConfigProvider.notifier)
+                .update((state) => state.copyWith.tun(enable: false));
+            ref.read(realTunEnableProvider.notifier).value = false;
+            final message = currentAppLocalizations.macosTunHelperInstallFailed;
+            globalState.showNotifier(message);
+            return Result.error(message);
+          }
           return Result.error('');
         case AuthorizeCode.none:
           break;
         case AuthorizeCode.error:
-          enableTun = false;
-          break;
+          ref
+              .read(patchClashConfigProvider.notifier)
+              .update((state) => state.copyWith.tun(enable: false));
+          ref.read(realTunEnableProvider.notifier).value = false;
+          final message = currentAppLocalizations.macosTunHelperInstallFailed;
+          globalState.showNotifier(message);
+          return Result.error(message);
       }
     }
     ref.read(realTunEnableProvider.notifier).value = enableTun;
     return Result.success(enableTun);
   }
 
-  Future<void> restartCore([bool start = false]) async {
+  Future<bool> restartCore([bool start = false]) async {
     final isDisconnected =
         ref.read(coreStatusProvider) == CoreStatus.disconnected;
     ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
     await coreController.shutdown(!isDisconnected);
     await connectCore();
+    if (ref.read(coreStatusProvider) != CoreStatus.connected) {
+      return false;
+    }
     await initCore();
     if (start || ref.read(isStartProvider)) {
       await ref
@@ -679,6 +712,7 @@ class CoreAction extends _$CoreAction {
     } else {
       await ref.read(setupActionProvider.notifier).applyProfile(force: true);
     }
+    return true;
   }
 
   Future<bool> tryStartCore([bool start = false]) async {
