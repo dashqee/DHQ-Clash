@@ -13,12 +13,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('rule gradient animation closes its loop without a jump', () {
+  test('rule gradient rotation closes its loop without a jump', () {
     const epsilon = 1e-10;
-    expect(outboundRuleShimmerOffset(0), closeTo(0, epsilon));
-    expect(outboundRuleShimmerOffset(0.25), closeTo(1, epsilon));
-    expect(outboundRuleShimmerOffset(0.75), closeTo(-1, epsilon));
-    expect(outboundRuleShimmerOffset(1), closeTo(0, epsilon));
+    expect(
+      outboundRuleGradientAngle(0),
+      closeTo(outboundRuleGradientAngle(1), epsilon),
+    );
+    expect(
+      outboundRuleGradientAngle(0),
+      closeTo(outboundRuleGradientAngle(2), epsilon),
+    );
+    expect(
+      outboundRuleGradientAngle(0.25),
+      isNot(closeTo(outboundRuleGradientAngle(0), epsilon)),
+    );
   });
 
   testWidgets('network quick options keep their switches inside the cards', (
@@ -64,6 +72,37 @@ void main() {
     expect(decoration.color, isNull);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'rule gradient keeps animating after completing a cycle',
+    (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(child: _TestApp(child: OutboundModeV2())),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+
+      final initialAngle = _ruleFooterAngle(tester);
+      expect(_ruleSegmentAngle(tester), closeTo(initialAngle, 1e-6));
+
+      await tester.pump(const Duration(milliseconds: 600));
+      final movingAngle = _ruleFooterAngle(tester);
+      expect(movingAngle, isNot(closeTo(initialAngle, 1e-6)));
+      expect(_ruleSegmentAngle(tester), closeTo(movingAngle, 1e-6));
+
+      await tester.pump(const Duration(milliseconds: 2400));
+      expect(_ruleFooterAngle(tester), closeTo(movingAngle, 1e-6));
+      expect(_ruleSegmentAngle(tester), closeTo(movingAngle, 1e-6));
+
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(_ruleFooterAngle(tester), isNot(closeTo(movingAngle, 1e-6)));
+      expect(
+        _ruleSegmentAngle(tester),
+        closeTo(_ruleFooterAngle(tester), 1e-6),
+      );
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant.all(),
+  );
 
   testWidgets('start control stays inside status card on compact layouts', (
     tester,
@@ -128,6 +167,25 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+}
+
+double _ruleFooterAngle(WidgetTester tester) {
+  final footer = tester.widget<Container>(
+    find.byKey(const ValueKey('outbound-mode-footer')),
+  );
+  final decoration = footer.decoration! as BoxDecoration;
+  final gradient = decoration.gradient! as LinearGradient;
+  return (gradient.transform! as GradientRotation).radians;
+}
+
+double _ruleSegmentAngle(WidgetTester tester) {
+  final segment = find.byKey(const ValueKey('outbound-mode-rule'));
+  final decoratedBox = tester.widget<DecoratedBox>(
+    find.descendant(of: segment, matching: find.byType(DecoratedBox)).first,
+  );
+  final decoration = decoratedBox.decoration as BoxDecoration;
+  final gradient = decoration.gradient! as LinearGradient;
+  return (gradient.transform! as GradientRotation).radians;
 }
 
 class _TestProfiles extends Profiles {
