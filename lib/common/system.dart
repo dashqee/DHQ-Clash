@@ -14,6 +14,15 @@ import 'package:path/path.dart';
 
 final _legacyHelperService = ['Fl', 'ClashHelperService'].join();
 final _knownHelperServices = {_legacyHelperService, appHelperService};
+final _legacyCoreExecutable = ['Fl', 'ClashCore.exe'].join();
+final _knownCoreExecutables = {_legacyCoreExecutable, '${appName}Core.exe'};
+
+List<String> _windowsCoreCleanupCommands() {
+  return [
+    for (final executableName in _knownCoreExecutables)
+      'taskkill /F /IM "$executableName" >nul 2>&1',
+  ];
+}
 
 @visibleForTesting
 List<String> parseWindowsHelperServiceNames(String output) {
@@ -37,6 +46,7 @@ String windowsHelperReinstallationCommand({
     for (final serviceName in names) 'sc stop "$serviceName" >nul 2>&1',
     for (final executableName in _knownHelperServices)
       'taskkill /F /IM "$executableName.exe" >nul 2>&1',
+    ..._windowsCoreCleanupCommands(),
     for (final serviceName in names)
       if (serviceName != appHelperService) 'sc delete "$serviceName" >nul 2>&1',
   ];
@@ -58,6 +68,7 @@ String windowsHelperRegistrationCommand({
   required String helperPath,
 }) {
   final cleanupCommands = [
+    ..._windowsCoreCleanupCommands(),
     if (legacyServiceExists) ...[
       'sc stop "$_legacyHelperService" >nul 2>&1',
       'taskkill /F /IM "$_legacyHelperService.exe" >nul 2>&1',

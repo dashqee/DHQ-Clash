@@ -88,10 +88,43 @@ void main() {
       const ValueKey('dashboard-connection-overview'),
     );
     final startButton = find.byKey(const ValueKey('connection-start-button'));
+    final metrics = find.byKey(const ValueKey('connection-overview-metrics'));
     expect(overview, findsOneWidget);
     expect(
       find.descendant(of: overview, matching: startButton),
       findsOneWidget,
+    );
+    expect(
+      tester.getTopRight(startButton).dy,
+      lessThan(tester.getTopLeft(metrics).dy),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('start control stays at the top on wide desktop layouts', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          profilesProvider.overrideWith(
+            () => _TestProfiles([
+              Profile.normal(url: 'https://example.com/subscription'),
+            ]),
+          ),
+        ],
+        child: const _TestApp(
+          child: SizedBox(width: 900, child: DashboardConnectionOverview()),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final startButton = find.byKey(const ValueKey('connection-start-button'));
+    final metrics = find.byKey(const ValueKey('connection-overview-metrics'));
+    expect(
+      tester.getTopLeft(startButton).dy,
+      closeTo(tester.getTopLeft(metrics).dy, 0.01),
     );
     expect(tester.takeException(), isNull);
   });

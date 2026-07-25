@@ -53,6 +53,42 @@ String windowsInstallerArguments({
   }
 }
 
+@visibleForTesting
+bool isTrustedUpdateArtifact({
+  required String url,
+  required String filename,
+  required String sha256Hex,
+  required String platform,
+  required String arch,
+}) {
+  final uri = Uri.tryParse(url);
+  final updateUri = Uri.parse(updateBaseUrl);
+  if (uri == null ||
+      uri.scheme != 'https' ||
+      uri.host != updateUri.host ||
+      !uri.path.startsWith('/api/app/download/')) {
+    return false;
+  }
+  if (filename.contains('/') ||
+      filename.contains(r'\') ||
+      !filename.startsWith('$appName-') ||
+      uri.pathSegments.isEmpty ||
+      uri.pathSegments.last != filename ||
+      !filename.contains('-$platform-$arch')) {
+    return false;
+  }
+  if (!RegExp(r'^[a-fA-F0-9]{64}$').hasMatch(sha256Hex)) {
+    return false;
+  }
+  return switch (platform) {
+    'windows' =>
+      filename.contains('-windows-') && filename.endsWith('-setup.exe'),
+    'macos' => filename.contains('-macos-') && filename.endsWith('.dmg'),
+    'android' => filename.contains('-android-') && filename.endsWith('.apk'),
+    _ => false,
+  };
+}
+
 class AppUpdater {
   static bool get isSupported => updatePlatformArch() != null;
 
@@ -70,6 +106,21 @@ class AppUpdater {
     void Function(double progress)? onProgress,
     Future<void> Function()? onQuit,
   }) async {
+    final platformArch = updatePlatformArch();
+    if (platformArch == null ||
+        !isTrustedUpdateArtifact(
+          url: url,
+          filename: filename,
+          sha256Hex: sha256Hex,
+          platform: platformArch.$1,
+          arch: platformArch.$2,
+        )) {
+      commonPrint.log(
+        'untrusted update artifact rejected: $url $filename',
+        logLevel: LogLevel.error,
+      );
+      return 'invalid update artifact';
+    }
     final dir = await getTemporaryDirectory();
     final savePath = p.join(dir.path, filename);
     try {
