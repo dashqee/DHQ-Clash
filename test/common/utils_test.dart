@@ -147,6 +147,43 @@ void main() {
     });
   });
 
+  group('effectiveUpdateChannel', () {
+    test('keeps the configured channel for stable builds', () {
+      expect(
+        utils.effectiveUpdateChannel(UpdateChannel.stable, '1.1.9'),
+        UpdateChannel.stable,
+      );
+      expect(
+        utils.effectiveUpdateChannel(UpdateChannel.beta, '1.1.9'),
+        UpdateChannel.beta,
+      );
+    });
+
+    test('keeps prerelease builds on the beta channel', () {
+      expect(
+        utils.effectiveUpdateChannel(UpdateChannel.stable, '1.1.9-beta.2'),
+        UpdateChannel.beta,
+      );
+    });
+
+    test('accepts a leading v and build metadata', () {
+      expect(
+        utils.effectiveUpdateChannel(
+          UpdateChannel.stable,
+          'v1.1.9-beta.2+2026072517',
+        ),
+        UpdateChannel.beta,
+      );
+    });
+
+    test('falls back to the configured channel for invalid versions', () {
+      expect(
+        utils.effectiveUpdateChannel(UpdateChannel.stable, 'development'),
+        UpdateChannel.stable,
+      );
+    });
+  });
+
   group('getViewMode', () {
     test('mobile for small width', () {
       expect(utils.getViewMode(400).name, 'mobile');

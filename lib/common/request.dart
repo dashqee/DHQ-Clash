@@ -116,13 +116,15 @@ class Request {
   }) async {
     final pa = updatePlatformArch();
     if (pa == null) return null;
+    final version = globalState.packageInfo.version;
+    final effectiveChannel = utils.effectiveUpdateChannel(channel, version);
     try {
       final response = await dio.get(
         '$updateBaseUrl/api/app/latest',
         queryParameters: {
           'platform': pa.$1,
           'arch': pa.$2,
-          'channel': channel.name,
+          'channel': effectiveChannel.name,
         },
         options: Options(responseType: ResponseType.json),
       );
@@ -130,7 +132,6 @@ class Request {
       final data = response.data as Map<String, dynamic>;
       if (data['update'] != true) return null;
       final remoteVersion = (data['version'] ?? '').toString();
-      final version = globalState.packageInfo.version;
       final hasUpdate = utils.compareVersions(remoteVersion, version) > 0;
       if (!hasUpdate && !includeCurrent) return null;
       return {...data, '_hasUpdate': hasUpdate};
