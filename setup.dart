@@ -154,6 +154,29 @@ List<String> createFlutterBuildArgs({
   return flutterBuildArgs;
 }
 
+String appVersionFromPubspec(String pubspec) {
+  final match = RegExp(
+    r'^version:\s*([^\s+]+)(?:\+[^\s]+)?\s*$',
+    multiLine: true,
+  ).firstMatch(pubspec);
+  if (match == null) {
+    throw const FormatException('pubspec.yaml has no valid version field');
+  }
+  return match.group(1)!;
+}
+
+Map<String, String> createBuildEnvironment({
+  required String appEnv,
+  required String pubspec,
+  String? coreSha256,
+}) {
+  return {
+    'APP_ENV': appEnv,
+    'APP_VERSION': appVersionFromPubspec(pubspec),
+    'CORE_SHA256': ?coreSha256,
+  };
+}
+
 String _getTargets(String platform, String arch, String? customTargets) {
   if (customTargets != null) return customTargets;
   if (platform == 'linux' && arch == 'amd64') return 'deb,appimage,rpm';
@@ -182,9 +205,16 @@ Future<int> _package(
   final coreSha256 = platform == 'windows' ? await _buildGoCore(rootDir) : null;
 
   final file = File(p.join(rootDir, 'env.json'));
+  final pubspec = await File(p.join(rootDir, 'pubspec.yaml')).readAsString();
 
   await file.writeAsString(
-    jsonEncode({'APP_ENV': env, 'CORE_SHA256': ?coreSha256}),
+    jsonEncode(
+      createBuildEnvironment(
+        appEnv: env,
+        pubspec: pubspec,
+        coreSha256: coreSha256,
+      ),
+    ),
   );
 
   final flutterBuildArgs = createFlutterBuildArgs(

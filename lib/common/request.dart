@@ -116,7 +116,7 @@ class Request {
   }) async {
     final pa = updatePlatformArch();
     if (pa == null) return null;
-    final version = globalState.packageInfo.version;
+    final version = globalState.appVersion;
     try {
       final response = await dio.get(
         '$updateBaseUrl/api/app/latest',

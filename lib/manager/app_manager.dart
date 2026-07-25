@@ -268,7 +268,7 @@ class AppSidebarContainer extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 SidebarVersionControl(
-                  version: globalState.packageInfo.version,
+                  version: globalState.appVersion,
                   checkUpdateLabel: context.appLocalizations.checkUpdate,
                   onCheckUpdate: () {
                     ref.read(commonActionProvider.notifier).checkForUpdate();

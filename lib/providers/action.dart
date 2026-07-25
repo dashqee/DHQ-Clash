@@ -121,7 +121,7 @@ class CommonAction extends _$CommonAction {
       final releaseNotes = utils.formatReleaseNotes(body);
       final hasUpdate =
           data['_hasUpdate'] as bool? ??
-          utils.compareVersions(tagName, globalState.packageInfo.version) > 0;
+          utils.compareVersions(tagName, globalState.appVersion) > 0;
       final context = globalState.navigatorKey.currentContext!;
       final textTheme = context.textTheme;
       final res = await globalState.showMessage(

@@ -33,6 +33,29 @@ void main() {
         'split-per-abi',
       ]);
     });
+
+    test('embeds the original prerelease SemVer for every platform', () {
+      final environment = setup.createBuildEnvironment(
+        appEnv: 'pre',
+        pubspec:
+            'name: fl_clash\n'
+            'version: 1.1.11-beta.2+2026072534\n',
+        coreSha256: 'abc123',
+      );
+
+      expect(environment, {
+        'APP_ENV': 'pre',
+        'APP_VERSION': '1.1.11-beta.2',
+        'CORE_SHA256': 'abc123',
+      });
+    });
+
+    test('embeds a stable SemVer without its build number', () {
+      expect(
+        setup.appVersionFromPubspec('version: 1.1.10+2026072533\n'),
+        '1.1.10',
+      );
+    });
   });
 
   group('release version', () {
