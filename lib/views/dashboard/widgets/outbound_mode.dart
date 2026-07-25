@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -6,6 +8,17 @@ import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+
+@visibleForTesting
+double outboundRuleShimmerOffset(double progress) => sin(progress * 2 * pi);
+
+LinearGradient _ruleGradient(double shimmerOffset) {
+  return LinearGradient(
+    begin: Alignment(-1.5 + shimmerOffset, -0.8),
+    end: Alignment(1.5 + shimmerOffset, 0.8),
+    colors: const [AppTheme.violet, AppTheme.blue, AppTheme.cyan],
+  );
+}
 
 class OutboundModeV2 extends ConsumerStatefulWidget {
   const OutboundModeV2({super.key});
@@ -63,25 +76,49 @@ class _OutboundModeV2State extends ConsumerState<OutboundModeV2>
             return AnimatedBuilder(
               animation: _gradientController,
               builder: (_, _) {
-                final shimmerOffset = _gradientController.value * 2 - 1;
-                return Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Row(
-                    children: [
-                      for (final item in Mode.values)
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 3),
-                            child: _ModeSegment(
-                              mode: item,
-                              selected: item == mode,
-                              shimmerOffset: shimmerOffset,
-                              onPressed: () => _handleChangeMode(item),
-                            ),
-                          ),
+                final shimmerOffset = outboundRuleShimmerOffset(
+                  _gradientController.value,
+                );
+                return Column(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Row(
+                          children: [
+                            for (final item in Mode.values)
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 3,
+                                  ),
+                                  child: _ModeSegment(
+                                    mode: item,
+                                    selected: item == mode,
+                                    shimmerOffset: shimmerOffset,
+                                    onPressed: () => _handleChangeMode(item),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
-                    ],
-                  ),
+                      ),
+                    ),
+                    Container(
+                      key: const ValueKey('outbound-mode-footer'),
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: switch (mode) {
+                          Mode.rule => null,
+                          Mode.global => context.colorScheme.primary,
+                          Mode.direct => context.colorScheme.tertiary,
+                        },
+                        gradient: mode == Mode.rule
+                            ? _ruleGradient(shimmerOffset)
+                            : null,
+                      ),
+                    ),
+                  ],
                 );
               },
             );
@@ -108,11 +145,7 @@ class _ModeSegment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gradient = selected && mode == Mode.rule
-        ? LinearGradient(
-            begin: Alignment(-1.5 + shimmerOffset, -0.8),
-            end: Alignment(1.5 + shimmerOffset, 0.8),
-            colors: const [AppTheme.violet, AppTheme.blue, AppTheme.cyan],
-          )
+        ? _ruleGradient(shimmerOffset)
         : null;
     final backgroundColor = !selected
         ? Colors.transparent
