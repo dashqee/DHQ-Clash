@@ -9,6 +9,39 @@ import 'package:riverpod/riverpod.dart';
 
 void main() {
   group('ProfilesAction', () {
+    test('deep link reuses an existing profile with the same URL', () {
+      final original =
+          Profile.normal(
+            label: 'Old name',
+            url: 'https://example.com/subscription',
+          ).copyWith(
+            selectedMap: const {'Proxy': 'Selected server'},
+            autoUpdate: false,
+          );
+
+      final profile = profileForInstallUrl(
+        [original],
+        url: original.url,
+        name: 'New name',
+      );
+
+      expect(profile.id, original.id);
+      expect(profile.label, 'New name');
+      expect(profile.selectedMap, original.selectedMap);
+      expect(profile.autoUpdate, false);
+    });
+
+    test('deep link creates a profile when its URL is new', () {
+      final profile = profileForInstallUrl(
+        const [],
+        url: 'https://example.com/new-subscription',
+        name: 'New profile',
+      );
+
+      expect(profile.url, 'https://example.com/new-subscription');
+      expect(profile.label, 'New profile');
+    });
+
     test('keeps edited profile data when remote update fails', () async {
       final original = Profile.normal(label: 'old label', url: 'bad-url');
       final edited = original.copyWith(
@@ -36,6 +69,19 @@ void main() {
       final profile = container.read(profilesProvider).getProfile(original.id);
       expect(profile?.label, edited.label);
       expect(profile?.url, edited.url);
+    });
+  });
+
+  group('SetupAction', () {
+    test('deep link enables TUN without enabling system proxy', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      container.read(setupActionProvider.notifier).prepareDeepLinkConnection();
+
+      expect(container.read(patchClashConfigProvider).tun.enable, true);
+      expect(container.read(vpnSettingProvider).enable, true);
+      expect(container.read(networkSettingProvider).systemProxy, false);
     });
   });
 

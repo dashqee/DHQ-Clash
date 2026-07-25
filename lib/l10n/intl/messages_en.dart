@@ -1073,6 +1073,21 @@ class MessageLookup extends MessageLookupByLibrary {
       "WebDAV configuration",
     ),
     "whitelistMode": MessageLookupByLibrary.simpleMessage("Whitelist mode"),
+    "windowsTunHelper": MessageLookupByLibrary.simpleMessage(
+      "Windows TUN helper",
+    ),
+    "windowsTunHelperDesc": MessageLookupByLibrary.simpleMessage(
+      "Finds and removes helper services from older FlClash and DHQClash versions, then installs the current service.",
+    ),
+    "windowsTunHelperReinstall": MessageLookupByLibrary.simpleMessage(
+      "Reinstall",
+    ),
+    "windowsTunHelperReinstallFailed": MessageLookupByLibrary.simpleMessage(
+      "Could not reinstall the Windows TUN helper",
+    ),
+    "windowsTunHelperReinstallSuccess": MessageLookupByLibrary.simpleMessage(
+      "Windows TUN helper reinstalled",
+    ),
     "yearsAgo": m25,
     "zh_CN": MessageLookupByLibrary.simpleMessage("Simplified Chinese"),
   };

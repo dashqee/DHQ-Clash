@@ -18,6 +18,23 @@ import 'package:url_launcher/url_launcher.dart';
 
 part 'generated/action.g.dart';
 
+@visibleForTesting
+Profile profileForInstallUrl(
+  List<Profile> profiles, {
+  required String url,
+  String? name,
+}) {
+  final existingProfile = profiles
+      .where((profile) => profile.url == url)
+      .firstOrNull;
+  final profile =
+      existingProfile ??
+      Profile.normal(url: url, label: name?.isNotEmpty == true ? name : null);
+  return profile.copyWith(
+    label: name?.isNotEmpty == true ? name! : profile.label,
+  );
+}
+
 @Riverpod(keepAlive: true)
 class CommonAction extends _$CommonAction {
   @override
@@ -305,6 +322,24 @@ class SetupAction extends _$SetupAction {
     }
   }
 
+  void prepareDeepLinkConnection() {
+    ref
+        .read(patchClashConfigProvider.notifier)
+        .update((state) => state.copyWith.tun(enable: true));
+    ref
+        .read(vpnSettingProvider.notifier)
+        .update((state) => state.copyWith(enable: true));
+  }
+
+  Future<void> connectFromDeepLink() async {
+    prepareDeepLinkConnection();
+    if (ref.read(isStartProvider)) {
+      await applyProfile(force: true);
+      return;
+    }
+    await updateStatus(true);
+  }
+
   Future<void> updateConfigDebounce() async {
     debouncer.call(FunctionTag.updateConfig, () async {
       await globalState.safeRun(() async {
@@ -452,13 +487,29 @@ class SetupAction extends _$SetupAction {
       );
       switch (code) {
         case AuthorizeCode.success:
-          await ref.read(coreActionProvider.notifier).restartCore();
+          final restarted = await ref
+              .read(coreActionProvider.notifier)
+              .restartCore();
+          if (!restarted) {
+            ref
+                .read(patchClashConfigProvider.notifier)
+                .update((state) => state.copyWith.tun(enable: false));
+            ref.read(realTunEnableProvider.notifier).value = false;
+            final message = currentAppLocalizations.macosTunHelperInstallFailed;
+            globalState.showNotifier(message);
+            return Result.error(message);
+          }
           return Result.error('');
         case AuthorizeCode.none:
           break;
         case AuthorizeCode.error:
-          enableTun = false;
-          break;
+          ref
+              .read(patchClashConfigProvider.notifier)
+              .update((state) => state.copyWith.tun(enable: false));
+          ref.read(realTunEnableProvider.notifier).value = false;
+          final message = currentAppLocalizations.macosTunHelperInstallFailed;
+          globalState.showNotifier(message);
+          return Result.error(message);
       }
     }
     ref.read(realTunEnableProvider.notifier).value = enableTun;
@@ -617,25 +668,58 @@ class CoreAction extends _$CoreAction {
       final code = await system.authorizeCore();
       switch (code) {
         case AuthorizeCode.success:
-          await restartCore();
+          final restarted = await restartCore();
+          if (!restarted) {
+            ref
+                .read(patchClashConfigProvider.notifier)
+                .update((state) => state.copyWith.tun(enable: false));
+            ref.read(realTunEnableProvider.notifier).value = false;
+            final message = currentAppLocalizations.macosTunHelperInstallFailed;
+            globalState.showNotifier(message);
+            return Result.error(message);
+          }
           return Result.error('');
         case AuthorizeCode.none:
           break;
         case AuthorizeCode.error:
-          enableTun = false;
-          break;
+          ref
+              .read(patchClashConfigProvider.notifier)
+              .update((state) => state.copyWith.tun(enable: false));
+          ref.read(realTunEnableProvider.notifier).value = false;
+          final message = currentAppLocalizations.macosTunHelperInstallFailed;
+          globalState.showNotifier(message);
+          return Result.error(message);
       }
     }
     ref.read(realTunEnableProvider.notifier).value = enableTun;
     return Result.success(enableTun);
   }
 
-  Future<void> restartCore([bool start = false]) async {
+  Future<bool> reinstallWindowsHelper() async {
+    if (!system.isWindows) return false;
+    final wasStarted = ref.read(isStartProvider);
+    ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
+    await coreController.shutdown(false);
+    final installed = await system.reinstallWindowsHelper();
+    if (!installed) {
+      ref
+          .read(patchClashConfigProvider.notifier)
+          .update((state) => state.copyWith.tun(enable: false));
+      ref.read(realTunEnableProvider.notifier).value = false;
+      return false;
+    }
+    return restartCore(wasStarted);
+  }
+
+  Future<bool> restartCore([bool start = false]) async {
     final isDisconnected =
         ref.read(coreStatusProvider) == CoreStatus.disconnected;
     ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
     await coreController.shutdown(!isDisconnected);
     await connectCore();
+    if (ref.read(coreStatusProvider) != CoreStatus.connected) {
+      return false;
+    }
     await initCore();
     if (start || ref.read(isStartProvider)) {
       await ref
@@ -644,6 +728,7 @@ class CoreAction extends _$CoreAction {
     } else {
       await ref.read(setupActionProvider.notifier).applyProfile(force: true);
     }
+    return true;
   }
 
   Future<bool> tryStartCore([bool start = false]) async {
@@ -1028,6 +1113,18 @@ class ProfilesAction extends _$ProfilesAction {
   }
 
   Future<Profile?> addProfileFormURL(String url, {String? name}) async {
+    return _addProfileFormURL(url, name: name);
+  }
+
+  Future<Profile?> installProfileFormURL(String url, {String? name}) async {
+    return _addProfileFormURL(url, name: name, updateExisting: true);
+  }
+
+  Future<Profile?> _addProfileFormURL(
+    String url, {
+    String? name,
+    bool updateExisting = false,
+  }) async {
     if (globalState.navigatorKey.currentState?.canPop() ?? false) {
       globalState.navigatorKey.currentState?.popUntil((route) => route.isFirst);
     }
@@ -1035,10 +1132,17 @@ class ProfilesAction extends _$ProfilesAction {
     final profile = await globalState.loadingRun(
       tag: LoadingTag.profiles,
       () async {
-        return Profile.normal(
-          url: url,
-          label: name?.isNotEmpty == true ? name : null,
-        ).update();
+        final profile = updateExisting
+            ? profileForInstallUrl(
+                ref.read(profilesProvider),
+                url: url,
+                name: name,
+              )
+            : Profile.normal(
+                url: url,
+                label: name?.isNotEmpty == true ? name : null,
+              );
+        return profile.update();
       },
       title: currentAppLocalizations.addProfile,
     );

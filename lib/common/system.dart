@@ -13,6 +13,43 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 
 final _legacyHelperService = ['Fl', 'ClashHelperService'].join();
+final _knownHelperServices = {_legacyHelperService, appHelperService};
+
+@visibleForTesting
+List<String> parseWindowsHelperServiceNames(String output) {
+  final validName = RegExp(r'^[A-Za-z0-9_. -]+$');
+  return output
+      .split(RegExp(r'\r?\n'))
+      .map((name) => name.trim())
+      .where((name) => name.isNotEmpty && validName.hasMatch(name))
+      .toSet()
+      .toList();
+}
+
+@visibleForTesting
+String windowsHelperReinstallationCommand({
+  required Iterable<String> serviceNames,
+  required String helperPath,
+}) {
+  final names = serviceNames.toSet();
+  final currentExists = names.contains(appHelperService);
+  final cleanupCommands = [
+    for (final serviceName in names) 'sc stop "$serviceName" >nul 2>&1',
+    for (final executableName in _knownHelperServices)
+      'taskkill /F /IM "$executableName.exe" >nul 2>&1',
+    for (final serviceName in names)
+      if (serviceName != appHelperService) 'sc delete "$serviceName" >nul 2>&1',
+  ];
+  final registerCommand = currentExists
+      ? 'sc config "$appHelperService" binPath= "$helperPath" start= auto'
+      : 'sc create "$appHelperService" binPath= "$helperPath" start= auto';
+  return [
+    '/c',
+    '${cleanupCommands.join(' & ')} &',
+    registerCommand,
+    '&& sc start "$appHelperService"',
+  ].join(' ');
+}
 
 @visibleForTesting
 String windowsHelperRegistrationCommand({
@@ -20,20 +57,26 @@ String windowsHelperRegistrationCommand({
   required bool legacyServiceExists,
   required String helperPath,
 }) {
-  final servicesToRemove = [
-    if (legacyServiceExists) _legacyHelperService,
-    if (currentStatus == WindowsHelperServiceStatus.presence) appHelperService,
-  ];
-  final commands = [
-    for (final serviceName in servicesToRemove) ...[
-      'sc stop "$serviceName" >nul 2>&1',
-      'taskkill /F /IM "$serviceName.exe" >nul 2>&1',
-      'sc delete "$serviceName" >nul 2>&1',
+  final cleanupCommands = [
+    if (legacyServiceExists) ...[
+      'sc stop "$_legacyHelperService" >nul 2>&1',
+      'taskkill /F /IM "$_legacyHelperService.exe" >nul 2>&1',
+      'sc delete "$_legacyHelperService" >nul 2>&1',
     ],
-    'sc create "$appHelperService" binPath= "$helperPath" start= auto',
-    'sc start "$appHelperService"',
+    if (currentStatus == WindowsHelperServiceStatus.presence) ...[
+      'sc stop "$appHelperService" >nul 2>&1',
+      'taskkill /F /IM "$appHelperService.exe" >nul 2>&1',
+    ],
   ];
-  return ['/c', commands.join(' & ')].join(' ');
+  final registerCommand = currentStatus == WindowsHelperServiceStatus.none
+      ? 'sc create "$appHelperService" binPath= "$helperPath" start= auto'
+      : 'sc config "$appHelperService" binPath= "$helperPath" start= auto';
+  final command = [
+    if (cleanupCommands.isNotEmpty) '${cleanupCommands.join(' & ')} &',
+    registerCommand,
+    '&& sc start "$appHelperService"',
+  ].join(' ');
+  return '/c $command';
 }
 
 class System {
@@ -158,6 +201,11 @@ class System {
     return AuthorizeCode.error;
   }
 
+  Future<bool> reinstallWindowsHelper() async {
+    if (!isWindows) return false;
+    return await windows?.reinstallService() ?? false;
+  }
+
   Future<void> back() async {
     await app?.moveTaskToBack();
     await window?.hide();
@@ -261,8 +309,9 @@ class Windows {
     if (result.exitCode != 0) {
       return WindowsHelperServiceStatus.none;
     }
-    final output = result.stdout.toString();
-    if (output.contains('RUNNING') && await request.pingHelper()) {
+    // The textual state returned by sc.exe is localized. The authenticated
+    // health check is enough to prove that the registered helper is running.
+    if (await request.pingHelper()) {
       return WindowsHelperServiceStatus.running;
     }
     return WindowsHelperServiceStatus.presence;
@@ -271,6 +320,71 @@ class Windows {
   Future<bool> _serviceExists(String serviceName) async {
     final result = await Process.run('sc', ['query', serviceName]);
     return result.exitCode == 0;
+  }
+
+  Future<List<String>> _findHelperServices() async {
+    final knownServices = _knownHelperServices
+        .map((name) => "'$name'")
+        .join(',');
+    final knownExecutables = _knownHelperServices
+        .map((name) => "'$name.exe'")
+        .join(',');
+    final script =
+        '''
+\$knownServices = @($knownServices)
+\$knownExecutables = @($knownExecutables)
+Get-CimInstance Win32_Service | Where-Object {
+  \$rawPath = \$_.PathName.Trim()
+  if (\$rawPath.StartsWith('"')) {
+    \$executablePath = (\$rawPath -split '"')[1]
+  } else {
+    \$executablePath = (\$rawPath -split '\\s+')[0]
+  }
+  \$knownServices -contains \$_.Name -or
+    \$knownExecutables -contains [IO.Path]::GetFileName(\$executablePath)
+} | Select-Object -ExpandProperty Name
+''';
+    final names = <String>{};
+    try {
+      final result = await Process.run('powershell.exe', [
+        '-NoProfile',
+        '-NonInteractive',
+        '-Command',
+        script,
+      ]);
+      if (result.exitCode == 0) {
+        names.addAll(parseWindowsHelperServiceNames(result.stdout.toString()));
+      }
+    } catch (error) {
+      commonPrint.log(
+        'Windows helper discovery failed: $error',
+        logLevel: LogLevel.warning,
+      );
+    }
+    for (final serviceName in _knownHelperServices) {
+      if (await _serviceExists(serviceName)) {
+        names.add(serviceName);
+      }
+    }
+    return names.toList();
+  }
+
+  Future<bool> reinstallService() async {
+    final serviceNames = await _findHelperServices();
+    final command = windowsHelperReinstallationCommand(
+      serviceNames: serviceNames,
+      helperPath: appPath.helperPath,
+    );
+    final elevated = runas('cmd.exe', command);
+    if (!elevated) return false;
+    await Future.delayed(const Duration(milliseconds: 300));
+    final status = await retry(
+      task: checkService,
+      maxAttempts: 8,
+      retryIf: (value) => value != WindowsHelperServiceStatus.running,
+      delay: const Duration(seconds: 1),
+    );
+    return status == WindowsHelperServiceStatus.running;
   }
 
   Future<bool> registerService() async {
