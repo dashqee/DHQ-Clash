@@ -35,6 +35,18 @@ Profile profileForInstallUrl(
   );
 }
 
+bool shouldRestartCoreForTun({
+  required bool isWindows,
+  required bool isStarted,
+  required bool? previousEnable,
+  required bool nextEnable,
+}) {
+  return isWindows &&
+      isStarted &&
+      previousEnable == false &&
+      nextEnable == true;
+}
+
 @Riverpod(keepAlive: true)
 class CommonAction extends _$CommonAction {
   @override
@@ -322,13 +334,17 @@ class SetupAction extends _$SetupAction {
     }
   }
 
-  void prepareDeepLinkConnection() {
+  void setTunEnabled(bool enable) {
     ref
         .read(patchClashConfigProvider.notifier)
-        .update((state) => state.copyWith.tun(enable: true));
+        .update((state) => state.copyWith.tun(enable: enable));
     ref
         .read(vpnSettingProvider.notifier)
-        .update((state) => state.copyWith(enable: true));
+        .update((state) => state.copyWith(enable: enable));
+  }
+
+  void prepareDeepLinkConnection() {
+    setTunEnabled(true);
   }
 
   Future<void> connectFromDeepLink() async {
@@ -357,6 +373,17 @@ class SetupAction extends _$SetupAction {
         if (message.isNotEmpty) throw message;
       });
     });
+  }
+
+  Future<void> restartCoreForTun() async {
+    final authorization = await _requestAdmin(true);
+    if (authorization.isError) return;
+    final restarted = await ref
+        .read(coreActionProvider.notifier)
+        .restartCore(true);
+    if (restarted) return;
+    setTunEnabled(false);
+    ref.read(realTunEnableProvider.notifier).value = false;
   }
 
   void tryCheckIp() {
@@ -801,9 +828,9 @@ class SystemAction extends _$SystemAction {
   }
 
   void updateTun() {
-    ref
-        .read(patchClashConfigProvider.notifier)
-        .update((state) => state.copyWith.tun(enable: !state.tun.enable));
+    final setupAction = ref.read(setupActionProvider.notifier);
+    final enable = !ref.read(patchClashConfigProvider).tun.enable;
+    setupAction.setTunEnabled(enable);
   }
 
   void updateSystemProxy() {

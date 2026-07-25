@@ -1,7 +1,10 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/common/theme.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/models/models.dart';
+import 'package:fl_clash/providers/database.dart';
 import 'package:fl_clash/state.dart';
+import 'package:fl_clash/views/dashboard/dashboard.dart';
 import 'package:fl_clash/views/dashboard/widgets/outbound_mode.dart';
 import 'package:fl_clash/views/dashboard/widgets/quick_options.dart';
 import 'package:flutter/material.dart';
@@ -61,6 +64,46 @@ void main() {
     expect(decoration.color, isNull);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('start control stays inside status card on compact layouts', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          profilesProvider.overrideWith(
+            () => _TestProfiles([
+              Profile.normal(url: 'https://example.com/subscription'),
+            ]),
+          ),
+        ],
+        child: const _TestApp(
+          child: SizedBox(width: 360, child: DashboardConnectionOverview()),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final overview = find.byKey(
+      const ValueKey('dashboard-connection-overview'),
+    );
+    final startButton = find.byKey(const ValueKey('connection-start-button'));
+    expect(overview, findsOneWidget);
+    expect(
+      find.descendant(of: overview, matching: startButton),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+}
+
+class _TestProfiles extends Profiles {
+  final List<Profile> initial;
+
+  _TestProfiles(this.initial);
+
+  @override
+  List<Profile> build() => initial;
 }
 
 class _TestApp extends StatelessWidget {

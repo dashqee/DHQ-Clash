@@ -259,11 +259,10 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
       (isEdit) => CommonScaffold(
         title: context.appLocalizations.dashboard,
         actions: _buildActions(isEdit),
-        floatingActionButton: const StartButton(),
         body: Align(
           alignment: Alignment.topCenter,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20).copyWith(bottom: 96),
+            padding: const EdgeInsets.all(20),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1120),
               child: isEdit
@@ -287,7 +286,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                     )
                   : Column(
                       children: [
-                        const _ConnectionOverview(),
+                        const DashboardConnectionOverview(),
                         const SizedBox(height: 20),
                         Grid(
                           crossAxisCount: columns,
@@ -305,8 +304,8 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
   }
 }
 
-class _ConnectionOverview extends ConsumerWidget {
-  const _ConnectionOverview();
+class DashboardConnectionOverview extends ConsumerWidget {
+  const DashboardConnectionOverview({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -316,6 +315,9 @@ class _ConnectionOverview extends ConsumerWidget {
       patchClashConfigProvider.select((state) => state.mode),
     );
     final runTime = ref.watch(runTimeProvider);
+    final hasProfile = ref.watch(
+      profilesProvider.select((state) => state.isNotEmpty),
+    );
     final statusColor = switch (coreStatus) {
       CoreStatus.connected => AppTheme.cyan,
       CoreStatus.connecting => AppTheme.blue,
@@ -328,6 +330,7 @@ class _ConnectionOverview extends ConsumerWidget {
     };
 
     return Container(
+      key: const ValueKey('dashboard-connection-overview'),
       width: double.infinity,
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
@@ -411,9 +414,21 @@ class _ConnectionOverview extends ConsumerWidget {
               children: [
                 status,
                 const SizedBox(height: 18),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: metrics,
+                Row(
+                  children: [
+                    if (hasProfile) ...[
+                      const StartButton(
+                        key: ValueKey('connection-start-button'),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: metrics,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             );
@@ -424,6 +439,10 @@ class _ConnectionOverview extends ConsumerWidget {
               Expanded(child: status),
               const SizedBox(width: 24),
               metrics,
+              if (hasProfile) ...[
+                const SizedBox(width: 14),
+                const StartButton(key: ValueKey('connection-start-button')),
+              ],
             ],
           );
         },

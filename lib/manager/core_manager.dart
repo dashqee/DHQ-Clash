@@ -41,7 +41,17 @@ class _CoreContainerState extends ConsumerState<CoreManager>
     });
     ref.listenManual(updateParamsProvider, (prev, next) {
       if (prev != next) {
-        ref.read(setupActionProvider.notifier).updateConfigDebounce();
+        final setupAction = ref.read(setupActionProvider.notifier);
+        if (shouldRestartCoreForTun(
+          isWindows: system.isWindows,
+          isStarted: ref.read(isStartProvider),
+          previousEnable: prev?.tun.enable,
+          nextEnable: next.tun.enable,
+        )) {
+          setupAction.restartCoreForTun();
+        } else {
+          setupAction.updateConfigDebounce();
+        }
       }
     });
     ref.listenManual(appSettingProvider.select((state) => state.openLogs), (

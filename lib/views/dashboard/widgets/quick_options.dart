@@ -176,8 +176,8 @@ class TUNButton extends StatelessWidget {
                     value: enable,
                     onChanged: (value) {
                       ref
-                          .read(patchClashConfigProvider.notifier)
-                          .update((state) => state.copyWith.tun(enable: value));
+                          .read(setupActionProvider.notifier)
+                          .setTunEnabled(value);
                     },
                   );
                 },
