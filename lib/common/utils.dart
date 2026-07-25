@@ -163,6 +163,21 @@ class Utils {
     ).compareTo(Version.parse(_normalizeVersion(version2)));
   }
 
+  UpdateChannel effectiveUpdateChannel(
+    UpdateChannel configuredChannel,
+    String currentVersion,
+  ) {
+    try {
+      if (Version.parse(_normalizeVersion(currentVersion)).isPreRelease) {
+        return UpdateChannel.beta;
+      }
+    } on FormatException {
+      // Keep the configured channel if the platform returns a non-semver
+      // package version.
+    }
+    return configuredChannel;
+  }
+
   String _normalizeVersion(String value) {
     final version = value.trim().replaceFirst(RegExp(r'^v'), '');
     final separatorIndex = version.indexOf(RegExp(r'[-+]'));
