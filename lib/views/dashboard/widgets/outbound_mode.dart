@@ -10,13 +10,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 @visibleForTesting
-double outboundRuleShimmerOffset(double progress) => sin(progress * 2 * pi);
+double outboundRuleGradientAngle(double progress) {
+  final normalizedProgress = progress % 1;
+  return -pi / 4 + normalizedProgress * 2 * pi;
+}
 
-LinearGradient _ruleGradient(double shimmerOffset) {
+LinearGradient _ruleGradient(double progress) {
   return LinearGradient(
-    begin: Alignment(-1.5 + shimmerOffset, -0.8),
-    end: Alignment(1.5 + shimmerOffset, 0.8),
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
     colors: const [AppTheme.violet, AppTheme.blue, AppTheme.cyan],
+    transform: GradientRotation(outboundRuleGradientAngle(progress)),
   );
 }
 
@@ -37,6 +41,8 @@ class _OutboundModeV2State extends ConsumerState<OutboundModeV2>
     _gradientController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2400),
+      animationBehavior: AnimationBehavior.preserve,
+      debugLabel: 'outbound-rule-gradient',
     );
     ref.listenManual(patchClashConfigProvider.select((state) => state.mode), (
       _,
@@ -76,9 +82,7 @@ class _OutboundModeV2State extends ConsumerState<OutboundModeV2>
             return AnimatedBuilder(
               animation: _gradientController,
               builder: (_, _) {
-                final shimmerOffset = outboundRuleShimmerOffset(
-                  _gradientController.value,
-                );
+                final progress = _gradientController.value;
                 return Column(
                   children: [
                     Expanded(
@@ -95,7 +99,7 @@ class _OutboundModeV2State extends ConsumerState<OutboundModeV2>
                                   child: _ModeSegment(
                                     mode: item,
                                     selected: item == mode,
-                                    shimmerOffset: shimmerOffset,
+                                    animationProgress: progress,
                                     onPressed: () => _handleChangeMode(item),
                                   ),
                                 ),
@@ -114,7 +118,7 @@ class _OutboundModeV2State extends ConsumerState<OutboundModeV2>
                           Mode.direct => context.colorScheme.tertiary,
                         },
                         gradient: mode == Mode.rule
-                            ? _ruleGradient(shimmerOffset)
+                            ? _ruleGradient(progress)
                             : null,
                       ),
                     ),
@@ -132,20 +136,20 @@ class _OutboundModeV2State extends ConsumerState<OutboundModeV2>
 class _ModeSegment extends StatelessWidget {
   final Mode mode;
   final bool selected;
-  final double shimmerOffset;
+  final double animationProgress;
   final VoidCallback onPressed;
 
   const _ModeSegment({
     required this.mode,
     required this.selected,
-    required this.shimmerOffset,
+    required this.animationProgress,
     required this.onPressed,
   });
 
   @override
   Widget build(BuildContext context) {
     final gradient = selected && mode == Mode.rule
-        ? _ruleGradient(shimmerOffset)
+        ? _ruleGradient(animationProgress)
         : null;
     final backgroundColor = !selected
         ? Colors.transparent
@@ -162,6 +166,7 @@ class _ModeSegment extends StatelessWidget {
             Mode.direct => context.colorScheme.onTertiaryContainer,
           };
     return Semantics(
+      key: ValueKey('outbound-mode-${mode.name}'),
       selected: selected,
       button: true,
       child: AnimatedScale(
