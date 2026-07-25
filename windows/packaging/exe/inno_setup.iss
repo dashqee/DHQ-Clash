@@ -74,10 +74,19 @@ end;
 procedure KillProcesses;
 var
   Processes: TArrayOfString;
+  LegacyPrefix: String;
   i: Integer;
   ResultCode: Integer;
 begin
-  Processes := ['DHQClash.exe', 'DHQClashCore.exe', 'DHQClashHelperService.exe'];
+  LegacyPrefix := 'Fl';
+  Processes := [
+    'DHQClash.exe',
+    'DHQClashCore.exe',
+    'DHQClashHelperService.exe',
+    LegacyPrefix + 'Clash.exe',
+    LegacyPrefix + 'ClashCore.exe',
+    LegacyPrefix + 'ClashHelperService.exe'
+  ];
 
   for i := 0 to GetArrayLength(Processes)-1 do
   begin

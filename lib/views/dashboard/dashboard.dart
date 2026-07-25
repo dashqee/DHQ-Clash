@@ -392,6 +392,7 @@ class DashboardConnectionOverview extends ConsumerWidget {
             ],
           );
           final metrics = Row(
+            key: const ValueKey('connection-overview-metrics'),
             mainAxisSize: MainAxisSize.min,
             children: [
               _OverviewMetric(
@@ -412,29 +413,29 @@ class DashboardConnectionOverview extends ConsumerWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                status,
-                const SizedBox(height: 18),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Expanded(child: status),
                     if (hasProfile) ...[
+                      const SizedBox(width: 12),
                       const StartButton(
                         key: ValueKey('connection-start-button'),
                       ),
-                      const SizedBox(width: 12),
                     ],
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: metrics,
-                      ),
-                    ),
                   ],
+                ),
+                const SizedBox(height: 18),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: metrics,
                 ),
               ],
             );
           }
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(child: status),
               const SizedBox(width: 24),

@@ -23,6 +23,11 @@ void main() {
 
       expect(command, contains('sc stop "Old Helper Alias"'));
       expect(command, contains('sc delete "Old Helper Alias"'));
+      expect(command, contains('taskkill /F /IM "DHQClashCore.exe"'));
+      expect(
+        command,
+        contains('taskkill /F /IM "${['Fl', 'ClashCore.exe'].join()}"'),
+      );
       expect(command, isNot(contains('sc delete "$appHelperService"')));
       expect(command, contains('sc config "$appHelperService"'));
       expect(command, endsWith('&& sc start "$appHelperService"'));
@@ -49,6 +54,7 @@ void main() {
 
       expect(command, startsWith('/c '));
       expect(command, contains('taskkill /F /IM'));
+      expect(command, contains('taskkill /F /IM "DHQClashCore.exe"'));
       expect(command, contains('sc delete'));
       expect(command, contains(helperPath));
       expect(command, contains('sc create "$appHelperService"'));

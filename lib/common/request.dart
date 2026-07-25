@@ -243,7 +243,7 @@ class Request {
             data: json.encode({'path': appPath.corePath, 'arg': arg}),
             options: Options(responseType: ResponseType.plain),
           )
-          .timeout(const Duration(milliseconds: 2000));
+          .timeout(const Duration(seconds: 8));
       if (response.statusCode != HttpStatus.ok) {
         return 'Windows TUN helper returned HTTP ${response.statusCode}.';
       }

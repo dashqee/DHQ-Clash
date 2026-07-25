@@ -33,6 +33,28 @@ fn sha256_file(path: &str) -> Result<String, Error> {
     Ok(format!("{:x}", hasher.finalize()))
 }
 
+#[cfg(any(target_os = "windows", test))]
+fn known_core_executables() -> [String; 2] {
+    [
+        ["Fl", "ClashCore.exe"].concat(),
+        "DHQClashCore.exe".to_string(),
+    ]
+}
+
+#[cfg(target_os = "windows")]
+fn terminate_stale_cores() {
+    let executables = known_core_executables();
+    let mut command = Command::new("taskkill");
+    command.arg("/F");
+    for executable in &executables {
+        command.args(["/IM", executable.as_str()]);
+    }
+    let _ = command.output();
+}
+
+#[cfg(not(target_os = "windows"))]
+fn terminate_stale_cores() {}
+
 static LOGS: Lazy<Arc<Mutex<VecDeque<String>>>> =
     Lazy::new(|| Arc::new(Mutex::new(VecDeque::with_capacity(100))));
 static PROCESS: Lazy<Arc<Mutex<Option<std::process::Child>>>> =
@@ -46,6 +68,7 @@ fn start(start_params: StartParams) -> impl Reply {
         }
     }
     stop();
+    terminate_stale_cores();
     let mut process = PROCESS.lock().unwrap();
     match Command::new(&start_params.path)
         .stderr(Stdio::piped())
@@ -124,4 +147,17 @@ pub async fn run_service() -> anyhow::Result<()> {
         .await;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::known_core_executables;
+
+    #[test]
+    fn cleanup_covers_current_and_legacy_core_names() {
+        let executables = known_core_executables();
+
+        assert_eq!(executables[0], ["Fl", "ClashCore.exe"].concat());
+        assert_eq!(executables[1], "DHQClashCore.exe");
+    }
 }
