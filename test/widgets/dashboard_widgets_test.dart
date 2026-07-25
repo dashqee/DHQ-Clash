@@ -10,6 +10,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('rule gradient animation closes its loop without a jump', () {
+    const epsilon = 1e-10;
+    expect(outboundRuleShimmerOffset(0), closeTo(0, epsilon));
+    expect(outboundRuleShimmerOffset(0.25), closeTo(1, epsilon));
+    expect(outboundRuleShimmerOffset(0.75), closeTo(-1, epsilon));
+    expect(outboundRuleShimmerOffset(1), closeTo(0, epsilon));
+  });
+
   testWidgets('network quick options keep their switches inside the cards', (
     tester,
   ) async {
@@ -45,6 +53,12 @@ void main() {
     expect(find.text('Rule'), findsOneWidget);
     expect(find.text('Global'), findsOneWidget);
     expect(find.text('Direct'), findsOneWidget);
+    final footer = tester.widget<Container>(
+      find.byKey(const ValueKey('outbound-mode-footer')),
+    );
+    final decoration = footer.decoration! as BoxDecoration;
+    expect(decoration.gradient, isA<LinearGradient>());
+    expect(decoration.color, isNull);
     expect(tester.takeException(), isNull);
   });
 }
