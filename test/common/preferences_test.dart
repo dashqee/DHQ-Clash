@@ -14,17 +14,36 @@ void main() {
       ..complete(sharedPreferences);
   });
 
-  test('claims the automatic macOS helper install attempt only once', () async {
-    expect(await preferences.claimMacOSHelperInstallAttempt(), isTrue);
-    expect(await preferences.claimMacOSHelperInstallAttempt(), isFalse);
+  test('claims the automatic macOS helper install once per release', () async {
+    expect(
+      await preferences.claimMacOSHelperInstallAttempt(releaseId: '1.1.8+10'),
+      isTrue,
+    );
+    expect(
+      await preferences.claimMacOSHelperInstallAttempt(releaseId: '1.1.8+10'),
+      isFalse,
+    );
+    expect(
+      await preferences.claimMacOSHelperInstallAttempt(releaseId: '1.1.9+11'),
+      isTrue,
+    );
   });
 
   test('allows an explicit macOS helper install attempt', () async {
-    expect(await preferences.claimMacOSHelperInstallAttempt(), isTrue);
     expect(
-      await preferences.claimMacOSHelperInstallAttempt(force: true),
+      await preferences.claimMacOSHelperInstallAttempt(releaseId: '1.1.8+10'),
       isTrue,
     );
-    expect(await preferences.claimMacOSHelperInstallAttempt(), isFalse);
+    expect(
+      await preferences.claimMacOSHelperInstallAttempt(
+        releaseId: '1.1.8+10',
+        force: true,
+      ),
+      isTrue,
+    );
+    expect(
+      await preferences.claimMacOSHelperInstallAttempt(releaseId: '1.1.8+10'),
+      isFalse,
+    );
   });
 }

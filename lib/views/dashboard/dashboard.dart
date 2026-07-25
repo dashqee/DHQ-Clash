@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'widgets/quick_options.dart';
 import 'widgets/start_button.dart';
 
 typedef _IsEditWidgetBuilder = Widget Function(bool isEdit);
@@ -61,6 +62,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
   List<Widget> _buildActions(bool isEdit) {
     final appLocalizations = context.appLocalizations;
     return [
+      if (!isEdit && system.isMacOS) const MacOSTunHelperButton(),
       if (!isEdit)
         Consumer(
           builder: (_, ref, _) {

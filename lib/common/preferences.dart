@@ -8,8 +8,8 @@ import 'constant.dart';
 
 class Preferences {
   static Preferences? _instance;
-  static const _macOSHelperAutoInstallAttemptedKey =
-      'macOSHelperAutoInstallAttempted';
+  static const _macOSHelperAutoInstallAttemptKey =
+      'macOSHelperAutoInstallAttempt';
 
   Completer<SharedPreferences?> sharedPreferencesCompleter = Completer();
 
@@ -43,15 +43,19 @@ class Preferences {
     await preferences?.setInt('version', version);
   }
 
-  Future<bool> claimMacOSHelperInstallAttempt({bool force = false}) async {
+  Future<bool> claimMacOSHelperInstallAttempt({
+    required String releaseId,
+    bool force = false,
+  }) async {
     final preferences = await sharedPreferencesCompleter.future;
     if (force) {
       return true;
     }
-    if (preferences?.getBool(_macOSHelperAutoInstallAttemptedKey) == true) {
+    if (preferences?.getString(_macOSHelperAutoInstallAttemptKey) ==
+        releaseId) {
       return false;
     }
-    await preferences?.setBool(_macOSHelperAutoInstallAttemptedKey, true);
+    await preferences?.setString(_macOSHelperAutoInstallAttemptKey, releaseId);
     return true;
   }
 

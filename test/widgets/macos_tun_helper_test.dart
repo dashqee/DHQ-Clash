@@ -1,6 +1,7 @@
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/l10n/l10n.dart';
 import 'package:fl_clash/views/config/network.dart';
+import 'package:fl_clash/views/dashboard/widgets/quick_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,6 +39,37 @@ void main() {
     expect(installCalls, 1);
     expect(find.text('TUN access is installed'), findsOneWidget);
     expect(find.text('Authorized'), findsOneWidget);
+  });
+
+  testWidgets('exposes macOS TUN reinstall on the dashboard', (tester) async {
+    var installed = false;
+    var installCalls = 0;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: _TestApp(
+          child: MacOSTunHelperButton(
+            checkInstalled: () async => installed,
+            install: () async {
+              installCalls++;
+              return AuthorizeCode.success;
+            },
+            onInstalled: () async {
+              installed = true;
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.admin_panel_settings_outlined), findsOneWidget);
+
+    await tester.tap(find.byType(IconButton));
+    await tester.pumpAndSettle();
+
+    expect(installCalls, 1);
+    expect(find.byIcon(Icons.verified_user_outlined), findsOneWidget);
   });
 
   testWidgets('allows a manual Windows TUN helper reinstall', (tester) async {

@@ -38,7 +38,7 @@ const defaultThemeProps = ThemeProps(primaryColor: defaultPrimaryColor);
 
 const List<DashboardWidget> defaultDashboardWidgets = [
   DashboardWidget.networkSpeed,
-  DashboardWidget.outboundMode,
+  DashboardWidget.outboundModeV2,
   DashboardWidget.networkDetection,
   DashboardWidget.intranetIp,
   DashboardWidget.trafficUsage,
@@ -51,10 +51,16 @@ List<DashboardWidget> dashboardWidgetsSafeFormJson(
   List<dynamic>? dashboardWidgets,
 ) {
   try {
-    return dashboardWidgets
-            ?.map((e) => $enumDecode(_$DashboardWidgetEnumMap, e))
-            .toList() ??
-        defaultDashboardWidgets;
+    final widgets = dashboardWidgets
+        ?.map((value) {
+          if (value == 'outboundMode') {
+            return DashboardWidget.outboundModeV2;
+          }
+          return $enumDecode(_$DashboardWidgetEnumMap, value);
+        })
+        .toSet()
+        .toList();
+    return widgets ?? defaultDashboardWidgets;
   } catch (_) {
     return defaultDashboardWidgets;
   }

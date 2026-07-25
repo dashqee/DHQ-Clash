@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/providers/providers.dart';
@@ -8,94 +6,6 @@ import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-
-class OutboundMode extends StatelessWidget {
-  const OutboundMode({super.key});
-
-  void _handleChangeMode(Mode mode) {
-    globalState.container.read(setupActionProvider.notifier).changeMode(mode);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final appLocalizations = context.appLocalizations;
-    final height = getWidgetHeight(2);
-    return SizedBox(
-      height: height,
-      child: Consumer(
-        builder: (_, ref, _) {
-          final mode = ref.watch(
-            patchClashConfigProvider.select((state) => state.mode),
-          );
-          return Theme(
-            data: Theme.of(context).copyWith(
-              splashColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              hoverColor: Colors.transparent,
-            ),
-            child: CommonCard(
-              onPressed: () {},
-              info: Info(
-                label: appLocalizations.outboundMode,
-                iconData: Icons.call_split_sharp,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 12, bottom: 12),
-                child: RadioGroup<Mode>(
-                  groupValue: mode,
-                  onChanged: (value) {
-                    if (value == null) {
-                      return;
-                    }
-                    _handleChangeMode(value);
-                  },
-                  child: LayoutBuilder(
-                    builder: (_, constraints) {
-                      final maxHeight = constraints.maxHeight;
-                      return Column(
-                        mainAxisSize: MainAxisSize.max,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          for (final item in Mode.values)
-                            ListItem.radio(
-                              horizontalTitleGap: 8,
-                              tileTitleAlignment: ListTileTitleAlignment.center,
-                              minTileHeight: min(
-                                maxHeight / 3,
-                                globalState.measure.bodyMediumHeight + 16,
-                              ),
-                              minVerticalPadding: 0,
-                              padding: EdgeInsets.only(
-                                left: 12.ap,
-                                right: 16.ap,
-                              ),
-                              delegate: RadioDelegate(
-                                onTab: () {
-                                  _handleChangeMode(item);
-                                },
-                                value: item,
-                              ),
-                              title: Text(
-                                Intl.message(item.name),
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium?.toSoftBold,
-                              ),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
 
 class OutboundModeV2 extends ConsumerStatefulWidget {
   const OutboundModeV2({super.key});
@@ -113,16 +23,18 @@ class _OutboundModeV2State extends ConsumerState<OutboundModeV2>
     super.initState();
     _gradientController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 2400),
     );
     ref.listenManual(patchClashConfigProvider.select((state) => state.mode), (
       _,
       mode,
     ) {
       if (mode == Mode.rule) {
-        _gradientController.forward(from: 0);
+        _gradientController.repeat();
       } else {
-        _gradientController.reset();
+        _gradientController
+          ..stop()
+          ..reset();
       }
     }, fireImmediately: true);
   }
@@ -137,14 +49,6 @@ class _OutboundModeV2State extends ConsumerState<OutboundModeV2>
     globalState.container.read(setupActionProvider.notifier).changeMode(mode);
   }
 
-  Color _getTextColor(BuildContext context, Mode mode) {
-    return switch (mode) {
-      Mode.rule => context.colorScheme.onSecondaryContainer,
-      Mode.global => context.colorScheme.onPrimaryContainer,
-      Mode.direct => context.colorScheme.onTertiaryContainer,
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
     final height = getWidgetHeight(1);
@@ -156,105 +60,128 @@ class _OutboundModeV2State extends ConsumerState<OutboundModeV2>
             final mode = ref.watch(
               patchClashConfigProvider.select((state) => state.mode),
             );
-            final thumbColor = switch (mode) {
-              Mode.rule => Colors.transparent,
-              Mode.global => globalState.theme.darken3PrimaryContainer,
-              Mode.direct => context.colorScheme.tertiaryContainer,
-            };
-            return LayoutBuilder(
-              builder: (_, constraints) {
-                return Column(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        constraints: const BoxConstraints.expand(),
-                        child: AnimatedBuilder(
-                          animation: _gradientController,
-                          builder: (_, _) {
-                            final shimmerOffset =
-                                sin(pi * _gradientController.value) * 0.4;
-                            return CommonTabBar<Mode>(
-                              children: Map.fromEntries(
-                                Mode.values.map(
-                                  (item) => MapEntry(
-                                    item,
-                                    Container(
-                                      clipBehavior: Clip.antiAlias,
-                                      alignment: Alignment.center,
-                                      decoration: const BoxDecoration(),
-                                      height: height - 8.ap - 24,
-                                      padding: const EdgeInsets.all(4),
-                                      child: Text(
-                                        Intl.message(item.name),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall
-                                            ?.adjustSize(1)
-                                            .copyWith(
-                                              color: item == mode
-                                                  ? _getTextColor(context, item)
-                                                  : null,
-                                            ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 0,
-                              ),
-                              groupValue: mode,
-                              onValueChanged: (value) {
-                                if (value == null) {
-                                  return;
-                                }
-                                _handleChangeMode(value);
-                              },
-                              thumbColor: thumbColor,
-                              thumbGradient: mode == Mode.rule
-                                  ? LinearGradient(
-                                      begin: Alignment(
-                                        -1 + shimmerOffset,
-                                        -0.15,
-                                      ),
-                                      end: Alignment(1 + shimmerOffset, 0.15),
-                                      colors: const [
-                                        AppTheme.violet,
-                                        AppTheme.blue,
-                                        AppTheme.cyan,
-                                      ],
-                                    )
-                                  : null,
-                            );
-                          },
+            return AnimatedBuilder(
+              animation: _gradientController,
+              builder: (_, _) {
+                final shimmerOffset = _gradientController.value * 2 - 1;
+                return Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Row(
+                    children: [
+                      for (final item in Mode.values)
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 3),
+                            child: _ModeSegment(
+                              mode: item,
+                              selected: item == mode,
+                              shimmerOffset: shimmerOffset,
+                              onPressed: () => _handleChangeMode(item),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    Container(
-                      color: thumbColor.opacity50,
-                      height: 8.ap,
-                      width: constraints.maxWidth,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      // child: Row(
-                      //   children: [
-                      //     Container(
-                      //       width: (constraints.maxWidth - 32) / 3,
-                      //       height: 3,
-                      //       decoration: BoxDecoration(
-                      //         color: _getTextColor(context, mode),
-                      //         borderRadius: BorderRadius.circular(2),
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ),
-                    ),
-                  ],
+                    ],
+                  ),
                 );
               },
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _ModeSegment extends StatelessWidget {
+  final Mode mode;
+  final bool selected;
+  final double shimmerOffset;
+  final VoidCallback onPressed;
+
+  const _ModeSegment({
+    required this.mode,
+    required this.selected,
+    required this.shimmerOffset,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final gradient = selected && mode == Mode.rule
+        ? LinearGradient(
+            begin: Alignment(-1.5 + shimmerOffset, -0.8),
+            end: Alignment(1.5 + shimmerOffset, 0.8),
+            colors: const [AppTheme.violet, AppTheme.blue, AppTheme.cyan],
+          )
+        : null;
+    final backgroundColor = !selected
+        ? Colors.transparent
+        : switch (mode) {
+            Mode.rule => null,
+            Mode.global => context.colorScheme.primaryContainer,
+            Mode.direct => context.colorScheme.tertiaryContainer,
+          };
+    final foregroundColor = !selected
+        ? AppTheme.muted
+        : switch (mode) {
+            Mode.rule => Colors.white,
+            Mode.global => context.colorScheme.onPrimaryContainer,
+            Mode.direct => context.colorScheme.onTertiaryContainer,
+          };
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: AnimatedScale(
+        scale: selected ? 1 : 0.97,
+        duration: commonDuration,
+        curve: Curves.easeOutCubic,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            gradient: gradient,
+            borderRadius: AppTheme.borderRadiusSm,
+            border: Border.all(
+              color: selected
+                  ? foregroundColor.withValues(alpha: 0.28)
+                  : AppTheme.line,
+            ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color:
+                          (mode == Mode.rule ? AppTheme.blue : foregroundColor)
+                              .withValues(alpha: 0.18),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onPressed,
+              borderRadius: AppTheme.borderRadiusSm,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      Intl.message(mode.name),
+                      maxLines: 1,
+                      style: context.textTheme.titleMedium?.copyWith(
+                        color: foregroundColor,
+                        fontWeight: selected
+                            ? FontWeight.w800
+                            : FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
