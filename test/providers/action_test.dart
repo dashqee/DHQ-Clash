@@ -83,6 +83,60 @@ void main() {
       expect(container.read(vpnSettingProvider).enable, true);
       expect(container.read(networkSettingProvider).systemProxy, false);
     });
+
+    test('TUN switch also enables the Android VPN service state', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      container.read(setupActionProvider.notifier).setTunEnabled(true);
+
+      expect(container.read(patchClashConfigProvider).tun.enable, true);
+      expect(container.read(vpnSettingProvider).enable, true);
+
+      container.read(setupActionProvider.notifier).setTunEnabled(false);
+
+      expect(container.read(patchClashConfigProvider).tun.enable, false);
+      expect(container.read(vpnSettingProvider).enable, false);
+    });
+
+    test('active Windows client restarts only when TUN is enabled', () {
+      expect(
+        shouldRestartCoreForTun(
+          isWindows: true,
+          isStarted: true,
+          previousEnable: false,
+          nextEnable: true,
+        ),
+        true,
+      );
+      expect(
+        shouldRestartCoreForTun(
+          isWindows: true,
+          isStarted: true,
+          previousEnable: true,
+          nextEnable: false,
+        ),
+        false,
+      );
+      expect(
+        shouldRestartCoreForTun(
+          isWindows: false,
+          isStarted: true,
+          previousEnable: false,
+          nextEnable: true,
+        ),
+        false,
+      );
+      expect(
+        shouldRestartCoreForTun(
+          isWindows: true,
+          isStarted: false,
+          previousEnable: false,
+          nextEnable: true,
+        ),
+        false,
+      );
+    });
   });
 
   group('GeoResourceAction', () {

@@ -47,9 +47,7 @@ class TUNItem extends ConsumerWidget {
       delegate: SwitchDelegate(
         value: enable,
         onChanged: (value) async {
-          ref
-              .read(patchClashConfigProvider.notifier)
-              .update((state) => state.copyWith.tun(enable: value));
+          ref.read(setupActionProvider.notifier).setTunEnabled(value);
         },
       ),
     );
