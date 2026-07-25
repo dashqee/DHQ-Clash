@@ -309,7 +309,10 @@ class SetupAction extends _$SetupAction {
     debouncer.call(FunctionTag.updateConfig, () async {
       await globalState.safeRun(() async {
         final updateParams = ref.read(updateParamsProvider);
-        final res = await _requestAdmin(updateParams.tun.enable);
+        final res = await _requestAdmin(
+          updateParams.tun.enable,
+          forceMacOSHelperInstall: true,
+        );
         if (res.isError) return;
         final realTunEnable = ref.read(realTunEnableProvider);
         final message = await coreController.updateConfig(
@@ -438,10 +441,15 @@ class SetupAction extends _$SetupAction {
     return '';
   }
 
-  Future<Result<bool>> _requestAdmin(bool enableTun) async {
+  Future<Result<bool>> _requestAdmin(
+    bool enableTun, {
+    bool forceMacOSHelperInstall = false,
+  }) async {
     final realTunEnable = ref.read(realTunEnableProvider);
     if (enableTun != realTunEnable && realTunEnable == false) {
-      final code = await system.authorizeCore();
+      final code = await system.authorizeCore(
+        forceMacOSHelperInstall: forceMacOSHelperInstall,
+      );
       switch (code) {
         case AuthorizeCode.success:
           await ref.read(coreActionProvider.notifier).restartCore();

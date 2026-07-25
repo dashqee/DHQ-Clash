@@ -8,8 +8,33 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/plugins/app.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/input.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
+
+final _legacyHelperService = ['Fl', 'ClashHelperService'].join();
+
+@visibleForTesting
+String windowsHelperRegistrationCommand({
+  required WindowsHelperServiceStatus currentStatus,
+  required bool legacyServiceExists,
+  required String helperPath,
+}) {
+  final servicesToRemove = [
+    if (legacyServiceExists) _legacyHelperService,
+    if (currentStatus == WindowsHelperServiceStatus.presence) appHelperService,
+  ];
+  final commands = [
+    for (final serviceName in servicesToRemove) ...[
+      'sc stop "$serviceName" >nul 2>&1',
+      'taskkill /F /IM "$serviceName.exe" >nul 2>&1',
+      'sc delete "$serviceName" >nul 2>&1',
+    ],
+    'sc create "$appHelperService" binPath= "$helperPath" start= auto',
+    'sc start "$appHelperService"',
+  ];
+  return ['/c', commands.join(' & ')].join(' ');
+}
 
 class System {
   static System? _instance;
@@ -243,6 +268,11 @@ class Windows {
     return WindowsHelperServiceStatus.presence;
   }
 
+  Future<bool> _serviceExists(String serviceName) async {
+    final result = await Process.run('sc', ['query', serviceName]);
+    return result.exitCode == 0;
+  }
+
   Future<bool> registerService() async {
     final status = await checkService();
 
@@ -250,29 +280,15 @@ class Windows {
       return true;
     }
 
-    final command = [
-      '/c',
-      if (status == WindowsHelperServiceStatus.presence) ...[
-        'taskkill',
-        '/F',
-        '/IM',
-        '$appHelperService.exe'
-            ' & '
-            'sc',
-        'delete',
-        appHelperService,
-        '&',
-      ],
-      'sc',
-      'create',
-      appHelperService,
-      'binPath= "${appPath.helperPath}"',
-      'start= auto',
-      '&&',
-      'sc',
-      'start',
-      appHelperService,
-    ].join(' ');
+    // Releases before 1.1.5 registered the helper under a different service
+    // name while using the same HTTP port. Remove that orphan before starting
+    // the current helper, otherwise neither service can pass the health check.
+    final legacyServiceExists = await _serviceExists(_legacyHelperService);
+    final command = windowsHelperRegistrationCommand(
+      currentStatus: status,
+      legacyServiceExists: legacyServiceExists,
+      helperPath: appPath.helperPath,
+    );
 
     final res = runas('cmd.exe', command);
 
