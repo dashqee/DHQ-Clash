@@ -100,7 +100,7 @@ void main() {
       expect(restored.onlyStatisticsProxy, false);
       expect(restored.autoLaunch, true);
       expect(restored.silentLaunch, true);
-      expect(restored.autoRun, true);
+      expect(restored.autoRun, false);
       expect(restored.openLogs, false);
       expect(restored.closeConnections, true);
       expect(restored.isAnimateToPage, true);
@@ -113,12 +113,12 @@ void main() {
       expect(restored.testUrl, defaultTestUrl);
     });
 
-    test('missing startup values use enabled defaults', () {
+    test('missing startup values keep VPN auto-run disabled', () {
       final restored = AppSettingProps.fromJson({});
 
       expect(restored.autoLaunch, true);
       expect(restored.silentLaunch, true);
-      expect(restored.autoRun, true);
+      expect(restored.autoRun, false);
     });
 
     test('custom values survive round-trip', () {
@@ -195,8 +195,8 @@ void main() {
   group('VpnProps JSON round-trip', () {
     test('default values', () {
       const props = VpnProps();
-      expect(props.enable, true);
-      expect(props.systemProxy, true);
+      expect(props.enable, false);
+      expect(props.systemProxy, false);
       expect(props.ipv6, false);
       expect(props.allowBypass, true);
       expect(props.dnsHijacking, false);
@@ -205,7 +205,7 @@ void main() {
 
     test('fromJson handles null', () {
       final props = VpnProps.fromJson(null);
-      expect(props.enable, true);
+      expect(props.enable, false);
     });
 
     test('round-trip with custom values', () {
@@ -229,7 +229,7 @@ void main() {
   group('NetworkProps JSON round-trip', () {
     test('default values', () {
       const props = NetworkProps();
-      expect(props.systemProxy, true);
+      expect(props.systemProxy, false);
       expect(props.bypassDomain, defaultBypassDomain);
       expect(props.routeMode, RouteMode.config);
       expect(props.autoSetSystemDns, true);
@@ -364,8 +364,8 @@ void main() {
       final restored = roundTrip(() => config.toJson(), Config.fromJson);
       expect(restored.currentProfileId, null);
       expect(restored.overrideDns, false);
-      expect(restored.networkProps.systemProxy, true);
-      expect(restored.vpnProps.enable, true);
+      expect(restored.networkProps.systemProxy, false);
+      expect(restored.vpnProps.enable, false);
       expect(restored.hotKeyActions, isEmpty);
     });
 

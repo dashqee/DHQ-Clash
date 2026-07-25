@@ -18,6 +18,23 @@ import 'package:url_launcher/url_launcher.dart';
 
 part 'generated/action.g.dart';
 
+@visibleForTesting
+Profile profileForInstallUrl(
+  List<Profile> profiles, {
+  required String url,
+  String? name,
+}) {
+  final existingProfile = profiles
+      .where((profile) => profile.url == url)
+      .firstOrNull;
+  final profile =
+      existingProfile ??
+      Profile.normal(url: url, label: name?.isNotEmpty == true ? name : null);
+  return profile.copyWith(
+    label: name?.isNotEmpty == true ? name! : profile.label,
+  );
+}
+
 @Riverpod(keepAlive: true)
 class CommonAction extends _$CommonAction {
   @override
@@ -303,6 +320,24 @@ class SetupAction extends _$SetupAction {
       ref.read(runTimeProvider.notifier).value = null;
       ref.read(checkIpNumProvider.notifier).add();
     }
+  }
+
+  void prepareDeepLinkConnection() {
+    ref
+        .read(patchClashConfigProvider.notifier)
+        .update((state) => state.copyWith.tun(enable: true));
+    ref
+        .read(vpnSettingProvider.notifier)
+        .update((state) => state.copyWith(enable: true));
+  }
+
+  Future<void> connectFromDeepLink() async {
+    prepareDeepLinkConnection();
+    if (ref.read(isStartProvider)) {
+      await applyProfile(force: true);
+      return;
+    }
+    await updateStatus(true);
   }
 
   Future<void> updateConfigDebounce() async {
@@ -1028,6 +1063,18 @@ class ProfilesAction extends _$ProfilesAction {
   }
 
   Future<Profile?> addProfileFormURL(String url, {String? name}) async {
+    return _addProfileFormURL(url, name: name);
+  }
+
+  Future<Profile?> installProfileFormURL(String url, {String? name}) async {
+    return _addProfileFormURL(url, name: name, updateExisting: true);
+  }
+
+  Future<Profile?> _addProfileFormURL(
+    String url, {
+    String? name,
+    bool updateExisting = false,
+  }) async {
     if (globalState.navigatorKey.currentState?.canPop() ?? false) {
       globalState.navigatorKey.currentState?.popUntil((route) => route.isFirst);
     }
@@ -1035,10 +1082,17 @@ class ProfilesAction extends _$ProfilesAction {
     final profile = await globalState.loadingRun(
       tag: LoadingTag.profiles,
       () async {
-        return Profile.normal(
-          url: url,
-          label: name?.isNotEmpty == true ? name : null,
-        ).update();
+        final profile = updateExisting
+            ? profileForInstallUrl(
+                ref.read(profilesProvider),
+                url: url,
+                name: name,
+              )
+            : Profile.normal(
+                url: url,
+                label: name?.isNotEmpty == true ? name : null,
+              );
+        return profile.update();
       },
       title: currentAppLocalizations.addProfile,
     );

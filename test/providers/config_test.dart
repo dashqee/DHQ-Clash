@@ -22,6 +22,7 @@ void main() {
       expect(value.onlyStatisticsProxy, false);
       // Startup automation ships on by default (see AppSettingProps defaults).
       expect(value.autoLaunch, true);
+      expect(value.autoRun, false);
       expect(value.closeConnections, true);
       expect(value.isAnimateToPage, true);
       expect(value.updateChannel, UpdateChannel.stable);
@@ -60,10 +61,10 @@ void main() {
   });
 
   group('VpnSetting provider', () {
-    test('default value has enable true', () {
+    test('default value is disabled', () {
       final value = container.read(vpnSettingProvider);
-      expect(value.enable, true);
-      expect(value.systemProxy, true);
+      expect(value.enable, false);
+      expect(value.systemProxy, false);
     });
 
     test('can update state', () {
@@ -77,7 +78,7 @@ void main() {
   group('NetworkSetting provider', () {
     test('default values', () {
       final value = container.read(networkSettingProvider);
-      expect(value.systemProxy, true);
+      expect(value.systemProxy, false);
       expect(value.bypassDomain, defaultBypassDomain);
     });
 
@@ -206,8 +207,10 @@ void main() {
       final config = container.read(configProvider);
       expect(config.appSettingProps.onlyStatisticsProxy, false);
       expect(config.windowProps.width, 0);
-      expect(config.vpnProps.enable, true);
-      expect(config.networkProps.systemProxy, true);
+      expect(config.appSettingProps.autoRun, false);
+      expect(config.vpnProps.enable, false);
+      expect(config.networkProps.systemProxy, false);
+      expect(config.patchClashConfig.tun.enable, false);
       expect(config.currentProfileId, null);
       expect(config.overrideDns, false);
       expect(config.hotKeyActions, isEmpty);

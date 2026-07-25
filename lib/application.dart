@@ -78,14 +78,10 @@ class ApplicationState extends ConsumerState<Application> {
       }
       final profile = await ref
           .read(profilesActionProvider.notifier)
-          .addProfileFormURL(request.url, name: request.name);
+          .installProfileFormURL(request.url, name: request.name);
       if (profile == null) return;
-      // putProfile only selects the very first profile; a deep-link install must
-      // become current explicitly so autoconnect starts with the right config.
       ref.read(currentProfileIdProvider.notifier).value = profile.id;
-      if (request.autoConnect) {
-        await ref.read(setupActionProvider.notifier).updateStatus(true);
-      }
+      await ref.read(setupActionProvider.notifier).connectFromDeepLink();
     });
   }
 

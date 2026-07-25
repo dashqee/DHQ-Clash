@@ -70,7 +70,7 @@ abstract class AppSettingProps with _$AppSettingProps {
     @Default(false) bool onlyStatisticsProxy,
     @Default(true) bool autoLaunch,
     @Default(true) bool silentLaunch,
-    @Default(true) bool autoRun,
+    @Default(false) bool autoRun,
     @Default(false) bool openLogs,
     @Default(true) bool closeConnections,
     @Default(defaultTestUrl) String testUrl,
@@ -153,8 +153,8 @@ extension WindowPropsExt on WindowProps {
 @freezed
 abstract class VpnProps with _$VpnProps {
   const factory VpnProps({
-    @Default(true) bool enable,
-    @Default(true) bool systemProxy,
+    @Default(false) bool enable,
+    @Default(false) bool systemProxy,
     @Default(false) bool ipv6,
     @Default(true) bool allowBypass,
     @Default(false) bool dnsHijacking,
@@ -168,7 +168,7 @@ abstract class VpnProps with _$VpnProps {
 @freezed
 abstract class NetworkProps with _$NetworkProps {
   const factory NetworkProps({
-    @Default(true) bool systemProxy,
+    @Default(false) bool systemProxy,
     @Default(defaultBypassDomain) List<String> bypassDomain,
     @Default(RouteMode.config) RouteMode routeMode,
     @Default(true) bool autoSetSystemDns,
