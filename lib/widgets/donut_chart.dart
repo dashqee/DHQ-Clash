@@ -9,7 +9,7 @@ class DonutChartData {
   final Color color;
 
   const DonutChartData({required double value, required this.color})
-    : _value = value + 1;
+    : _value = value < 0 ? 0 : value;
 
   double get value => _value;
 

@@ -91,6 +91,36 @@ void main() {
   });
 
   group('AppSettingProps JSON round-trip', () {
+    test('uses the new outbound mode widget by default', () {
+      expect(defaultDashboardWidgets, contains(DashboardWidget.outboundModeV2));
+    });
+
+    test(
+      'migrates the legacy outbound mode widget without resetting layout',
+      () {
+        final widgets = dashboardWidgetsSafeFormJson([
+          'trafficUsage',
+          'outboundMode',
+          'tunButton',
+        ]);
+
+        expect(widgets, [
+          DashboardWidget.trafficUsage,
+          DashboardWidget.outboundModeV2,
+          DashboardWidget.tunButton,
+        ]);
+      },
+    );
+
+    test('deduplicates outbound mode widget during migration', () {
+      final widgets = dashboardWidgetsSafeFormJson([
+        'outboundMode',
+        'outboundModeV2',
+      ]);
+
+      expect(widgets, [DashboardWidget.outboundModeV2]);
+    });
+
     test('default values survive round-trip', () {
       const props = AppSettingProps();
       final restored = roundTrip(

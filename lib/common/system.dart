@@ -156,7 +156,9 @@ class System {
     }
 
     if (system.isMacOS) {
+      final packageInfo = globalState.packageInfo;
       final shouldAttempt = await preferences.claimMacOSHelperInstallAttempt(
+        releaseId: '${packageInfo.version}+${packageInfo.buildNumber}',
         force: forceMacOSHelperInstall,
       );
       if (!shouldAttempt) {
