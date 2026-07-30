@@ -71,7 +71,9 @@ class _VideoCallTunnelPanelState extends ConsumerState<VideoCallTunnelPanel> {
 
   Future<void> _save() async {
     final joinLink = _joinLinkController.text.trim();
-    if (_enabled && !isValidVideoCallJoinLink(joinLink)) {
+    if (_enabled &&
+        joinLink.isNotEmpty &&
+        !isValidVideoCallJoinLink(joinLink)) {
       setState(() => _error = context.appLocalizations.turnTunnelInvalidLink);
       return;
     }
@@ -86,12 +88,15 @@ class _VideoCallTunnelPanelState extends ConsumerState<VideoCallTunnelPanel> {
       tunnelMode: _tunnelMode,
     );
     ref.read(videoCallTunnelSettingProvider.notifier).update((_) => next);
-    if (ref.read(isStartProvider)) {
-      if (next.enable) {
-        await videoCallTunnelController.start(next);
-      } else {
-        await videoCallTunnelController.stop();
-      }
+    final isStarted = ref.read(isStartProvider);
+    if (next.enable) {
+      await ref
+          .read(setupActionProvider.notifier)
+          .refreshVideoCallTunnel(startTunnel: isStarted);
+      final resolved = ref.read(videoCallTunnelSettingProvider);
+      _joinLinkController.text = resolved.joinLink;
+    } else if (isStarted) {
+      await videoCallTunnelController.stop();
       await ref
           .read(setupActionProvider.notifier)
           .applyProfile(force: true, silence: true);

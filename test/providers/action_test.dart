@@ -1,3 +1,4 @@
+import 'package:fl_clash/common/video_call_tunnel.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/action.dart';
@@ -136,6 +137,72 @@ void main() {
         ),
         false,
       );
+    });
+
+    test('stores the backend TURN link for the active subscription', () async {
+      final profile = Profile.normal(
+        url: 'https://sub.example.com/c_device.yaml',
+      );
+      final container = ProviderContainer(
+        overrides: [
+          currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
+          profilesProvider.overrideWith(() => _TestProfiles([profile])),
+          videoCallTunnelSettingProvider.overrideWithBuild(
+            (_, _) => const VideoCallTunnelProps(enable: true),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final refreshed = await container
+          .read(setupActionProvider.notifier)
+          .refreshVideoCallTunnel(
+            startTunnel: false,
+            fetchLink: (subscriptionUrl) async {
+              expect(subscriptionUrl, profile.url);
+              return const VideoCallTunnelLinkResult(
+                VideoCallTunnelLinkStatus.available,
+                joinLink: 'https://vk.ru/call/join/backend-link',
+              );
+            },
+          );
+
+      expect(refreshed, true);
+      expect(
+        container.read(videoCallTunnelSettingProvider).joinLink,
+        'https://vk.ru/call/join/backend-link',
+      );
+    });
+
+    test('clears a cached TURN link when entitlement is denied', () async {
+      final profile = Profile.normal(
+        url: 'https://sub.example.com/c_device.yaml',
+      );
+      final container = ProviderContainer(
+        overrides: [
+          currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
+          profilesProvider.overrideWith(() => _TestProfiles([profile])),
+          videoCallTunnelSettingProvider.overrideWithBuild(
+            (_, _) => const VideoCallTunnelProps(
+              enable: true,
+              joinLink: 'https://vk.ru/call/join/cached-link',
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final refreshed = await container
+          .read(setupActionProvider.notifier)
+          .refreshVideoCallTunnel(
+            startTunnel: false,
+            fetchLink: (_) async => const VideoCallTunnelLinkResult(
+              VideoCallTunnelLinkStatus.notEntitled,
+            ),
+          );
+
+      expect(refreshed, false);
+      expect(container.read(videoCallTunnelSettingProvider).joinLink, isEmpty);
     });
   });
 

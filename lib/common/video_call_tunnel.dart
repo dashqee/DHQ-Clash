@@ -23,6 +23,25 @@ enum VideoCallTunnelStatus {
   error,
 }
 
+enum VideoCallTunnelLinkStatus {
+  available,
+  notEntitled,
+  temporarilyUnavailable,
+  invalidSubscription,
+  error,
+}
+
+@immutable
+class VideoCallTunnelLinkResult {
+  final VideoCallTunnelLinkStatus status;
+  final String? joinLink;
+
+  const VideoCallTunnelLinkResult(this.status, {this.joinLink});
+}
+
+typedef VideoCallTunnelLinkFetcher =
+    Future<VideoCallTunnelLinkResult> Function(String subscriptionUrl);
+
 @immutable
 class VideoCallTunnelCredentials {
   final String username;
@@ -32,6 +51,53 @@ class VideoCallTunnelCredentials {
     required this.username,
     required this.password,
   });
+}
+
+Uri? buildVideoCallTunnelLinkUri(String subscriptionUrl) {
+  final subscriptionUri = Uri.tryParse(subscriptionUrl.trim());
+  if (subscriptionUri == null ||
+      !subscriptionUri.hasScheme ||
+      subscriptionUri.host.isEmpty ||
+      !{'http', 'https'}.contains(subscriptionUri.scheme.toLowerCase())) {
+    return null;
+  }
+  final pathSegments = subscriptionUri.pathSegments
+      .where((segment) => segment.isNotEmpty)
+      .toList();
+  if (pathSegments.isEmpty) return null;
+  return Uri(
+    scheme: subscriptionUri.scheme,
+    host: subscriptionUri.host,
+    port: subscriptionUri.hasPort ? subscriptionUri.port : null,
+    pathSegments: ['turn', 'link', pathSegments.last],
+  );
+}
+
+VideoCallTunnelLinkResult parseVideoCallTunnelLinkResponse(
+  int? statusCode,
+  Object? data,
+) {
+  if (statusCode == HttpStatus.forbidden) {
+    return const VideoCallTunnelLinkResult(
+      VideoCallTunnelLinkStatus.notEntitled,
+    );
+  }
+  if (statusCode == HttpStatus.serviceUnavailable) {
+    return const VideoCallTunnelLinkResult(
+      VideoCallTunnelLinkStatus.temporarilyUnavailable,
+    );
+  }
+  if (statusCode != HttpStatus.ok || data is! Map) {
+    return const VideoCallTunnelLinkResult(VideoCallTunnelLinkStatus.error);
+  }
+  final joinLink = data['join_link']?.toString().trim() ?? '';
+  if (!isValidVideoCallJoinLink(joinLink)) {
+    return const VideoCallTunnelLinkResult(VideoCallTunnelLinkStatus.error);
+  }
+  return VideoCallTunnelLinkResult(
+    VideoCallTunnelLinkStatus.available,
+    joinLink: joinLink,
+  );
 }
 
 VideoCallTunnelCredentials deriveVideoCallTunnelCredentials(String joinLink) {
@@ -119,6 +185,7 @@ class VideoCallTunnelController {
     VideoCallTunnelStatus.disabled,
   );
   final ValueNotifier<Uri?> captchaUri = ValueNotifier(null);
+  Future<void> Function()? onTunnelLost;
   Process? _process;
   StreamSubscription<String>? _stdoutSubscription;
   StreamSubscription<String>? _stderrSubscription;
@@ -272,6 +339,10 @@ class VideoCallTunnelController {
       _ when value.startsWith('ERROR:') => VideoCallTunnelStatus.error,
       _ => status.value,
     };
+    if (value == 'TUNNEL_LOST') {
+      final callback = onTunnelLost;
+      if (callback != null) unawaited(callback());
+    }
     if (value == 'READY' && !system.isAndroid) {
       final props = _props;
       if (props == null) return;

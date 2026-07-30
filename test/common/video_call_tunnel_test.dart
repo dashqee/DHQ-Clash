@@ -13,6 +13,44 @@ void main() {
       expect(isValidVideoCallJoinLink('vless://example.com'), isFalse);
     });
 
+    test('builds the backend link endpoint from a subscription URL', () {
+      expect(
+        buildVideoCallTunnelLinkUri(
+          'https://sub.example.com/c_device.yaml?token=ignored',
+        ),
+        Uri.parse('https://sub.example.com/turn/link/c_device.yaml'),
+      );
+      expect(
+        buildVideoCallTunnelLinkUri(
+          'https://sub.example.com/nested/c_device.yaml',
+        ),
+        Uri.parse('https://sub.example.com/turn/link/c_device.yaml'),
+      );
+      expect(buildVideoCallTunnelLinkUri('not-a-url'), isNull);
+    });
+
+    test('parses backend link entitlement and availability responses', () {
+      expect(
+        parseVideoCallTunnelLinkResponse(403, null).status,
+        VideoCallTunnelLinkStatus.notEntitled,
+      );
+      expect(
+        parseVideoCallTunnelLinkResponse(503, null).status,
+        VideoCallTunnelLinkStatus.temporarilyUnavailable,
+      );
+      final available = parseVideoCallTunnelLinkResponse(200, {
+        'join_link': 'https://vk.ru/call/join/backend-link',
+      });
+      expect(available.status, VideoCallTunnelLinkStatus.available);
+      expect(available.joinLink, 'https://vk.ru/call/join/backend-link');
+      expect(
+        parseVideoCallTunnelLinkResponse(200, {
+          'join_link': 'https://example.com/not-vk',
+        }).status,
+        VideoCallTunnelLinkStatus.error,
+      );
+    });
+
     test('accepts only local CAPTCHA URLs emitted by the sidecar', () {
       expect(
         parseVideoCallTunnelCaptchaUri('CAPTCHA:http://127.0.0.1:51618/'),

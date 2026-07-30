@@ -233,12 +233,133 @@ class CommonAction extends _$CommonAction {
 @Riverpod(keepAlive: true)
 class SetupAction extends _$SetupAction {
   Timer? _updateTimer;
+  Timer? _turnLinkRetryTimer;
+  bool _isRefreshingTurnLink = false;
+  String? _turnSubscriptionUrl;
   DateTime? startTime;
 
   bool get isStart => startTime != null && startTime!.isBeforeNow;
 
   @override
-  void build() {}
+  void build() {
+    videoCallTunnelController.onTunnelLost = _handleVideoCallTunnelLost;
+    ref.onDispose(() {
+      _turnLinkRetryTimer?.cancel();
+      if (videoCallTunnelController.onTunnelLost ==
+          _handleVideoCallTunnelLost) {
+        videoCallTunnelController.onTunnelLost = null;
+      }
+    });
+  }
+
+  void _scheduleTurnLinkRetry() {
+    if (_turnLinkRetryTimer?.isActive == true) return;
+    _turnLinkRetryTimer = Timer(const Duration(seconds: 20), () {
+      _turnLinkRetryTimer = null;
+      unawaited(refreshVideoCallTunnel(requireChanged: true));
+    });
+  }
+
+  Future<VideoCallTunnelProps?> _resolveVideoCallTunnelProps({
+    bool requireChanged = false,
+    VideoCallTunnelLinkFetcher? fetchLink,
+  }) async {
+    final props = ref.read(videoCallTunnelSettingProvider);
+    if (!props.enable) return null;
+    final profile = ref.read(currentProfileProvider);
+    if (profile == null || profile.url.isEmpty) {
+      return isValidVideoCallJoinLink(props.joinLink) ? props : null;
+    }
+
+    _turnSubscriptionUrl = profile.url;
+    videoCallTunnelController.status.value = VideoCallTunnelStatus.connecting;
+    final result = await (fetchLink ?? request.getVideoCallTunnelLink)(
+      profile.url,
+    );
+    switch (result.status) {
+      case VideoCallTunnelLinkStatus.available:
+        final joinLink = result.joinLink!;
+        if (requireChanged && joinLink == props.joinLink) {
+          _scheduleTurnLinkRetry();
+          return null;
+        }
+        _turnLinkRetryTimer?.cancel();
+        _turnLinkRetryTimer = null;
+        final next = props.copyWith(joinLink: joinLink);
+        ref.read(videoCallTunnelSettingProvider.notifier).update((_) => next);
+        return next;
+      case VideoCallTunnelLinkStatus.notEntitled:
+        _turnLinkRetryTimer?.cancel();
+        _turnLinkRetryTimer = null;
+        ref
+            .read(videoCallTunnelSettingProvider.notifier)
+            .update((state) => state.copyWith(joinLink: ''));
+        videoCallTunnelController.status.value = VideoCallTunnelStatus.disabled;
+        return null;
+      case VideoCallTunnelLinkStatus.temporarilyUnavailable:
+        if (!requireChanged) {
+          ref
+              .read(videoCallTunnelSettingProvider.notifier)
+              .update((state) => state.copyWith(joinLink: ''));
+        }
+        videoCallTunnelController.status.value =
+            VideoCallTunnelStatus.reconnecting;
+        _scheduleTurnLinkRetry();
+        return null;
+      case VideoCallTunnelLinkStatus.invalidSubscription:
+        if (isValidVideoCallJoinLink(props.joinLink)) return props;
+        videoCallTunnelController.status.value = VideoCallTunnelStatus.error;
+        return null;
+      case VideoCallTunnelLinkStatus.error:
+        if (isValidVideoCallJoinLink(props.joinLink)) return props;
+        videoCallTunnelController.status.value = VideoCallTunnelStatus.error;
+        _scheduleTurnLinkRetry();
+        return null;
+    }
+  }
+
+  Future<bool> refreshVideoCallTunnel({
+    bool requireChanged = false,
+    bool startTunnel = true,
+    VideoCallTunnelLinkFetcher? fetchLink,
+  }) async {
+    if (_isRefreshingTurnLink) return false;
+    _isRefreshingTurnLink = true;
+    try {
+      final previousJoinLink = ref
+          .read(videoCallTunnelSettingProvider)
+          .joinLink;
+      final props = await _resolveVideoCallTunnelProps(
+        requireChanged: requireChanged,
+        fetchLink: fetchLink,
+      );
+      if (props == null) {
+        final currentJoinLink = ref
+            .read(videoCallTunnelSettingProvider)
+            .joinLink;
+        if (startTunnel && isStart && previousJoinLink != currentJoinLink) {
+          await videoCallTunnelController.stop();
+          await applyProfile(force: true, silence: true);
+        }
+        return false;
+      }
+      if (!startTunnel) {
+        videoCallTunnelController.status.value = VideoCallTunnelStatus.stopped;
+        return true;
+      }
+      final started = await videoCallTunnelController.start(props);
+      if (started && isStart) {
+        await applyProfile(force: true, silence: true);
+      }
+      return started;
+    } finally {
+      _isRefreshingTurnLink = false;
+    }
+  }
+
+  Future<void> _handleVideoCallTunnelLost() async {
+    await refreshVideoCallTunnel(requireChanged: true);
+  }
 
   SetupParams get _setupParams {
     final selectedMap = ref.read(selectedMapProvider);
@@ -305,7 +426,10 @@ class SetupAction extends _$SetupAction {
     if (isStart) {
       final videoCallTunnel = ref.read(videoCallTunnelSettingProvider);
       if (videoCallTunnel.enable) {
-        await videoCallTunnelController.start(videoCallTunnel);
+        final resolvedVideoCallTunnel = await _resolveVideoCallTunnelProps();
+        if (resolvedVideoCallTunnel != null) {
+          await videoCallTunnelController.start(resolvedVideoCallTunnel);
+        }
       }
       if (!isInit) {
         final res = await ref
@@ -568,6 +692,15 @@ class SetupAction extends _$SetupAction {
     if (nextProfile != null) {
       profile = nextProfile;
       ref.read(profilesProvider.notifier).put(nextProfile);
+    }
+    final videoCallTunnel = ref.read(videoCallTunnelSettingProvider);
+    if (videoCallTunnel.enable &&
+        profile?.url.isNotEmpty == true &&
+        profile?.url != _turnSubscriptionUrl) {
+      final resolvedVideoCallTunnel = await _resolveVideoCallTunnelProps();
+      if (resolvedVideoCallTunnel != null && isStart) {
+        await videoCallTunnelController.start(resolvedVideoCallTunnel);
+      }
     }
     commonPrint.log('setup ===> ${profile?.id}');
     final patchConfig = ref.read(patchClashConfigProvider);

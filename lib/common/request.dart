@@ -99,6 +99,37 @@ class Request {
     );
   }
 
+  Future<VideoCallTunnelLinkResult> getVideoCallTunnelLink(
+    String subscriptionUrl,
+  ) async {
+    final uri = buildVideoCallTunnelLinkUri(subscriptionUrl);
+    if (uri == null) {
+      return const VideoCallTunnelLinkResult(
+        VideoCallTunnelLinkStatus.invalidSubscription,
+      );
+    }
+    try {
+      final response = await _getWithDirectFallback<Object?>(
+        uri.toString(),
+        Options(
+          responseType: ResponseType.json,
+          validateStatus: (_) => true,
+          headers: const {'Cache-Control': 'no-cache'},
+        ),
+      );
+      return parseVideoCallTunnelLinkResponse(
+        response.statusCode,
+        response.data,
+      );
+    } catch (error) {
+      commonPrint.log(
+        'getVideoCallTunnelLink failed: $error',
+        logLevel: LogLevel.warning,
+      );
+      return const VideoCallTunnelLinkResult(VideoCallTunnelLinkStatus.error);
+    }
+  }
+
   Future<MemoryImage?> getImage(String url) async {
     if (url.isEmpty) return null;
     final response = await dio.get<Uint8List>(
