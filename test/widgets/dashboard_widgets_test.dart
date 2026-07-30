@@ -7,6 +7,7 @@ import 'package:fl_clash/state.dart';
 import 'package:fl_clash/views/dashboard/dashboard.dart';
 import 'package:fl_clash/views/dashboard/widgets/outbound_mode.dart';
 import 'package:fl_clash/views/dashboard/widgets/quick_options.dart';
+import 'package:fl_clash/views/dashboard/widgets/video_call_tunnel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,6 +53,36 @@ void main() {
 
     expect(tester.getSize(find.byType(TUNButton)).height, 104);
     expect(tester.getSize(find.byType(SystemProxyButton)).height, 104);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('whitelist tunnel is exposed from the dashboard', (tester) async {
+    globalState.container = ProviderContainer();
+    addTearDown(globalState.container.dispose);
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: _TestApp(
+          child: SizedBox(width: 720, child: DashboardVideoCallTunnelSection()),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('dashboard-video-call-tunnel')),
+      findsOneWidget,
+    );
+    expect(find.text('Emergency video-call tunnel'), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('open-video-call-tunnel-settings')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('video-call-tunnel-panel')),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 

@@ -13,6 +13,7 @@ import 'package:intl/intl.dart';
 
 import 'widgets/quick_options.dart';
 import 'widgets/start_button.dart';
+import 'widgets/video_call_tunnel.dart';
 
 typedef _IsEditWidgetBuilder = Widget Function(bool isEdit);
 
@@ -287,6 +288,8 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                   : Column(
                       children: [
                         const DashboardConnectionOverview(),
+                        const SizedBox(height: 20),
+                        const DashboardVideoCallTunnelSection(),
                         const SizedBox(height: 20),
                         Grid(
                           crossAxisCount: columns,

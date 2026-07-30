@@ -5,15 +5,47 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class VideoCallTunnelView extends ConsumerStatefulWidget {
+String videoCallTunnelStatusText(
+  BuildContext context,
+  VideoCallTunnelStatus status,
+) {
+  return switch (status) {
+    VideoCallTunnelStatus.disabled =>
+      context.appLocalizations.turnTunnelDisabled,
+    VideoCallTunnelStatus.starting =>
+      context.appLocalizations.turnTunnelStarting,
+    VideoCallTunnelStatus.connecting =>
+      context.appLocalizations.turnTunnelConnecting,
+    VideoCallTunnelStatus.connected =>
+      context.appLocalizations.turnTunnelConnected,
+    VideoCallTunnelStatus.reconnecting =>
+      context.appLocalizations.turnTunnelReconnecting,
+    VideoCallTunnelStatus.stopped => context.appLocalizations.turnTunnelStopped,
+    VideoCallTunnelStatus.error => context.appLocalizations.turnTunnelError,
+  };
+}
+
+class VideoCallTunnelView extends StatelessWidget {
   const VideoCallTunnelView({super.key});
 
   @override
-  ConsumerState<VideoCallTunnelView> createState() =>
-      _VideoCallTunnelViewState();
+  Widget build(BuildContext context) {
+    return CommonScaffold(
+      title: context.appLocalizations.turnTunnel,
+      body: const VideoCallTunnelPanel(),
+    );
+  }
 }
 
-class _VideoCallTunnelViewState extends ConsumerState<VideoCallTunnelView> {
+class VideoCallTunnelPanel extends ConsumerStatefulWidget {
+  const VideoCallTunnelPanel({super.key});
+
+  @override
+  ConsumerState<VideoCallTunnelPanel> createState() =>
+      _VideoCallTunnelPanelState();
+}
+
+class _VideoCallTunnelPanelState extends ConsumerState<VideoCallTunnelPanel> {
   late final TextEditingController _joinLinkController;
   late final TextEditingController _displayNameController;
   late bool _enabled;
@@ -71,132 +103,112 @@ class _VideoCallTunnelViewState extends ConsumerState<VideoCallTunnelView> {
     }
   }
 
-  String _statusText(VideoCallTunnelStatus status) {
-    return switch (status) {
-      VideoCallTunnelStatus.disabled =>
-        context.appLocalizations.turnTunnelDisabled,
-      VideoCallTunnelStatus.starting =>
-        context.appLocalizations.turnTunnelStarting,
-      VideoCallTunnelStatus.connecting =>
-        context.appLocalizations.turnTunnelConnecting,
-      VideoCallTunnelStatus.connected =>
-        context.appLocalizations.turnTunnelConnected,
-      VideoCallTunnelStatus.reconnecting =>
-        context.appLocalizations.turnTunnelReconnecting,
-      VideoCallTunnelStatus.stopped =>
-        context.appLocalizations.turnTunnelStopped,
-      VideoCallTunnelStatus.error => context.appLocalizations.turnTunnelError,
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
-    return CommonScaffold(
-      title: context.appLocalizations.turnTunnel,
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(context.appLocalizations.turnTunnelEnable),
-            subtitle: Text(context.appLocalizations.turnTunnelDesc),
-            value: _enabled,
-            onChanged: (value) => setState(() => _enabled = value),
+    return ListView(
+      key: const ValueKey('video-call-tunnel-panel'),
+      padding: const EdgeInsets.all(16),
+      children: [
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(context.appLocalizations.turnTunnelEnable),
+          subtitle: Text(context.appLocalizations.turnTunnelDesc),
+          value: _enabled,
+          onChanged: (value) => setState(() => _enabled = value),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _joinLinkController,
+          enabled: _enabled,
+          autocorrect: false,
+          keyboardType: TextInputType.url,
+          decoration: InputDecoration(
+            labelText: context.appLocalizations.turnTunnelJoinLink,
+            hintText: 'https://vk.ru/call/join/…',
+            errorText: _error,
+            border: const OutlineInputBorder(),
           ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _joinLinkController,
-            enabled: _enabled,
-            autocorrect: false,
-            keyboardType: TextInputType.url,
-            decoration: InputDecoration(
-              labelText: context.appLocalizations.turnTunnelJoinLink,
-              hintText: 'https://vk.ru/call/join/…',
-              errorText: _error,
-              border: const OutlineInputBorder(),
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _displayNameController,
+          enabled: _enabled,
+          decoration: InputDecoration(
+            labelText: context.appLocalizations.turnTunnelDisplayName,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 16),
+        SegmentedButton<String>(
+          segments: [
+            ButtonSegment(
+              value: 'dc',
+              label: Text(context.appLocalizations.turnTunnelModeDc),
             ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _displayNameController,
-            enabled: _enabled,
-            decoration: InputDecoration(
-              labelText: context.appLocalizations.turnTunnelDisplayName,
-              border: const OutlineInputBorder(),
+            ButtonSegment(
+              value: 'video',
+              label: Text(context.appLocalizations.turnTunnelModeVideo),
             ),
-          ),
-          const SizedBox(height: 16),
-          SegmentedButton<String>(
-            segments: [
-              ButtonSegment(
-                value: 'dc',
-                label: Text(context.appLocalizations.turnTunnelModeDc),
-              ),
-              ButtonSegment(
-                value: 'video',
-                label: Text(context.appLocalizations.turnTunnelModeVideo),
-              ),
-            ],
-            selected: {_tunnelMode},
-            onSelectionChanged: _enabled
-                ? (value) => setState(() => _tunnelMode = value.single)
-                : null,
-          ),
-          const SizedBox(height: 16),
-          ListenableBuilder(
-            listenable: Listenable.merge([
-              videoCallTunnelController.status,
-              videoCallTunnelController.captchaUri,
-            ]),
-            builder: (_, child) {
-              final status = videoCallTunnelController.status.value;
-              final captchaUri = videoCallTunnelController.captchaUri.value;
-              return Column(
-                children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(
-                      status == VideoCallTunnelStatus.connected
-                          ? Icons.check_circle_outline
-                          : Icons.videocam_outlined,
-                    ),
-                    title: Text(context.appLocalizations.status),
-                    subtitle: Text(_statusText(status)),
+          ],
+          selected: {_tunnelMode},
+          onSelectionChanged: _enabled
+              ? (value) => setState(() => _tunnelMode = value.single)
+              : null,
+        ),
+        const SizedBox(height: 16),
+        ListenableBuilder(
+          listenable: Listenable.merge([
+            videoCallTunnelController.status,
+            videoCallTunnelController.captchaUri,
+          ]),
+          builder: (_, child) {
+            final status = videoCallTunnelController.status.value;
+            final captchaUri = videoCallTunnelController.captchaUri.value;
+            return Column(
+              children: [
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(
+                    status == VideoCallTunnelStatus.connected
+                        ? Icons.check_circle_outline
+                        : Icons.videocam_outlined,
                   ),
-                  if (captchaUri != null)
-                    Card.filled(
-                      child: ListTile(
-                        leading: const Icon(Icons.verified_user_outlined),
-                        title: Text(
-                          context.appLocalizations.turnTunnelCaptchaTitle,
+                  title: Text(context.appLocalizations.status),
+                  subtitle: Text(videoCallTunnelStatusText(context, status)),
+                ),
+                if (captchaUri != null)
+                  Card.filled(
+                    child: ListTile(
+                      leading: const Icon(Icons.verified_user_outlined),
+                      title: Text(
+                        context.appLocalizations.turnTunnelCaptchaTitle,
+                      ),
+                      subtitle: Text(
+                        context.appLocalizations.turnTunnelCaptchaDesc,
+                      ),
+                      trailing: FilledButton.tonalIcon(
+                        onPressed: () => launchUrl(
+                          captchaUri,
+                          mode: LaunchMode.externalApplication,
                         ),
-                        subtitle: Text(
-                          context.appLocalizations.turnTunnelCaptchaDesc,
-                        ),
-                        trailing: FilledButton.tonalIcon(
-                          onPressed: () => launchUrl(
-                            captchaUri,
-                            mode: LaunchMode.externalApplication,
-                          ),
-                          icon: const Icon(Icons.open_in_browser),
-                          label: Text(
-                            context.appLocalizations.turnTunnelCaptchaOpen,
-                          ),
+                        icon: const Icon(Icons.open_in_browser),
+                        label: Text(
+                          context.appLocalizations.turnTunnelCaptchaOpen,
                         ),
                       ),
                     ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            onPressed: _save,
-            icon: const Icon(Icons.save_outlined),
-            label: Text(context.appLocalizations.save),
-          ),
-        ],
-      ),
+                  ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        FilledButton.icon(
+          onPressed: _save,
+          icon: const Icon(Icons.save_outlined),
+          label: Text(context.appLocalizations.save),
+        ),
+      ],
     );
   }
 }
