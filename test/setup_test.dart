@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:test/test.dart';
 
 import '../setup.dart' as setup;
@@ -55,6 +57,16 @@ void main() {
         setup.appVersionFromPubspec('version: 1.1.10+2026072533\n'),
         '1.1.10',
       );
+    });
+
+    test('Windows installer stops current, TURN, and legacy processes', () {
+      final source = File(
+        'windows/packaging/exe/inno_setup.iss',
+      ).readAsStringSync();
+
+      expect(source, contains('LegacyPrefix: String;'));
+      expect(source, contains("'DHQClashTurn.exe',"));
+      expect(RegExp(r'Processes :=').allMatches(source), hasLength(1));
     });
   });
 
