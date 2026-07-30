@@ -10,6 +10,7 @@ class App {
   static App? _instance;
   late MethodChannel methodChannel;
   Function()? onExit;
+  ValueChanged<String>? onVideoCallTunnelStatus;
 
   App._internal() {
     methodChannel = const MethodChannel('$packageName/app');
@@ -19,6 +20,8 @@ class App {
           if (onExit != null) {
             await onExit!();
           }
+        case 'videoCallTunnelStatus':
+          onVideoCallTunnelStatus?.call(call.arguments?.toString() ?? '');
         default:
           throw MissingPluginException();
       }
@@ -63,7 +66,9 @@ class App {
 
   /// Launch the system package installer for a downloaded update APK.
   Future<bool> installApk(String path) async {
-    return await methodChannel.invokeMethod<bool>('installApk', {'path': path}) ??
+    return await methodChannel.invokeMethod<bool>('installApk', {
+          'path': path,
+        }) ??
         false;
   }
 
@@ -107,6 +112,29 @@ class App {
   Future<bool?> openAppSettings() async {
     if (!Platform.isAndroid) return false;
     return methodChannel.invokeMethod<bool>('openAppSettings');
+  }
+
+  Future<bool> startVideoCallTunnel({
+    required String joinLink,
+    required String displayName,
+    required String tunnelMode,
+    required int socksPort,
+    required String socksUsername,
+    required String socksPassword,
+  }) async {
+    return await methodChannel.invokeMethod<bool>('startVideoCallTunnel', {
+          'joinLink': joinLink,
+          'displayName': displayName,
+          'tunnelMode': tunnelMode,
+          'socksPort': socksPort,
+          'socksUsername': socksUsername,
+          'socksPassword': socksPassword,
+        }) ??
+        false;
+  }
+
+  Future<void> stopVideoCallTunnel() async {
+    await methodChannel.invokeMethod<void>('stopVideoCallTunnel');
   }
 }
 

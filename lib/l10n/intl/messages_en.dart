@@ -1036,6 +1036,49 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "turnOff": MessageLookupByLibrary.simpleMessage("Turn Off"),
     "turnOn": MessageLookupByLibrary.simpleMessage("Turn On"),
+    "turnTunnel": MessageLookupByLibrary.simpleMessage(
+      "Emergency video-call tunnel",
+    ),
+    "turnTunnelCaptchaDesc": MessageLookupByLibrary.simpleMessage(
+      "Complete the verification in your browser to continue connecting.",
+    ),
+    "turnTunnelCaptchaOpen": MessageLookupByLibrary.simpleMessage("Open"),
+    "turnTunnelCaptchaTitle": MessageLookupByLibrary.simpleMessage(
+      "VK verification required",
+    ),
+    "turnTunnelConnected": MessageLookupByLibrary.simpleMessage(
+      "Tunnel connected",
+    ),
+    "turnTunnelConnecting": MessageLookupByLibrary.simpleMessage(
+      "Connecting to the call",
+    ),
+    "turnTunnelDesc": MessageLookupByLibrary.simpleMessage(
+      "Uses a VK video call as a local SOCKS5 fallback when direct VLESS servers are unavailable.",
+    ),
+    "turnTunnelDisabled": MessageLookupByLibrary.simpleMessage("Disabled"),
+    "turnTunnelDisplayName": MessageLookupByLibrary.simpleMessage(
+      "Call display name",
+    ),
+    "turnTunnelEnable": MessageLookupByLibrary.simpleMessage(
+      "Enable emergency tunnel",
+    ),
+    "turnTunnelError": MessageLookupByLibrary.simpleMessage("Connection error"),
+    "turnTunnelInvalidLink": MessageLookupByLibrary.simpleMessage(
+      "Enter a valid https://vk.ru/call/join/… link",
+    ),
+    "turnTunnelJoinLink": MessageLookupByLibrary.simpleMessage(
+      "VK call invitation link",
+    ),
+    "turnTunnelModeDc": MessageLookupByLibrary.simpleMessage("Data channel"),
+    "turnTunnelModeVideo": MessageLookupByLibrary.simpleMessage("Video stream"),
+    "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage(
+      "Reconnecting",
+    ),
+    "turnTunnelSaved": MessageLookupByLibrary.simpleMessage(
+      "Emergency tunnel settings saved",
+    ),
+    "turnTunnelStarting": MessageLookupByLibrary.simpleMessage("Starting"),
+    "turnTunnelStopped": MessageLookupByLibrary.simpleMessage("Stopped"),
     "undo": MessageLookupByLibrary.simpleMessage("undo"),
     "unifiedDelay": MessageLookupByLibrary.simpleMessage("Unified delay"),
     "unifiedDelayDesc": MessageLookupByLibrary.simpleMessage(

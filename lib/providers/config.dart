@@ -31,6 +31,15 @@ class VpnSetting extends _$VpnSetting with AutoDisposeNotifierMixin {
 }
 
 @riverpod
+class VideoCallTunnelSetting extends _$VideoCallTunnelSetting
+    with AutoDisposeNotifierMixin {
+  @override
+  VideoCallTunnelProps build() {
+    return const VideoCallTunnelProps();
+  }
+}
+
+@riverpod
 class NetworkSetting extends _$NetworkSetting with AutoDisposeNotifierMixin {
   @override
   NetworkProps build() {
@@ -110,6 +119,7 @@ Config _config(Ref ref) {
   final appSettingProps = ref.watch(appSettingProvider);
   final windowProps = ref.watch(windowSettingProvider);
   final vpnProps = ref.watch(vpnSettingProvider);
+  final videoCallTunnelProps = ref.watch(videoCallTunnelSettingProvider);
   final networkProps = ref.watch(networkSettingProvider);
   final themeProps = ref.watch(themeSettingProvider);
   final currentProfileId = ref.watch(currentProfileIdProvider);
@@ -123,6 +133,7 @@ Config _config(Ref ref) {
     appSettingProps: appSettingProps,
     windowProps: windowProps,
     vpnProps: vpnProps,
+    videoCallTunnelProps: videoCallTunnelProps,
     networkProps: networkProps,
     themeProps: themeProps,
     currentProfileId: currentProfileId,
@@ -140,6 +151,9 @@ List<Override> buildConfigOverrides(Config config) {
     appSettingProvider.overrideWithBuild((_, _) => config.appSettingProps),
     windowSettingProvider.overrideWithBuild((_, _) => config.windowProps),
     vpnSettingProvider.overrideWithBuild((_, _) => config.vpnProps),
+    videoCallTunnelSettingProvider.overrideWithBuild(
+      (_, _) => config.videoCallTunnelProps,
+    ),
     networkSettingProvider.overrideWithBuild((_, _) => config.networkProps),
     themeSettingProvider.overrideWithBuild((_, _) => config.themeProps),
     currentProfileIdProvider.overrideWithBuild(

@@ -279,6 +279,7 @@ class SetupAction extends _$SetupAction {
     _updateTimer?.cancel();
     _updateTimer = null;
     await coreController.stopListener();
+    await videoCallTunnelController.stop();
   }
 
   Future<void> initStatus() async {
@@ -302,6 +303,10 @@ class SetupAction extends _$SetupAction {
 
   Future<void> updateStatus(bool isStart, {bool isInit = false}) async {
     if (isStart) {
+      final videoCallTunnel = ref.read(videoCallTunnelSettingProvider);
+      if (videoCallTunnel.enable) {
+        await videoCallTunnelController.start(videoCallTunnel);
+      }
       if (!isInit) {
         final res = await ref
             .read(coreActionProvider.notifier)
@@ -466,6 +471,10 @@ class SetupAction extends _$SetupAction {
     final realPatchConfig = patchConfig.copyWith(
       tun: patchConfig.tun.getRealTun(routeMode),
     );
+    final videoCallTunnel = ref.read(videoCallTunnelSettingProvider);
+    final videoCallCredentials = deriveVideoCallTunnelCredentials(
+      videoCallTunnel.joinLink,
+    );
     Map<String, dynamic> rawConfig = configMap;
     if (scriptContent?.isNotEmpty == true) {
       rawConfig = await handleEvaluate(scriptContent!, rawConfig);
@@ -483,6 +492,11 @@ class SetupAction extends _$SetupAction {
         appendSystemDns: appendSystemDns,
         addedRules: addedRules,
         defaultUA: defaultUA,
+        videoCallTunnelEnabled:
+            videoCallTunnel.enable && videoCallTunnel.joinLink.isNotEmpty,
+        videoCallTunnelPort: videoCallTunnel.socksPort,
+        videoCallTunnelUsername: videoCallCredentials.username,
+        videoCallTunnelPassword: videoCallCredentials.password,
       ),
     );
     return res;
@@ -797,6 +811,7 @@ class SystemAction extends _$SystemAction {
         if (tray != null) tray!.destroy(),
       ]);
       await window?.close();
+      await videoCallTunnelController.stop();
       await coreController.destroy();
       commonPrint.log('exit');
     } finally {

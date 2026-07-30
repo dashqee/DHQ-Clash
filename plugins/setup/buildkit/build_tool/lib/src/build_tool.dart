@@ -12,6 +12,7 @@ import 'logging.dart';
 import 'options.dart';
 import 'rust_builder.dart';
 import 'target.dart';
+import 'turn_builder.dart';
 import 'util.dart';
 
 final _log = Logger('build_tool');
@@ -86,8 +87,12 @@ class BuildAndroidCommand extends BuildCommand {
 
     final builder = GoBuilder(rootDir: _rootDir, config: config);
     final corePaths = await builder.buildAll(targets);
+    final turnPaths = await TurnBuilder(
+      rootDir: _rootDir,
+      config: config,
+    ).buildAll(targets);
 
-    _log.info('Build complete: $corePaths');
+    _log.info('Build complete: core=$corePaths turn=$turnPaths');
   }
 }
 
@@ -122,8 +127,12 @@ class BuildLinuxCommand extends BuildCommand {
 
     final builder = GoBuilder(rootDir: _rootDir, config: config);
     final corePaths = await builder.buildAll(targets);
+    final turnPaths = await TurnBuilder(
+      rootDir: _rootDir,
+      config: config,
+    ).buildAll(targets);
 
-    _log.info('Build complete: $corePaths');
+    _log.info('Build complete: core=$corePaths turn=$turnPaths');
   }
 }
 
@@ -159,6 +168,10 @@ class BuildWindowsCommand extends BuildCommand {
 
     final goBuilder = GoBuilder(rootDir: _rootDir, config: config);
     final corePaths = await goBuilder.buildAll(targets);
+    final turnPaths = await TurnBuilder(
+      rootDir: _rootDir,
+      config: config,
+    ).buildAll(targets);
 
     _log.info('Build mode: ${debug ? 'debug' : 'release'}');
 
@@ -179,7 +192,7 @@ class BuildWindowsCommand extends BuildCommand {
       ).writeAsString(jsonEncode({'CORE_SHA256': coreSha256}));
     }
 
-    _log.info('Build complete: $corePaths');
+    _log.info('Build complete: core=$corePaths turn=$turnPaths');
   }
 }
 
@@ -214,8 +227,12 @@ class BuildMacosCommand extends BuildCommand {
 
     final builder = GoBuilder(rootDir: _rootDir, config: config);
     final corePaths = await builder.buildAll(targets);
+    final turnPaths = await TurnBuilder(
+      rootDir: _rootDir,
+      config: config,
+    ).buildAll(targets);
 
-    _log.info('Build complete: $corePaths');
+    _log.info('Build complete: core=$corePaths turn=$turnPaths');
   }
 }
 

@@ -20,6 +20,7 @@ import 'package:path/path.dart' show dirname, join;
 import 'config/advanced.dart';
 import 'developer.dart';
 import 'theme.dart';
+import 'video_call_tunnel.dart';
 
 class ToolsView extends ConsumerStatefulWidget {
   const ToolsView({super.key});
@@ -78,6 +79,7 @@ class _ToolViewState extends ConsumerState<ToolsView> {
         if (system.isDesktop) const _HotkeyItem(),
         if (system.isWindows) const _LoopbackItem(),
         if (system.isAndroid) const _AccessItem(),
+        const _VideoCallTunnelItem(),
         const _ConfigItem(),
         const _AdvancedConfigItem(),
         const _SettingItem(),
@@ -240,6 +242,20 @@ class _ConfigItem extends StatelessWidget {
       title: Text(context.appLocalizations.basicConfig),
       subtitle: Text(context.appLocalizations.basicConfigDesc),
       delegate: const OpenDelegate(widget: ConfigView()),
+    );
+  }
+}
+
+class _VideoCallTunnelItem extends StatelessWidget {
+  const _VideoCallTunnelItem();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListItem.open(
+      leading: const Icon(Icons.video_call_outlined),
+      title: Text(context.appLocalizations.turnTunnel),
+      subtitle: Text(context.appLocalizations.turnTunnelDesc),
+      delegate: const OpenDelegate(widget: VideoCallTunnelView()),
     );
   }
 }

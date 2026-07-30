@@ -9,6 +9,8 @@ import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.app.ActivityCompat
@@ -20,6 +22,7 @@ import androidx.core.graphics.drawable.IconCompat
 import androidx.core.net.toUri
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import com.follow.clash.R
+import com.follow.clash.TurnTunnelProcess
 import com.follow.clash.common.Components
 import com.follow.clash.common.GlobalState
 import com.follow.clash.common.QuickAction
@@ -60,6 +63,8 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
     private var vpnPrepareCallback: (suspend () -> Unit)? = null
 
     private var requestNotificationCallback: (() -> Unit)? = null
+
+    private var turnTunnelProcess: TurnTunnelProcess? = null
 
     private val packages = mutableListOf<Package>()
 
@@ -174,6 +179,23 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
 
             "installApk" -> {
                 result.success(installApk(call.argument<String>("path")))
+            }
+
+            "startVideoCallTunnel" -> {
+                val started = turnTunnelProcess?.start(
+                    joinLink = call.argument<String>("joinLink").orEmpty(),
+                    displayName = call.argument<String>("displayName").orEmpty(),
+                    tunnelMode = call.argument<String>("tunnelMode") ?: "dc",
+                    socksPort = call.argument<Int>("socksPort") ?: 11789,
+                    socksUsername = call.argument<String>("socksUsername").orEmpty(),
+                    socksPassword = call.argument<String>("socksPassword").orEmpty(),
+                ) ?: false
+                result.success(started)
+            }
+
+            "stopVideoCallTunnel" -> {
+                turnTunnelProcess?.stop()
+                result.success(true)
             }
 
             else -> {
@@ -435,10 +457,16 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
         scope = CoroutineScope(Dispatchers.Default)
         channel =
             MethodChannel(flutterPluginBinding.binaryMessenger, "${Components.PACKAGE_NAME}/app")
+        val mainHandler = Handler(Looper.getMainLooper())
+        turnTunnelProcess = TurnTunnelProcess { status ->
+            mainHandler.post { channel.invokeMethod("videoCallTunnelStatus", status) }
+        }
         channel.setMethodCallHandler(this)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        turnTunnelProcess?.stop()
+        turnTunnelProcess = null
         channel.setMethodCallHandler(null)
         scope.cancel()
     }

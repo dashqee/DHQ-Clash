@@ -247,7 +247,7 @@ void main() {
         overrideDns: true,
       );
       final overrides = buildConfigOverrides(config);
-      expect(overrides.length, 12);
+      expect(overrides.length, 13);
 
       final overrideContainer = ProviderContainer(overrides: overrides);
       addTearDown(overrideContainer.dispose);
@@ -262,6 +262,10 @@ void main() {
       expect(
         overrideContainer.read(appSettingProvider).onlyStatisticsProxy,
         false,
+      );
+      expect(
+        overrideContainer.read(videoCallTunnelSettingProvider),
+        config.videoCallTunnelProps,
       );
     });
   });

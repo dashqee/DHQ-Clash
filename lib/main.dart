@@ -3,8 +3,10 @@ import 'dart:io';
 
 import 'package:fl_clash/pages/error.dart';
 import 'package:fl_clash/state.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:rust_api/rust_api.dart';
 
 import 'application.dart';
@@ -12,6 +14,12 @@ import 'common/common.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  LicenseRegistry.addLicense(() async* {
+    final license = await rootBundle.loadString(
+      'assets/licenses/whitelist-bypass.txt',
+    );
+    yield LicenseEntryWithLineBreaks(['whitelist-bypass'], license);
+  });
   try {
     if (system.isDesktop) {
       await RustLib.init();

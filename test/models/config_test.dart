@@ -408,6 +408,7 @@ void main() {
       expect(restored.overrideDns, false);
       expect(restored.networkProps.systemProxy, false);
       expect(restored.vpnProps.enable, false);
+      expect(restored.videoCallTunnelProps.enable, false);
       expect(restored.hotKeyActions, isEmpty);
     });
 
@@ -424,6 +425,13 @@ void main() {
         appSettingProps: AppSettingProps(locale: 'en', autoLaunch: true),
         networkProps: NetworkProps(systemProxy: false),
         vpnProps: VpnProps(enable: false),
+        videoCallTunnelProps: VideoCallTunnelProps(
+          enable: true,
+          joinLink: 'https://vk.ru/call/join/test',
+          displayName: 'Device',
+          socksPort: 11789,
+          tunnelMode: 'dc',
+        ),
         themeProps: ThemeProps(
           primaryColor: 0xFF00FF00,
           themeMode: ThemeMode.system,
@@ -437,6 +445,11 @@ void main() {
       expect(restored.appSettingProps.autoLaunch, true);
       expect(restored.networkProps.systemProxy, false);
       expect(restored.vpnProps.enable, false);
+      expect(restored.videoCallTunnelProps.enable, true);
+      expect(
+        restored.videoCallTunnelProps.joinLink,
+        'https://vk.ru/call/join/test',
+      );
       expect(restored.windowProps.width, 1280);
       expect(restored.windowProps.height, 720);
     });

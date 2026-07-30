@@ -35,6 +35,7 @@ const defaultProxiesStyleProps = ProxiesStyleProps();
 const defaultWindowProps = WindowProps();
 const defaultAccessControlProps = AccessControlProps();
 const defaultThemeProps = ThemeProps(primaryColor: defaultPrimaryColor);
+const defaultVideoCallTunnelProps = VideoCallTunnelProps();
 
 const List<DashboardWidget> defaultDashboardWidgets = [
   DashboardWidget.networkSpeed,
@@ -179,6 +180,22 @@ abstract class VpnProps with _$VpnProps {
 }
 
 @freezed
+abstract class VideoCallTunnelProps with _$VideoCallTunnelProps {
+  const factory VideoCallTunnelProps({
+    @Default(false) bool enable,
+    @Default('') String joinLink,
+    @Default('DHQ Clash') String displayName,
+    @Default(11789) int socksPort,
+    @Default('dc') String tunnelMode,
+  }) = _VideoCallTunnelProps;
+
+  factory VideoCallTunnelProps.fromJson(Map<String, Object?>? json) =>
+      json == null
+      ? defaultVideoCallTunnelProps
+      : _$VideoCallTunnelPropsFromJson(json);
+}
+
+@freezed
 abstract class NetworkProps with _$NetworkProps {
   const factory NetworkProps({
     @Default(false) bool systemProxy,
@@ -256,6 +273,8 @@ abstract class Config with _$Config {
     DAVProps? davProps,
     @Default(defaultNetworkProps) NetworkProps networkProps,
     @Default(defaultVpnProps) VpnProps vpnProps,
+    @Default(defaultVideoCallTunnelProps)
+    VideoCallTunnelProps videoCallTunnelProps,
     @JsonKey(fromJson: ThemeProps.safeFromJson) required ThemeProps themeProps,
     @Default(defaultProxiesStyleProps) ProxiesStyleProps proxiesStyleProps,
     @Default(defaultWindowProps) WindowProps windowProps,

@@ -51,6 +51,10 @@ class AppPath {
     return join(executableDirPath, '$appHelperService$executableExtension');
   }
 
+  String get videoCallTunnelPath {
+    return join(executableDirPath, 'DHQClashTurn$executableExtension');
+  }
+
   Future<String> get downloadDirPath async {
     final directory = await downloadDir.future;
     return directory.path;

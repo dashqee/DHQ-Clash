@@ -164,6 +164,60 @@ abstract class _$VpnSetting extends $Notifier<VpnProps> {
   }
 }
 
+@ProviderFor(VideoCallTunnelSetting)
+final videoCallTunnelSettingProvider = VideoCallTunnelSettingProvider._();
+
+final class VideoCallTunnelSettingProvider
+    extends $NotifierProvider<VideoCallTunnelSetting, VideoCallTunnelProps> {
+  VideoCallTunnelSettingProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'videoCallTunnelSettingProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$videoCallTunnelSettingHash();
+
+  @$internal
+  @override
+  VideoCallTunnelSetting create() => VideoCallTunnelSetting();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(VideoCallTunnelProps value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<VideoCallTunnelProps>(value),
+    );
+  }
+}
+
+String _$videoCallTunnelSettingHash() =>
+    r'5eae21f12b0a81f32249076974100d3264e9f7fb';
+
+abstract class _$VideoCallTunnelSetting
+    extends $Notifier<VideoCallTunnelProps> {
+  VideoCallTunnelProps build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<VideoCallTunnelProps, VideoCallTunnelProps>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<VideoCallTunnelProps, VideoCallTunnelProps>,
+              VideoCallTunnelProps,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(NetworkSetting)
 final networkSettingProvider = NetworkSettingProvider._();
 
@@ -670,4 +724,4 @@ final class _ConfigProvider extends $FunctionalProvider<Config, Config, Config>
   }
 }
 
-String _$_configHash() => r'7f29da1e31a3393fb36ab43c21f0d1b38223afec';
+String _$_configHash() => r'ed0b279cc524ebff9a2583a83e0c063520677961';
