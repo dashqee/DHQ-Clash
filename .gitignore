@@ -34,6 +34,8 @@ migrate_working_dir/
 .pub/
 /build/
 /dist/
+**/.gradle/
+plugins/**/build/
 
 # Symbolication related
 app.*.symbols
@@ -46,6 +48,7 @@ app.*.map.json
 
 # Documentation (generated/planning artifacts)
 docs/
+.superdesign/
 
 
 # Android Studio will place build artifacts here
