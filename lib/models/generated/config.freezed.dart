@@ -1211,7 +1211,7 @@ $AccessControlPropsCopyWith<$Res> get accessControlProps {
 /// @nodoc
 mixin _$VideoCallTunnelProps {
 
- bool get enable; String get joinLink; String get displayName; int get socksPort; String get tunnelMode;
+ bool get enable;
 /// Create a copy of VideoCallTunnelProps
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1224,16 +1224,16 @@ $VideoCallTunnelPropsCopyWith<VideoCallTunnelProps> get copyWith => _$VideoCallT
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is VideoCallTunnelProps&&(identical(other.enable, enable) || other.enable == enable)&&(identical(other.joinLink, joinLink) || other.joinLink == joinLink)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.socksPort, socksPort) || other.socksPort == socksPort)&&(identical(other.tunnelMode, tunnelMode) || other.tunnelMode == tunnelMode));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is VideoCallTunnelProps&&(identical(other.enable, enable) || other.enable == enable));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,enable,joinLink,displayName,socksPort,tunnelMode);
+int get hashCode => Object.hash(runtimeType,enable);
 
 @override
 String toString() {
-  return 'VideoCallTunnelProps(enable: $enable, joinLink: $joinLink, displayName: $displayName, socksPort: $socksPort, tunnelMode: $tunnelMode)';
+  return 'VideoCallTunnelProps(enable: $enable)';
 }
 
 
@@ -1244,7 +1244,7 @@ abstract mixin class $VideoCallTunnelPropsCopyWith<$Res>  {
   factory $VideoCallTunnelPropsCopyWith(VideoCallTunnelProps value, $Res Function(VideoCallTunnelProps) _then) = _$VideoCallTunnelPropsCopyWithImpl;
 @useResult
 $Res call({
- bool enable, String joinLink, String displayName, int socksPort, String tunnelMode
+ bool enable
 });
 
 
@@ -1261,14 +1261,10 @@ class _$VideoCallTunnelPropsCopyWithImpl<$Res>
 
 /// Create a copy of VideoCallTunnelProps
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? enable = null,Object? joinLink = null,Object? displayName = null,Object? socksPort = null,Object? tunnelMode = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? enable = null,}) {
   return _then(_self.copyWith(
 enable: null == enable ? _self.enable : enable // ignore: cast_nullable_to_non_nullable
-as bool,joinLink: null == joinLink ? _self.joinLink : joinLink // ignore: cast_nullable_to_non_nullable
-as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String,socksPort: null == socksPort ? _self.socksPort : socksPort // ignore: cast_nullable_to_non_nullable
-as int,tunnelMode: null == tunnelMode ? _self.tunnelMode : tunnelMode // ignore: cast_nullable_to_non_nullable
-as String,
+as bool,
   ));
 }
 
@@ -1353,10 +1349,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool enable,  String joinLink,  String displayName,  int socksPort,  String tunnelMode)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool enable)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _VideoCallTunnelProps() when $default != null:
-return $default(_that.enable,_that.joinLink,_that.displayName,_that.socksPort,_that.tunnelMode);case _:
+return $default(_that.enable);case _:
   return orElse();
 
 }
@@ -1374,10 +1370,10 @@ return $default(_that.enable,_that.joinLink,_that.displayName,_that.socksPort,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool enable,  String joinLink,  String displayName,  int socksPort,  String tunnelMode)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool enable)  $default,) {final _that = this;
 switch (_that) {
 case _VideoCallTunnelProps():
-return $default(_that.enable,_that.joinLink,_that.displayName,_that.socksPort,_that.tunnelMode);case _:
+return $default(_that.enable);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1394,10 +1390,10 @@ return $default(_that.enable,_that.joinLink,_that.displayName,_that.socksPort,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool enable,  String joinLink,  String displayName,  int socksPort,  String tunnelMode)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool enable)?  $default,) {final _that = this;
 switch (_that) {
 case _VideoCallTunnelProps() when $default != null:
-return $default(_that.enable,_that.joinLink,_that.displayName,_that.socksPort,_that.tunnelMode);case _:
+return $default(_that.enable);case _:
   return null;
 
 }
@@ -1409,14 +1405,10 @@ return $default(_that.enable,_that.joinLink,_that.displayName,_that.socksPort,_t
 @JsonSerializable()
 
 class _VideoCallTunnelProps implements VideoCallTunnelProps {
-  const _VideoCallTunnelProps({this.enable = false, this.joinLink = '', this.displayName = 'DHQ Clash', this.socksPort = 11789, this.tunnelMode = 'dc'});
+  const _VideoCallTunnelProps({this.enable = false});
   factory _VideoCallTunnelProps.fromJson(Map<String, dynamic> json) => _$VideoCallTunnelPropsFromJson(json);
 
 @override@JsonKey() final  bool enable;
-@override@JsonKey() final  String joinLink;
-@override@JsonKey() final  String displayName;
-@override@JsonKey() final  int socksPort;
-@override@JsonKey() final  String tunnelMode;
 
 /// Create a copy of VideoCallTunnelProps
 /// with the given fields replaced by the non-null parameter values.
@@ -1431,16 +1423,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VideoCallTunnelProps&&(identical(other.enable, enable) || other.enable == enable)&&(identical(other.joinLink, joinLink) || other.joinLink == joinLink)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.socksPort, socksPort) || other.socksPort == socksPort)&&(identical(other.tunnelMode, tunnelMode) || other.tunnelMode == tunnelMode));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VideoCallTunnelProps&&(identical(other.enable, enable) || other.enable == enable));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,enable,joinLink,displayName,socksPort,tunnelMode);
+int get hashCode => Object.hash(runtimeType,enable);
 
 @override
 String toString() {
-  return 'VideoCallTunnelProps(enable: $enable, joinLink: $joinLink, displayName: $displayName, socksPort: $socksPort, tunnelMode: $tunnelMode)';
+  return 'VideoCallTunnelProps(enable: $enable)';
 }
 
 
@@ -1451,7 +1443,7 @@ abstract mixin class _$VideoCallTunnelPropsCopyWith<$Res> implements $VideoCallT
   factory _$VideoCallTunnelPropsCopyWith(_VideoCallTunnelProps value, $Res Function(_VideoCallTunnelProps) _then) = __$VideoCallTunnelPropsCopyWithImpl;
 @override @useResult
 $Res call({
- bool enable, String joinLink, String displayName, int socksPort, String tunnelMode
+ bool enable
 });
 
 
@@ -1468,14 +1460,10 @@ class __$VideoCallTunnelPropsCopyWithImpl<$Res>
 
 /// Create a copy of VideoCallTunnelProps
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? enable = null,Object? joinLink = null,Object? displayName = null,Object? socksPort = null,Object? tunnelMode = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? enable = null,}) {
   return _then(_VideoCallTunnelProps(
 enable: null == enable ? _self.enable : enable // ignore: cast_nullable_to_non_nullable
-as bool,joinLink: null == joinLink ? _self.joinLink : joinLink // ignore: cast_nullable_to_non_nullable
-as String,displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String,socksPort: null == socksPort ? _self.socksPort : socksPort // ignore: cast_nullable_to_non_nullable
-as int,tunnelMode: null == tunnelMode ? _self.tunnelMode : tunnelMode // ignore: cast_nullable_to_non_nullable
-as String,
+as bool,
   ));
 }
 

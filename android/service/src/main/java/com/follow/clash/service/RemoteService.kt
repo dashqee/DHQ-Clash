@@ -27,6 +27,7 @@ class RemoteService : Service(),
     private fun handleStopService(result: IResultInterface) {
         launch {
             runLock.withLock {
+                TurnTunnelRuntime.stop()
                 delegate?.useService { service ->
                     service.stop()
                     delegate?.unbind()
@@ -178,6 +179,32 @@ class RemoteService : Service(),
 
         override fun setCrashlytics(enable: Boolean) {
             GlobalState.setCrashlytics(enable)
+        }
+
+        override fun startVideoCallTunnel(
+            joinLink: String,
+            displayName: String,
+            tunnelMode: String,
+            socksPort: Int,
+            socksUsername: String,
+            socksPassword: String,
+            event: IVideoCallTunnelEventInterface?,
+        ): Boolean {
+            return TurnTunnelRuntime.start(
+                joinLink = joinLink,
+                displayName = displayName,
+                tunnelMode = tunnelMode,
+                socksPort = socksPort,
+                socksUsername = socksUsername,
+                socksPassword = socksPassword,
+                statusCallback = { status ->
+                    runCatching { event?.onStatus(status) }
+                },
+            )
+        }
+
+        override fun stopVideoCallTunnel() {
+            TurnTunnelRuntime.stop()
         }
 
         override fun getRunTime(): Long {

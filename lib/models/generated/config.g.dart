@@ -177,23 +177,11 @@ Map<String, dynamic> _$VpnPropsToJson(_VpnProps instance) => <String, dynamic>{
 
 _VideoCallTunnelProps _$VideoCallTunnelPropsFromJson(
   Map<String, dynamic> json,
-) => _VideoCallTunnelProps(
-  enable: json['enable'] as bool? ?? false,
-  joinLink: json['joinLink'] as String? ?? '',
-  displayName: json['displayName'] as String? ?? 'DHQ Clash',
-  socksPort: (json['socksPort'] as num?)?.toInt() ?? 11789,
-  tunnelMode: json['tunnelMode'] as String? ?? 'dc',
-);
+) => _VideoCallTunnelProps(enable: json['enable'] as bool? ?? false);
 
 Map<String, dynamic> _$VideoCallTunnelPropsToJson(
   _VideoCallTunnelProps instance,
-) => <String, dynamic>{
-  'enable': instance.enable,
-  'joinLink': instance.joinLink,
-  'displayName': instance.displayName,
-  'socksPort': instance.socksPort,
-  'tunnelMode': instance.tunnelMode,
-};
+) => <String, dynamic>{'enable': instance.enable};
 
 _NetworkProps _$NetworkPropsFromJson(Map<String, dynamic> json) =>
     _NetworkProps(

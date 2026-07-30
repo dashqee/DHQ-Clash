@@ -10,6 +10,7 @@ import com.follow.clash.service.IEventInterface
 import com.follow.clash.service.IRemoteInterface
 import com.follow.clash.service.IResultInterface
 import com.follow.clash.service.IVoidInterface
+import com.follow.clash.service.IVideoCallTunnelEventInterface
 import com.follow.clash.service.RemoteService
 import com.follow.clash.service.models.NotificationParams
 import com.follow.clash.service.models.VpnOptions
@@ -177,6 +178,38 @@ object Service {
                 it.stopService(callback)
             }
         }.getOrNull() ?: 0L
+    }
+
+    suspend fun startVideoCallTunnel(
+        joinLink: String,
+        displayName: String,
+        tunnelMode: String,
+        socksPort: Int,
+        socksUsername: String,
+        socksPassword: String,
+        onStatus: (String) -> Unit,
+    ): Boolean {
+        return delegate.useService {
+            it.startVideoCallTunnel(
+                joinLink,
+                displayName,
+                tunnelMode,
+                socksPort,
+                socksUsername,
+                socksPassword,
+                object : IVideoCallTunnelEventInterface.Stub() {
+                    override fun onStatus(status: String?) {
+                        onStatus(status.orEmpty())
+                    }
+                },
+            )
+        }.getOrNull() ?: false
+    }
+
+    suspend fun stopVideoCallTunnel() {
+        delegate.useService {
+            it.stopVideoCallTunnel()
+        }
     }
 
     suspend fun getRunTime(): Long {

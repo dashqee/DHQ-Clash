@@ -83,6 +83,9 @@ void main() {
       find.byKey(const ValueKey('video-call-tunnel-panel')),
       findsOneWidget,
     );
+    expect(find.byType(TextField), findsNothing);
+    expect(find.byType(SegmentedButton<String>), findsNothing);
+    expect(find.byType(SwitchListTile), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

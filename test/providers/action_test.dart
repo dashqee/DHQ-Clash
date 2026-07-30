@@ -1,3 +1,4 @@
+import 'package:fl_clash/common/video_call_tunnel.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/action.dart';
@@ -73,6 +74,8 @@ void main() {
   });
 
   group('SetupAction', () {
+    tearDown(videoCallTunnelController.stop);
+
     test('deep link enables TUN without enabling system proxy', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
@@ -136,6 +139,94 @@ void main() {
         ),
         false,
       );
+    });
+
+    test('keeps the backend TURN link only in runtime state', () async {
+      final profile = Profile.normal(
+        url: 'https://sub.example.com/c_device.yaml',
+      );
+      final container = ProviderContainer(
+        overrides: [
+          currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
+          profilesProvider.overrideWith(() => _TestProfiles([profile])),
+          videoCallTunnelSettingProvider.overrideWithBuild(
+            (_, _) => const VideoCallTunnelProps(enable: true),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final refreshed = await container
+          .read(setupActionProvider.notifier)
+          .refreshVideoCallTunnel(
+            startTunnel: false,
+            fetchLink: (subscriptionUrl) async {
+              expect(subscriptionUrl, profile.url);
+              return const VideoCallTunnelLinkResult(
+                VideoCallTunnelLinkStatus.available,
+                joinLink: 'https://vk.ru/call/join/backend-link',
+              );
+            },
+          );
+
+      expect(refreshed, true);
+      expect(
+        container.read(videoCallTunnelSettingProvider).toJson(),
+        isNot(contains('joinLink')),
+      );
+      final reusedRuntimeLink = await container
+          .read(setupActionProvider.notifier)
+          .refreshVideoCallTunnel(
+            startTunnel: false,
+            fetchLink: (_) async => const VideoCallTunnelLinkResult(
+              VideoCallTunnelLinkStatus.invalidSubscription,
+            ),
+          );
+      expect(reusedRuntimeLink, true);
+    });
+
+    test('clears the runtime TURN link when entitlement is denied', () async {
+      final profile = Profile.normal(
+        url: 'https://sub.example.com/c_device.yaml',
+      );
+      final container = ProviderContainer(
+        overrides: [
+          currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
+          profilesProvider.overrideWith(() => _TestProfiles([profile])),
+          videoCallTunnelSettingProvider.overrideWithBuild(
+            (_, _) => const VideoCallTunnelProps(enable: true),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final action = container.read(setupActionProvider.notifier);
+      await action.refreshVideoCallTunnel(
+        startTunnel: false,
+        fetchLink: (_) async => const VideoCallTunnelLinkResult(
+          VideoCallTunnelLinkStatus.available,
+          joinLink: 'https://vk.ru/call/join/cached-link',
+        ),
+      );
+      final refreshed = await action.refreshVideoCallTunnel(
+        startTunnel: false,
+        fetchLink: (_) async => const VideoCallTunnelLinkResult(
+          VideoCallTunnelLinkStatus.notEntitled,
+        ),
+      );
+
+      expect(refreshed, false);
+      expect(
+        videoCallTunnelController.status.value,
+        VideoCallTunnelStatus.notEntitled,
+      );
+      final reusedRuntimeLink = await action.refreshVideoCallTunnel(
+        startTunnel: false,
+        fetchLink: (_) async => const VideoCallTunnelLinkResult(
+          VideoCallTunnelLinkStatus.invalidSubscription,
+        ),
+      );
+      expect(reusedRuntimeLink, false);
     });
   });
 

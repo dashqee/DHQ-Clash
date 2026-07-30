@@ -571,11 +571,9 @@
   "turnTunnel": "Аварийный туннель через видеозвонок",
   "turnTunnelEnable": "Включить аварийный туннель",
   "turnTunnelDesc": "Использует видеозвонок VK как локальный SOCKS5-резерв, когда прямые VLESS-серверы недоступны.",
-  "turnTunnelJoinLink": "Ссылка-приглашение в звонок VK",
-  "turnTunnelDisplayName": "Имя участника звонка",
-  "turnTunnelModeDc": "Канал данных",
-  "turnTunnelModeVideo": "Видеопоток",
-  "turnTunnelInvalidLink": "Укажите корректную ссылку https://vk.ru/call/join/…",
+  "turnTunnelChecking": "Проверка доступа",
+  "turnTunnelNotEntitled": "Недоступно для этого устройства",
+  "turnTunnelTemporarilyUnavailable": "Канал временно недоступен",
   "turnTunnelStarting": "Запуск",
   "turnTunnelConnecting": "Подключение к звонку",
   "turnTunnelConnected": "Туннель подключён",
@@ -583,8 +581,8 @@
   "turnTunnelDisabled": "Выключен",
   "turnTunnelStopped": "Остановлен",
   "turnTunnelError": "Ошибка подключения",
-  "turnTunnelSaved": "Настройки аварийного туннеля сохранены",
   "turnTunnelCaptchaTitle": "Требуется проверка VK",
   "turnTunnelCaptchaDesc": "Пройдите проверку в браузере, чтобы продолжить подключение.",
-  "turnTunnelCaptchaOpen": "Открыть"
+  "turnTunnelCaptchaOpen": "Открыть",
+  "turnTunnelRetry": "Повторить"
 }

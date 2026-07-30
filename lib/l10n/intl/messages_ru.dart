@@ -1105,6 +1105,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "turnTunnelCaptchaTitle": MessageLookupByLibrary.simpleMessage(
       "Требуется проверка VK",
     ),
+    "turnTunnelChecking": MessageLookupByLibrary.simpleMessage(
+      "Проверка доступа",
+    ),
     "turnTunnelConnected": MessageLookupByLibrary.simpleMessage(
       "Туннель подключён",
     ),
@@ -1115,31 +1118,24 @@ class MessageLookup extends MessageLookupByLibrary {
       "Использует видеозвонок VK как локальный SOCKS5-резерв, когда прямые VLESS-серверы недоступны.",
     ),
     "turnTunnelDisabled": MessageLookupByLibrary.simpleMessage("Выключен"),
-    "turnTunnelDisplayName": MessageLookupByLibrary.simpleMessage(
-      "Имя участника звонка",
-    ),
     "turnTunnelEnable": MessageLookupByLibrary.simpleMessage(
       "Включить аварийный туннель",
     ),
     "turnTunnelError": MessageLookupByLibrary.simpleMessage(
       "Ошибка подключения",
     ),
-    "turnTunnelInvalidLink": MessageLookupByLibrary.simpleMessage(
-      "Укажите корректную ссылку https://vk.ru/call/join/…",
+    "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
+      "Недоступно для этого устройства",
     ),
-    "turnTunnelJoinLink": MessageLookupByLibrary.simpleMessage(
-      "Ссылка-приглашение в звонок VK",
-    ),
-    "turnTunnelModeDc": MessageLookupByLibrary.simpleMessage("Канал данных"),
-    "turnTunnelModeVideo": MessageLookupByLibrary.simpleMessage("Видеопоток"),
     "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage(
       "Переподключение",
     ),
-    "turnTunnelSaved": MessageLookupByLibrary.simpleMessage(
-      "Настройки аварийного туннеля сохранены",
-    ),
+    "turnTunnelRetry": MessageLookupByLibrary.simpleMessage("Повторить"),
     "turnTunnelStarting": MessageLookupByLibrary.simpleMessage("Запуск"),
     "turnTunnelStopped": MessageLookupByLibrary.simpleMessage("Остановлен"),
+    "turnTunnelTemporarilyUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Канал временно недоступен",
+    ),
     "undo": MessageLookupByLibrary.simpleMessage("Отменить"),
     "unifiedDelay": MessageLookupByLibrary.simpleMessage(
       "Унифицированная задержка",

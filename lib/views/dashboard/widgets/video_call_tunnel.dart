@@ -35,9 +35,13 @@ class DashboardVideoCallTunnelSection extends ConsumerWidget {
         final statusColor = switch (currentStatus) {
           VideoCallTunnelStatus.connected => AppTheme.cyan,
           VideoCallTunnelStatus.starting ||
+          VideoCallTunnelStatus.checking ||
           VideoCallTunnelStatus.connecting ||
+          VideoCallTunnelStatus.captchaRequired ||
           VideoCallTunnelStatus.reconnecting => AppTheme.blue,
-          VideoCallTunnelStatus.error => AppTheme.danger,
+          VideoCallTunnelStatus.error ||
+          VideoCallTunnelStatus.notEntitled => AppTheme.danger,
+          VideoCallTunnelStatus.temporarilyUnavailable => AppTheme.violet,
           VideoCallTunnelStatus.disabled ||
           VideoCallTunnelStatus.stopped => AppTheme.muted,
         };

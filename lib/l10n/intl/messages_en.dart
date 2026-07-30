@@ -1046,6 +1046,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "turnTunnelCaptchaTitle": MessageLookupByLibrary.simpleMessage(
       "VK verification required",
     ),
+    "turnTunnelChecking": MessageLookupByLibrary.simpleMessage(
+      "Checking access",
+    ),
     "turnTunnelConnected": MessageLookupByLibrary.simpleMessage(
       "Tunnel connected",
     ),
@@ -1056,29 +1059,22 @@ class MessageLookup extends MessageLookupByLibrary {
       "Uses a VK video call as a local SOCKS5 fallback when direct VLESS servers are unavailable.",
     ),
     "turnTunnelDisabled": MessageLookupByLibrary.simpleMessage("Disabled"),
-    "turnTunnelDisplayName": MessageLookupByLibrary.simpleMessage(
-      "Call display name",
-    ),
     "turnTunnelEnable": MessageLookupByLibrary.simpleMessage(
       "Enable emergency tunnel",
     ),
     "turnTunnelError": MessageLookupByLibrary.simpleMessage("Connection error"),
-    "turnTunnelInvalidLink": MessageLookupByLibrary.simpleMessage(
-      "Enter a valid https://vk.ru/call/join/… link",
+    "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
+      "Not available for this device",
     ),
-    "turnTunnelJoinLink": MessageLookupByLibrary.simpleMessage(
-      "VK call invitation link",
-    ),
-    "turnTunnelModeDc": MessageLookupByLibrary.simpleMessage("Data channel"),
-    "turnTunnelModeVideo": MessageLookupByLibrary.simpleMessage("Video stream"),
     "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage(
       "Reconnecting",
     ),
-    "turnTunnelSaved": MessageLookupByLibrary.simpleMessage(
-      "Emergency tunnel settings saved",
-    ),
+    "turnTunnelRetry": MessageLookupByLibrary.simpleMessage("Retry"),
     "turnTunnelStarting": MessageLookupByLibrary.simpleMessage("Starting"),
     "turnTunnelStopped": MessageLookupByLibrary.simpleMessage("Stopped"),
+    "turnTunnelTemporarilyUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Channel temporarily unavailable",
+    ),
     "undo": MessageLookupByLibrary.simpleMessage("undo"),
     "unifiedDelay": MessageLookupByLibrary.simpleMessage("Unified delay"),
     "unifiedDelayDesc": MessageLookupByLibrary.simpleMessage(

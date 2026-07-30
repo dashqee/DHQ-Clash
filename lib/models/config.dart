@@ -181,13 +181,8 @@ abstract class VpnProps with _$VpnProps {
 
 @freezed
 abstract class VideoCallTunnelProps with _$VideoCallTunnelProps {
-  const factory VideoCallTunnelProps({
-    @Default(false) bool enable,
-    @Default('') String joinLink,
-    @Default('DHQ Clash') String displayName,
-    @Default(11789) int socksPort,
-    @Default('dc') String tunnelMode,
-  }) = _VideoCallTunnelProps;
+  const factory VideoCallTunnelProps({@Default(false) bool enable}) =
+      _VideoCallTunnelProps;
 
   factory VideoCallTunnelProps.fromJson(Map<String, Object?>? json) =>
       json == null

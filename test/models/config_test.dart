@@ -425,13 +425,7 @@ void main() {
         appSettingProps: AppSettingProps(locale: 'en', autoLaunch: true),
         networkProps: NetworkProps(systemProxy: false),
         vpnProps: VpnProps(enable: false),
-        videoCallTunnelProps: VideoCallTunnelProps(
-          enable: true,
-          joinLink: 'https://vk.ru/call/join/test',
-          displayName: 'Device',
-          socksPort: 11789,
-          tunnelMode: 'dc',
-        ),
+        videoCallTunnelProps: VideoCallTunnelProps(enable: true),
         themeProps: ThemeProps(
           primaryColor: 0xFF00FF00,
           themeMode: ThemeMode.system,
@@ -447,11 +441,32 @@ void main() {
       expect(restored.vpnProps.enable, false);
       expect(restored.videoCallTunnelProps.enable, true);
       expect(
-        restored.videoCallTunnelProps.joinLink,
-        'https://vk.ru/call/join/test',
+        restored.videoCallTunnelProps.toJson(),
+        isNot(contains('joinLink')),
+      );
+      expect(
+        restored.videoCallTunnelProps.toJson().keys,
+        unorderedEquals(['enable']),
       );
       expect(restored.windowProps.width, 1280);
       expect(restored.windowProps.height, 720);
+    });
+
+    test('legacy TURN join links are dropped during restore', () {
+      final json =
+          jsonDecode(
+                jsonEncode(const Config(themeProps: ThemeProps()).toJson()),
+              )
+              as Map<String, dynamic>;
+      (json['videoCallTunnelProps'] as Map<String, dynamic>)['joinLink'] =
+          'https://vk.ru/call/join/legacy-secret';
+
+      final restored = Config.fromJson(json);
+
+      expect(
+        restored.videoCallTunnelProps.toJson(),
+        isNot(contains('joinLink')),
+      );
     });
   });
 }
