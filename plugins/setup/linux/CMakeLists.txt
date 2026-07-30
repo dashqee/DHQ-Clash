@@ -11,6 +11,7 @@ add_dependencies(${BINARY_NAME} setup_buildkit_build)
 get_filename_component(PROJECT_ROOT "${CMAKE_SOURCE_DIR}" DIRECTORY)
 
 install(PROGRAMS "${PROJECT_ROOT}/libclash/linux/DHQClashCore"
+  "${PROJECT_ROOT}/libclash/linux/DHQClashTurn"
   DESTINATION "${CMAKE_BINARY_DIR}/bundle"
   COMPONENT Runtime
 )

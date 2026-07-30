@@ -1,3 +1,6 @@
 [submodule "core/Clash.Meta"]
 	path = core/Clash.Meta
 	url = https://github.com/dashqee/Clash.Meta.git
+[submodule "third_party/whitelist-bypass"]
+	path = third_party/whitelist-bypass
+	url = https://github.com/kulikov0/whitelist-bypass.git

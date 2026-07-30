@@ -4658,6 +4658,196 @@ class AppLocalizations {
       args: [count],
     );
   }
+
+  /// `Emergency video-call tunnel`
+  String get turnTunnel {
+    return Intl.message(
+      'Emergency video-call tunnel',
+      name: 'turnTunnel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enable emergency tunnel`
+  String get turnTunnelEnable {
+    return Intl.message(
+      'Enable emergency tunnel',
+      name: 'turnTunnelEnable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Uses a VK video call as a local SOCKS5 fallback when direct VLESS servers are unavailable.`
+  String get turnTunnelDesc {
+    return Intl.message(
+      'Uses a VK video call as a local SOCKS5 fallback when direct VLESS servers are unavailable.',
+      name: 'turnTunnelDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `VK call invitation link`
+  String get turnTunnelJoinLink {
+    return Intl.message(
+      'VK call invitation link',
+      name: 'turnTunnelJoinLink',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Call display name`
+  String get turnTunnelDisplayName {
+    return Intl.message(
+      'Call display name',
+      name: 'turnTunnelDisplayName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Data channel`
+  String get turnTunnelModeDc {
+    return Intl.message(
+      'Data channel',
+      name: 'turnTunnelModeDc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Video stream`
+  String get turnTunnelModeVideo {
+    return Intl.message(
+      'Video stream',
+      name: 'turnTunnelModeVideo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter a valid https://vk.ru/call/join/… link`
+  String get turnTunnelInvalidLink {
+    return Intl.message(
+      'Enter a valid https://vk.ru/call/join/… link',
+      name: 'turnTunnelInvalidLink',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Starting`
+  String get turnTunnelStarting {
+    return Intl.message(
+      'Starting',
+      name: 'turnTunnelStarting',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connecting to the call`
+  String get turnTunnelConnecting {
+    return Intl.message(
+      'Connecting to the call',
+      name: 'turnTunnelConnecting',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tunnel connected`
+  String get turnTunnelConnected {
+    return Intl.message(
+      'Tunnel connected',
+      name: 'turnTunnelConnected',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reconnecting`
+  String get turnTunnelReconnecting {
+    return Intl.message(
+      'Reconnecting',
+      name: 'turnTunnelReconnecting',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Disabled`
+  String get turnTunnelDisabled {
+    return Intl.message(
+      'Disabled',
+      name: 'turnTunnelDisabled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Stopped`
+  String get turnTunnelStopped {
+    return Intl.message(
+      'Stopped',
+      name: 'turnTunnelStopped',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connection error`
+  String get turnTunnelError {
+    return Intl.message(
+      'Connection error',
+      name: 'turnTunnelError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Emergency tunnel settings saved`
+  String get turnTunnelSaved {
+    return Intl.message(
+      'Emergency tunnel settings saved',
+      name: 'turnTunnelSaved',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `VK verification required`
+  String get turnTunnelCaptchaTitle {
+    return Intl.message(
+      'VK verification required',
+      name: 'turnTunnelCaptchaTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Complete the verification in your browser to continue connecting.`
+  String get turnTunnelCaptchaDesc {
+    return Intl.message(
+      'Complete the verification in your browser to continue connecting.',
+      name: 'turnTunnelCaptchaDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Open`
+  String get turnTunnelCaptchaOpen {
+    return Intl.message(
+      'Open',
+      name: 'turnTunnelCaptchaOpen',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

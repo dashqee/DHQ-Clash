@@ -46,5 +46,6 @@ export 'task.dart';
 export 'text.dart';
 export 'tray.dart';
 export 'utils.dart';
+export 'video_call_tunnel.dart';
 export 'window.dart';
 export 'yaml.dart';

@@ -846,6 +846,33 @@ class MessageLookup extends MessageLookupByLibrary {
     "tunDesc": MessageLookupByLibrary.simpleMessage("管理者モードでのみ有効"),
     "turnOff": MessageLookupByLibrary.simpleMessage("オフ"),
     "turnOn": MessageLookupByLibrary.simpleMessage("オン"),
+    "turnTunnel": MessageLookupByLibrary.simpleMessage("ビデオ通話緊急トンネル"),
+    "turnTunnelCaptchaDesc": MessageLookupByLibrary.simpleMessage(
+      "接続を続けるには、ブラウザで確認を完了してください。",
+    ),
+    "turnTunnelCaptchaOpen": MessageLookupByLibrary.simpleMessage("開く"),
+    "turnTunnelCaptchaTitle": MessageLookupByLibrary.simpleMessage(
+      "VKの確認が必要です",
+    ),
+    "turnTunnelConnected": MessageLookupByLibrary.simpleMessage("トンネル接続済み"),
+    "turnTunnelConnecting": MessageLookupByLibrary.simpleMessage("通話に接続中"),
+    "turnTunnelDesc": MessageLookupByLibrary.simpleMessage(
+      "直接のVLESSサーバーが利用できない場合、VKビデオ通話をローカルSOCKS5フォールバックとして使用します。",
+    ),
+    "turnTunnelDisabled": MessageLookupByLibrary.simpleMessage("無効"),
+    "turnTunnelDisplayName": MessageLookupByLibrary.simpleMessage("通話の表示名"),
+    "turnTunnelEnable": MessageLookupByLibrary.simpleMessage("緊急トンネルを有効化"),
+    "turnTunnelError": MessageLookupByLibrary.simpleMessage("接続エラー"),
+    "turnTunnelInvalidLink": MessageLookupByLibrary.simpleMessage(
+      "有効な https://vk.ru/call/join/… リンクを入力してください",
+    ),
+    "turnTunnelJoinLink": MessageLookupByLibrary.simpleMessage("VK通話招待リンク"),
+    "turnTunnelModeDc": MessageLookupByLibrary.simpleMessage("データチャネル"),
+    "turnTunnelModeVideo": MessageLookupByLibrary.simpleMessage("ビデオストリーム"),
+    "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage("再接続中"),
+    "turnTunnelSaved": MessageLookupByLibrary.simpleMessage("緊急トンネル設定を保存しました"),
+    "turnTunnelStarting": MessageLookupByLibrary.simpleMessage("起動中"),
+    "turnTunnelStopped": MessageLookupByLibrary.simpleMessage("停止"),
     "undo": MessageLookupByLibrary.simpleMessage("元に戻す"),
     "unifiedDelay": MessageLookupByLibrary.simpleMessage("統一遅延"),
     "unifiedDelayDesc": MessageLookupByLibrary.simpleMessage(

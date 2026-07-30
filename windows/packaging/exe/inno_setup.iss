@@ -74,10 +74,10 @@ end;
 procedure KillProcesses;
 var
   Processes: TArrayOfString;
-  LegacyPrefix: String;
   i: Integer;
   ResultCode: Integer;
 begin
+  Processes := ['DHQClash.exe', 'DHQClashCore.exe', 'DHQClashTurn.exe', 'DHQClashHelperService.exe'];
   LegacyPrefix := 'Fl';
   Processes := [
     'DHQClash.exe',

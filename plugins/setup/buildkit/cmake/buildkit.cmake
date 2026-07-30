@@ -22,9 +22,11 @@ function(apply_buildkit)
   # The output files the build_tool produces
   if(WIN32)
     set(_output "${PROJECT_ROOT}/libclash/windows/DHQClashCore.exe")
+    set(_turn_output "${PROJECT_ROOT}/libclash/windows/DHQClashTurn.exe")
     set(_platform_args "windows")
   else()
     set(_output "${PROJECT_ROOT}/libclash/linux/DHQClashCore")
+    set(_turn_output "${PROJECT_ROOT}/libclash/linux/DHQClashTurn")
     set(_platform_args "linux")
   endif()
 
@@ -34,7 +36,7 @@ function(apply_buildkit)
   )
 
   add_custom_command(
-    OUTPUT ${_output}
+    OUTPUT ${_output} ${_turn_output}
     COMMAND ${CMAKE_COMMAND} -E env ${BUILDKIT_ENV}
     "${_launcher}" ${_platform_args}
     WORKING_DIRECTORY "${PROJECT_ROOT}"
@@ -42,5 +44,5 @@ function(apply_buildkit)
     VERBATIM
   )
 
-  add_custom_target(setup_buildkit_build DEPENDS ${_output})
+  add_custom_target(setup_buildkit_build DEPENDS ${_output} ${_turn_output})
 endfunction()

@@ -1095,6 +1095,51 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "turnOff": MessageLookupByLibrary.simpleMessage("Выключить"),
     "turnOn": MessageLookupByLibrary.simpleMessage("Включить"),
+    "turnTunnel": MessageLookupByLibrary.simpleMessage(
+      "Аварийный туннель через видеозвонок",
+    ),
+    "turnTunnelCaptchaDesc": MessageLookupByLibrary.simpleMessage(
+      "Пройдите проверку в браузере, чтобы продолжить подключение.",
+    ),
+    "turnTunnelCaptchaOpen": MessageLookupByLibrary.simpleMessage("Открыть"),
+    "turnTunnelCaptchaTitle": MessageLookupByLibrary.simpleMessage(
+      "Требуется проверка VK",
+    ),
+    "turnTunnelConnected": MessageLookupByLibrary.simpleMessage(
+      "Туннель подключён",
+    ),
+    "turnTunnelConnecting": MessageLookupByLibrary.simpleMessage(
+      "Подключение к звонку",
+    ),
+    "turnTunnelDesc": MessageLookupByLibrary.simpleMessage(
+      "Использует видеозвонок VK как локальный SOCKS5-резерв, когда прямые VLESS-серверы недоступны.",
+    ),
+    "turnTunnelDisabled": MessageLookupByLibrary.simpleMessage("Выключен"),
+    "turnTunnelDisplayName": MessageLookupByLibrary.simpleMessage(
+      "Имя участника звонка",
+    ),
+    "turnTunnelEnable": MessageLookupByLibrary.simpleMessage(
+      "Включить аварийный туннель",
+    ),
+    "turnTunnelError": MessageLookupByLibrary.simpleMessage(
+      "Ошибка подключения",
+    ),
+    "turnTunnelInvalidLink": MessageLookupByLibrary.simpleMessage(
+      "Укажите корректную ссылку https://vk.ru/call/join/…",
+    ),
+    "turnTunnelJoinLink": MessageLookupByLibrary.simpleMessage(
+      "Ссылка-приглашение в звонок VK",
+    ),
+    "turnTunnelModeDc": MessageLookupByLibrary.simpleMessage("Канал данных"),
+    "turnTunnelModeVideo": MessageLookupByLibrary.simpleMessage("Видеопоток"),
+    "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage(
+      "Переподключение",
+    ),
+    "turnTunnelSaved": MessageLookupByLibrary.simpleMessage(
+      "Настройки аварийного туннеля сохранены",
+    ),
+    "turnTunnelStarting": MessageLookupByLibrary.simpleMessage("Запуск"),
+    "turnTunnelStopped": MessageLookupByLibrary.simpleMessage("Остановлен"),
     "undo": MessageLookupByLibrary.simpleMessage("Отменить"),
     "unifiedDelay": MessageLookupByLibrary.simpleMessage(
       "Унифицированная задержка",
