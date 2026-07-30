@@ -5,6 +5,7 @@ import com.follow.clash.service.ICallbackInterface;
 import com.follow.clash.service.IEventInterface;
 import com.follow.clash.service.IResultInterface;
 import com.follow.clash.service.IVoidInterface;
+import com.follow.clash.service.IVideoCallTunnelEventInterface;
 import com.follow.clash.service.models.VpnOptions;
 import com.follow.clash.service.models.NotificationParams;
 
@@ -16,5 +17,15 @@ interface IRemoteInterface {
     void stopService(in IResultInterface result);
     void setEventListener(in IEventInterface event);
     void setCrashlytics(in boolean enable);
+    boolean startVideoCallTunnel(
+        in String joinLink,
+        in String displayName,
+        in String tunnelMode,
+        in int socksPort,
+        in String socksUsername,
+        in String socksPassword,
+        in IVideoCallTunnelEventInterface event
+    );
+    void stopVideoCallTunnel();
     long getRunTime();
 }

@@ -571,11 +571,9 @@
   "turnTunnel": "视频通话应急隧道",
   "turnTunnelEnable": "启用应急隧道",
   "turnTunnelDesc": "当直连 VLESS 服务器不可用时，使用 VK 视频通话作为本地 SOCKS5 备用通道。",
-  "turnTunnelJoinLink": "VK 通话邀请链接",
-  "turnTunnelDisplayName": "通话显示名称",
-  "turnTunnelModeDc": "数据通道",
-  "turnTunnelModeVideo": "视频流",
-  "turnTunnelInvalidLink": "请输入有效的 https://vk.ru/call/join/… 链接",
+  "turnTunnelChecking": "正在检查访问权限",
+  "turnTunnelNotEntitled": "此设备不可用",
+  "turnTunnelTemporarilyUnavailable": "通道暂时不可用",
   "turnTunnelStarting": "正在启动",
   "turnTunnelConnecting": "正在连接通话",
   "turnTunnelConnected": "隧道已连接",
@@ -583,8 +581,8 @@
   "turnTunnelDisabled": "已禁用",
   "turnTunnelStopped": "已停止",
   "turnTunnelError": "连接错误",
-  "turnTunnelSaved": "应急隧道设置已保存",
   "turnTunnelCaptchaTitle": "需要 VK 验证",
   "turnTunnelCaptchaDesc": "请在浏览器中完成验证以继续连接。",
-  "turnTunnelCaptchaOpen": "打开"
+  "turnTunnelCaptchaOpen": "打开",
+  "turnTunnelRetry": "重试"
 }

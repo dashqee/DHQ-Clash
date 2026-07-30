@@ -571,11 +571,9 @@
   "turnTunnel": "ビデオ通話緊急トンネル",
   "turnTunnelEnable": "緊急トンネルを有効化",
   "turnTunnelDesc": "直接のVLESSサーバーが利用できない場合、VKビデオ通話をローカルSOCKS5フォールバックとして使用します。",
-  "turnTunnelJoinLink": "VK通話招待リンク",
-  "turnTunnelDisplayName": "通話の表示名",
-  "turnTunnelModeDc": "データチャネル",
-  "turnTunnelModeVideo": "ビデオストリーム",
-  "turnTunnelInvalidLink": "有効な https://vk.ru/call/join/… リンクを入力してください",
+  "turnTunnelChecking": "アクセスを確認中",
+  "turnTunnelNotEntitled": "このデバイスでは利用できません",
+  "turnTunnelTemporarilyUnavailable": "チャンネルは一時的に利用できません",
   "turnTunnelStarting": "起動中",
   "turnTunnelConnecting": "通話に接続中",
   "turnTunnelConnected": "トンネル接続済み",
@@ -583,8 +581,8 @@
   "turnTunnelDisabled": "無効",
   "turnTunnelStopped": "停止",
   "turnTunnelError": "接続エラー",
-  "turnTunnelSaved": "緊急トンネル設定を保存しました",
   "turnTunnelCaptchaTitle": "VKの確認が必要です",
   "turnTunnelCaptchaDesc": "接続を続けるには、ブラウザで確認を完了してください。",
-  "turnTunnelCaptchaOpen": "開く"
+  "turnTunnelCaptchaOpen": "開く",
+  "turnTunnelRetry": "再試行"
 }

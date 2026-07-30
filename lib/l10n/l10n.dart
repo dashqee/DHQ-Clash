@@ -4689,51 +4689,31 @@ class AppLocalizations {
     );
   }
 
-  /// `VK call invitation link`
-  String get turnTunnelJoinLink {
+  /// `Checking access`
+  String get turnTunnelChecking {
     return Intl.message(
-      'VK call invitation link',
-      name: 'turnTunnelJoinLink',
+      'Checking access',
+      name: 'turnTunnelChecking',
       desc: '',
       args: [],
     );
   }
 
-  /// `Call display name`
-  String get turnTunnelDisplayName {
+  /// `Not available for this device`
+  String get turnTunnelNotEntitled {
     return Intl.message(
-      'Call display name',
-      name: 'turnTunnelDisplayName',
+      'Not available for this device',
+      name: 'turnTunnelNotEntitled',
       desc: '',
       args: [],
     );
   }
 
-  /// `Data channel`
-  String get turnTunnelModeDc {
+  /// `Channel temporarily unavailable`
+  String get turnTunnelTemporarilyUnavailable {
     return Intl.message(
-      'Data channel',
-      name: 'turnTunnelModeDc',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Video stream`
-  String get turnTunnelModeVideo {
-    return Intl.message(
-      'Video stream',
-      name: 'turnTunnelModeVideo',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Enter a valid https://vk.ru/call/join/… link`
-  String get turnTunnelInvalidLink {
-    return Intl.message(
-      'Enter a valid https://vk.ru/call/join/… link',
-      name: 'turnTunnelInvalidLink',
+      'Channel temporarily unavailable',
+      name: 'turnTunnelTemporarilyUnavailable',
       desc: '',
       args: [],
     );
@@ -4809,16 +4789,6 @@ class AppLocalizations {
     );
   }
 
-  /// `Emergency tunnel settings saved`
-  String get turnTunnelSaved {
-    return Intl.message(
-      'Emergency tunnel settings saved',
-      name: 'turnTunnelSaved',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `VK verification required`
   String get turnTunnelCaptchaTitle {
     return Intl.message(
@@ -4847,6 +4817,11 @@ class AppLocalizations {
       desc: '',
       args: [],
     );
+  }
+
+  /// `Retry`
+  String get turnTunnelRetry {
+    return Intl.message('Retry', name: 'turnTunnelRetry', desc: '', args: []);
   }
 }
 

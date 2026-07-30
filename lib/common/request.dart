@@ -123,7 +123,7 @@ class Request {
       );
     } catch (error) {
       commonPrint.log(
-        'getVideoCallTunnelLink failed: $error',
+        'getVideoCallTunnelLink failed (${error.runtimeType})',
         logLevel: LogLevel.warning,
       );
       return const VideoCallTunnelLinkResult(VideoCallTunnelLinkStatus.error);

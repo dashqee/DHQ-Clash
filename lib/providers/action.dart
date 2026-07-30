@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/core/core.dart';
@@ -234,7 +235,10 @@ class CommonAction extends _$CommonAction {
 class SetupAction extends _$SetupAction {
   Timer? _updateTimer;
   Timer? _turnLinkRetryTimer;
+  final Random _turnRetryRandom = Random();
   bool _isRefreshingTurnLink = false;
+  int _turnRetryAttempt = 0;
+  String? _turnJoinLink;
   String? _turnSubscriptionUrl;
   DateTime? startTime;
 
@@ -243,20 +247,44 @@ class SetupAction extends _$SetupAction {
   @override
   void build() {
     videoCallTunnelController.onTunnelLost = _handleVideoCallTunnelLost;
+    videoCallTunnelController.onTunnelConnected =
+        _handleVideoCallTunnelConnected;
+    videoCallTunnelController.onTerminalError =
+        _handleVideoCallTunnelTerminalError;
     ref.onDispose(() {
       _turnLinkRetryTimer?.cancel();
       if (videoCallTunnelController.onTunnelLost ==
           _handleVideoCallTunnelLost) {
         videoCallTunnelController.onTunnelLost = null;
       }
+      if (videoCallTunnelController.onTunnelConnected ==
+          _handleVideoCallTunnelConnected) {
+        videoCallTunnelController.onTunnelConnected = null;
+      }
+      if (videoCallTunnelController.onTerminalError ==
+          _handleVideoCallTunnelTerminalError) {
+        videoCallTunnelController.onTerminalError = null;
+      }
     });
   }
 
-  void _scheduleTurnLinkRetry() {
+  void _cancelTurnLinkRetry() {
+    _turnLinkRetryTimer?.cancel();
+    _turnLinkRetryTimer = null;
+    _turnRetryAttempt = 0;
+  }
+
+  void _scheduleTurnLinkRetry({required bool requireChanged}) {
     if (_turnLinkRetryTimer?.isActive == true) return;
-    _turnLinkRetryTimer = Timer(const Duration(seconds: 20), () {
+    const retrySeconds = [5, 10, 20, 30, 60];
+    final baseSeconds =
+        retrySeconds[min(_turnRetryAttempt, retrySeconds.length - 1)];
+    _turnRetryAttempt++;
+    final jitter = 0.8 + (_turnRetryRandom.nextDouble() * 0.4);
+    final delay = Duration(milliseconds: (baseSeconds * jitter * 1000).round());
+    _turnLinkRetryTimer = Timer(delay, () {
       _turnLinkRetryTimer = null;
-      unawaited(refreshVideoCallTunnel(requireChanged: true));
+      unawaited(refreshVideoCallTunnel(requireChanged: requireChanged));
     });
   }
 
@@ -268,52 +296,62 @@ class SetupAction extends _$SetupAction {
     if (!props.enable) return null;
     final profile = ref.read(currentProfileProvider);
     if (profile == null || profile.url.isEmpty) {
-      return isValidVideoCallJoinLink(props.joinLink) ? props : null;
+      _turnJoinLink = null;
+      _turnSubscriptionUrl = null;
+      videoCallTunnelController.status.value = VideoCallTunnelStatus.error;
+      return null;
     }
 
+    final subscriptionChanged = _turnSubscriptionUrl != profile.url;
+    if (subscriptionChanged) {
+      _turnJoinLink = null;
+    }
     _turnSubscriptionUrl = profile.url;
-    videoCallTunnelController.status.value = VideoCallTunnelStatus.connecting;
+    if (videoCallTunnelController.status.value !=
+        VideoCallTunnelStatus.reconnecting) {
+      videoCallTunnelController.status.value = VideoCallTunnelStatus.checking;
+    }
     final result = await (fetchLink ?? request.getVideoCallTunnelLink)(
       profile.url,
     );
     switch (result.status) {
       case VideoCallTunnelLinkStatus.available:
         final joinLink = result.joinLink!;
-        if (requireChanged && joinLink == props.joinLink) {
-          _scheduleTurnLinkRetry();
+        if (requireChanged && joinLink == _turnJoinLink) {
+          _scheduleTurnLinkRetry(requireChanged: true);
           return null;
         }
-        _turnLinkRetryTimer?.cancel();
-        _turnLinkRetryTimer = null;
-        final next = props.copyWith(joinLink: joinLink);
-        ref.read(videoCallTunnelSettingProvider.notifier).update((_) => next);
-        return next;
+        _cancelTurnLinkRetry();
+        _turnJoinLink = joinLink;
+        return props;
       case VideoCallTunnelLinkStatus.notEntitled:
-        _turnLinkRetryTimer?.cancel();
-        _turnLinkRetryTimer = null;
-        ref
-            .read(videoCallTunnelSettingProvider.notifier)
-            .update((state) => state.copyWith(joinLink: ''));
-        videoCallTunnelController.status.value = VideoCallTunnelStatus.disabled;
+        _cancelTurnLinkRetry();
+        _turnJoinLink = null;
+        videoCallTunnelController.status.value =
+            VideoCallTunnelStatus.notEntitled;
         return null;
       case VideoCallTunnelLinkStatus.temporarilyUnavailable:
-        if (!requireChanged) {
-          ref
-              .read(videoCallTunnelSettingProvider.notifier)
-              .update((state) => state.copyWith(joinLink: ''));
-        }
+        if (!requireChanged) _turnJoinLink = null;
         videoCallTunnelController.status.value =
-            VideoCallTunnelStatus.reconnecting;
-        _scheduleTurnLinkRetry();
+            VideoCallTunnelStatus.temporarilyUnavailable;
+        _scheduleTurnLinkRetry(requireChanged: requireChanged);
         return null;
       case VideoCallTunnelLinkStatus.invalidSubscription:
-        if (isValidVideoCallJoinLink(props.joinLink)) return props;
+        if (!subscriptionChanged &&
+            !requireChanged &&
+            isValidVideoCallJoinLink(_turnJoinLink ?? '')) {
+          return props;
+        }
         videoCallTunnelController.status.value = VideoCallTunnelStatus.error;
         return null;
       case VideoCallTunnelLinkStatus.error:
-        if (isValidVideoCallJoinLink(props.joinLink)) return props;
+        if (!subscriptionChanged &&
+            !requireChanged &&
+            isValidVideoCallJoinLink(_turnJoinLink ?? '')) {
+          return props;
+        }
         videoCallTunnelController.status.value = VideoCallTunnelStatus.error;
-        _scheduleTurnLinkRetry();
+        _scheduleTurnLinkRetry(requireChanged: requireChanged);
         return null;
     }
   }
@@ -326,18 +364,13 @@ class SetupAction extends _$SetupAction {
     if (_isRefreshingTurnLink) return false;
     _isRefreshingTurnLink = true;
     try {
-      final previousJoinLink = ref
-          .read(videoCallTunnelSettingProvider)
-          .joinLink;
+      final previousJoinLink = _turnJoinLink;
       final props = await _resolveVideoCallTunnelProps(
         requireChanged: requireChanged,
         fetchLink: fetchLink,
       );
       if (props == null) {
-        final currentJoinLink = ref
-            .read(videoCallTunnelSettingProvider)
-            .joinLink;
-        if (startTunnel && isStart && previousJoinLink != currentJoinLink) {
+        if (startTunnel && isStart && previousJoinLink != _turnJoinLink) {
           await videoCallTunnelController.stop();
           await applyProfile(force: true, silence: true);
         }
@@ -347,7 +380,12 @@ class SetupAction extends _$SetupAction {
         videoCallTunnelController.status.value = VideoCallTunnelStatus.stopped;
         return true;
       }
-      final started = await videoCallTunnelController.start(props);
+      final joinLink = _turnJoinLink;
+      if (joinLink == null) return false;
+      final started = await videoCallTunnelController.start(
+        props,
+        joinLink: joinLink,
+      );
       if (started && isStart) {
         await applyProfile(force: true, silence: true);
       }
@@ -359,6 +397,47 @@ class SetupAction extends _$SetupAction {
 
   Future<void> _handleVideoCallTunnelLost() async {
     await refreshVideoCallTunnel(requireChanged: true);
+  }
+
+  Future<void> _handleVideoCallTunnelConnected() async {
+    _cancelTurnLinkRetry();
+  }
+
+  Future<void> _handleVideoCallTunnelTerminalError() async {
+    await refreshVideoCallTunnel();
+  }
+
+  Future<void> setVideoCallTunnelEnabled(bool enabled) async {
+    ref
+        .read(videoCallTunnelSettingProvider.notifier)
+        .update((state) => state.copyWith(enable: enabled));
+    if (enabled) {
+      await refreshVideoCallTunnel(startTunnel: isStart);
+      return;
+    }
+    _cancelTurnLinkRetry();
+    _turnJoinLink = null;
+    _turnSubscriptionUrl = null;
+    await videoCallTunnelController.stop();
+    if (isStart) {
+      await applyProfile(force: true, silence: true);
+    } else {
+      videoCallTunnelController.status.value = VideoCallTunnelStatus.disabled;
+    }
+  }
+
+  void handleVideoCallTunnelConnectivityRestored() {
+    final enabled = ref.read(videoCallTunnelSettingProvider).enable;
+    final status = videoCallTunnelController.status.value;
+    if (!enabled ||
+        !{
+          VideoCallTunnelStatus.error,
+          VideoCallTunnelStatus.temporarilyUnavailable,
+          VideoCallTunnelStatus.stopped,
+        }.contains(status)) {
+      return;
+    }
+    unawaited(refreshVideoCallTunnel(startTunnel: isStart));
   }
 
   SetupParams get _setupParams {
@@ -428,7 +507,13 @@ class SetupAction extends _$SetupAction {
       if (videoCallTunnel.enable) {
         final resolvedVideoCallTunnel = await _resolveVideoCallTunnelProps();
         if (resolvedVideoCallTunnel != null) {
-          await videoCallTunnelController.start(resolvedVideoCallTunnel);
+          final joinLink = _turnJoinLink;
+          if (joinLink != null) {
+            await videoCallTunnelController.start(
+              resolvedVideoCallTunnel,
+              joinLink: joinLink,
+            );
+          }
         }
       }
       if (!isInit) {
@@ -596,9 +681,8 @@ class SetupAction extends _$SetupAction {
       tun: patchConfig.tun.getRealTun(routeMode),
     );
     final videoCallTunnel = ref.read(videoCallTunnelSettingProvider);
-    final videoCallCredentials = deriveVideoCallTunnelCredentials(
-      videoCallTunnel.joinLink,
-    );
+    final turnJoinLink = _turnJoinLink ?? '';
+    final videoCallCredentials = deriveVideoCallTunnelCredentials(turnJoinLink);
     Map<String, dynamic> rawConfig = configMap;
     if (scriptContent?.isNotEmpty == true) {
       rawConfig = await handleEvaluate(scriptContent!, rawConfig);
@@ -617,8 +701,8 @@ class SetupAction extends _$SetupAction {
         addedRules: addedRules,
         defaultUA: defaultUA,
         videoCallTunnelEnabled:
-            videoCallTunnel.enable && videoCallTunnel.joinLink.isNotEmpty,
-        videoCallTunnelPort: videoCallTunnel.socksPort,
+            videoCallTunnel.enable && turnJoinLink.isNotEmpty,
+        videoCallTunnelPort: videoCallTunnelSocksPort,
         videoCallTunnelUsername: videoCallCredentials.username,
         videoCallTunnelPassword: videoCallCredentials.password,
       ),
@@ -699,7 +783,13 @@ class SetupAction extends _$SetupAction {
         profile?.url != _turnSubscriptionUrl) {
       final resolvedVideoCallTunnel = await _resolveVideoCallTunnelProps();
       if (resolvedVideoCallTunnel != null && isStart) {
-        await videoCallTunnelController.start(resolvedVideoCallTunnel);
+        final joinLink = _turnJoinLink;
+        if (joinLink != null) {
+          await videoCallTunnelController.start(
+            resolvedVideoCallTunnel,
+            joinLink: joinLink,
+          );
+        }
       }
     }
     commonPrint.log('setup ===> ${profile?.id}');

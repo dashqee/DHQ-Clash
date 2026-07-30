@@ -92,7 +92,16 @@ void main() {
       expect(first.password.length, greaterThanOrEqualTo(24));
     });
 
-    test('adds TURN proxy last to fallback groups and bypass rules first', () {
+    test('redacts call-scoped links from sidecar logs', () {
+      expect(
+        sanitizeVideoCallTunnelLog(
+          'obf key-source="https://vk.ru/call/join/private-token"',
+        ),
+        'obf key-source="https://vk.ru/call/join/[redacted]"',
+      );
+    });
+
+    test('adds TURN proxy only to the primary Fallback group', () {
       final source = <String, dynamic>{
         'proxies': [
           {'name': 'Direct VLESS', 'type': 'vless'},
@@ -102,6 +111,11 @@ void main() {
             'name': 'Fallback',
             'type': 'fallback',
             'proxies': ['Direct VLESS'],
+          },
+          {
+            'name': 'EXTRA',
+            'type': 'fallback',
+            'proxies': ['Extra VLESS'],
           },
           {
             'name': 'Manual',
@@ -128,6 +142,7 @@ void main() {
         'Direct VLESS',
         videoCallTunnelProxyName,
       ]);
+      expect((groups[1] as Map)['proxies'], ['Extra VLESS']);
       expect((groups.last as Map)['proxies'], ['Direct VLESS']);
       expect(
         (result['rules'] as List).first,
@@ -168,6 +183,9 @@ void main() {
       expect(((result['proxy-groups'] as List).single as Map)['proxies'], [
         videoCallTunnelProxyName,
       ]);
+      final fallbackGroup = (result['proxy-groups'] as List).single as Map;
+      expect(fallbackGroup['url'], videoCallTunnelHealthCheckUrl);
+      expect(fallbackGroup['interval'], videoCallTunnelHealthCheckInterval);
     });
   });
 }

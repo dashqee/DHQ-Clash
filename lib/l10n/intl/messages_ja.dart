@@ -854,25 +854,25 @@ class MessageLookup extends MessageLookupByLibrary {
     "turnTunnelCaptchaTitle": MessageLookupByLibrary.simpleMessage(
       "VKの確認が必要です",
     ),
+    "turnTunnelChecking": MessageLookupByLibrary.simpleMessage("アクセスを確認中"),
     "turnTunnelConnected": MessageLookupByLibrary.simpleMessage("トンネル接続済み"),
     "turnTunnelConnecting": MessageLookupByLibrary.simpleMessage("通話に接続中"),
     "turnTunnelDesc": MessageLookupByLibrary.simpleMessage(
       "直接のVLESSサーバーが利用できない場合、VKビデオ通話をローカルSOCKS5フォールバックとして使用します。",
     ),
     "turnTunnelDisabled": MessageLookupByLibrary.simpleMessage("無効"),
-    "turnTunnelDisplayName": MessageLookupByLibrary.simpleMessage("通話の表示名"),
     "turnTunnelEnable": MessageLookupByLibrary.simpleMessage("緊急トンネルを有効化"),
     "turnTunnelError": MessageLookupByLibrary.simpleMessage("接続エラー"),
-    "turnTunnelInvalidLink": MessageLookupByLibrary.simpleMessage(
-      "有効な https://vk.ru/call/join/… リンクを入力してください",
+    "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
+      "このデバイスでは利用できません",
     ),
-    "turnTunnelJoinLink": MessageLookupByLibrary.simpleMessage("VK通話招待リンク"),
-    "turnTunnelModeDc": MessageLookupByLibrary.simpleMessage("データチャネル"),
-    "turnTunnelModeVideo": MessageLookupByLibrary.simpleMessage("ビデオストリーム"),
     "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage("再接続中"),
-    "turnTunnelSaved": MessageLookupByLibrary.simpleMessage("緊急トンネル設定を保存しました"),
+    "turnTunnelRetry": MessageLookupByLibrary.simpleMessage("再試行"),
     "turnTunnelStarting": MessageLookupByLibrary.simpleMessage("起動中"),
     "turnTunnelStopped": MessageLookupByLibrary.simpleMessage("停止"),
+    "turnTunnelTemporarilyUnavailable": MessageLookupByLibrary.simpleMessage(
+      "チャンネルは一時的に利用できません",
+    ),
     "undo": MessageLookupByLibrary.simpleMessage("元に戻す"),
     "unifiedDelay": MessageLookupByLibrary.simpleMessage("統一遅延"),
     "unifiedDelayDesc": MessageLookupByLibrary.simpleMessage(

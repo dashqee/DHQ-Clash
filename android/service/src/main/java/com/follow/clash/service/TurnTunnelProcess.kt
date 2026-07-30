@@ -1,4 +1,4 @@
-package com.follow.clash
+package com.follow.clash.service
 
 import android.os.Build
 import android.util.Log
@@ -9,9 +9,10 @@ import java.io.File
 import java.io.OutputStreamWriter
 import java.net.Inet4Address
 import java.net.InetAddress
+import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 
-class TurnTunnelProcess(
+internal class TurnTunnelProcess(
     private val onStatus: (String) -> Unit,
 ) {
     private var process: Process? = null
@@ -20,6 +21,9 @@ class TurnTunnelProcess(
 
     @Volatile
     private var running = false
+
+    val isRunning: Boolean
+        get() = running
 
     @Synchronized
     fun start(
@@ -34,7 +38,7 @@ class TurnTunnelProcess(
         val nativeDir = GlobalState.application.applicationInfo.nativeLibraryDir
         val executable = File(nativeDir, SIDECAR_NAME)
         if (!executable.exists()) {
-            Log.e(TAG, "TURN sidecar not found: ${executable.absolutePath}")
+            Log.e(TAG, "TURN sidecar not found")
             onStatus("ERROR:sidecar missing")
             return false
         }
@@ -81,7 +85,7 @@ class TurnTunnelProcess(
                             }
                         }
 
-                        else -> Log.d(TAG, line)
+                        else -> Log.d(TAG, sanitizeLog(line))
                     }
                 }
                 child.waitFor()
@@ -92,7 +96,10 @@ class TurnTunnelProcess(
             } finally {
                 running = false
             }
-        }.also { it.name = "DHQClashTurn"; it.start() }
+        }.also {
+            it.name = "DHQClashTurn"
+            it.start()
+        }
         return true
     }
 
@@ -134,8 +141,87 @@ class TurnTunnelProcess(
         }.onFailure { Log.e(TAG, "TURN stdin write failed", it) }
     }
 
-    private companion object {
-        const val TAG = "DHQClashTurn"
-        const val SIDECAR_NAME = "libDHQClashTurn.so"
+    private fun sanitizeLog(value: String): String {
+        return JOIN_LINK_REGEX.replace(
+            value,
+            "https://vk.ru/call/join/[redacted]",
+        )
+    }
+
+    companion object {
+        private const val TAG = "DHQClashTurn"
+        private const val SIDECAR_NAME = "libDHQClashTurn.so"
+        private val JOIN_LINK_REGEX =
+            Regex("""https://(?:vk\.ru|vk\.com)/call/join/[^\s"'<>]+""")
+
+        fun sessionKey(
+            joinLink: String,
+            displayName: String,
+            tunnelMode: String,
+            socksPort: Int,
+        ): String {
+            val value = "$joinLink\u0000$displayName\u0000$tunnelMode\u0000$socksPort"
+            return MessageDigest.getInstance("SHA-256")
+                .digest(value.toByteArray())
+                .joinToString("") { "%02x".format(it) }
+        }
+    }
+}
+
+internal object TurnTunnelRuntime {
+    private var process: TurnTunnelProcess? = null
+    private var activeSessionKey: String? = null
+    private var lastStatus = "STOPPED"
+    private var onStatus: ((String) -> Unit)? = null
+
+    @Synchronized
+    fun start(
+        joinLink: String,
+        displayName: String,
+        tunnelMode: String,
+        socksPort: Int,
+        socksUsername: String,
+        socksPassword: String,
+        statusCallback: (String) -> Unit,
+    ): Boolean {
+        onStatus = statusCallback
+        val nextSessionKey = TurnTunnelProcess.sessionKey(
+            joinLink,
+            displayName,
+            tunnelMode,
+            socksPort,
+        )
+        val activeProcess = process
+        if (activeSessionKey == nextSessionKey && activeProcess?.isRunning == true) {
+            statusCallback(lastStatus)
+            return true
+        }
+
+        activeProcess?.stop()
+        val nextProcess = TurnTunnelProcess(::emitStatus)
+        process = nextProcess
+        activeSessionKey = nextSessionKey
+        return nextProcess.start(
+            joinLink,
+            displayName,
+            tunnelMode,
+            socksPort,
+            socksUsername,
+            socksPassword,
+        )
+    }
+
+    @Synchronized
+    fun stop() {
+        process?.stop()
+        process = null
+        activeSessionKey = null
+        lastStatus = "STOPPED"
+    }
+
+    @Synchronized
+    private fun emitStatus(status: String) {
+        lastStatus = status
+        onStatus?.invoke(status)
     }
 }

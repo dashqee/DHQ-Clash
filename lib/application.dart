@@ -115,6 +115,11 @@ class ApplicationState extends ConsumerState<Application> {
               ref.read(checkIpNumProvider.notifier).add();
             }
             _preHasVpn = hasVpn;
+            if (!results.contains(ConnectivityResult.none)) {
+              ref
+                  .read(setupActionProvider.notifier)
+                  .handleVideoCallTunnelConnectivityRestored();
+            }
           },
           child: child,
         ),

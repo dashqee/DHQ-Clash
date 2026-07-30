@@ -571,11 +571,9 @@
   "turnTunnel": "Emergency video-call tunnel",
   "turnTunnelEnable": "Enable emergency tunnel",
   "turnTunnelDesc": "Uses a VK video call as a local SOCKS5 fallback when direct VLESS servers are unavailable.",
-  "turnTunnelJoinLink": "VK call invitation link",
-  "turnTunnelDisplayName": "Call display name",
-  "turnTunnelModeDc": "Data channel",
-  "turnTunnelModeVideo": "Video stream",
-  "turnTunnelInvalidLink": "Enter a valid https://vk.ru/call/join/… link",
+  "turnTunnelChecking": "Checking access",
+  "turnTunnelNotEntitled": "Not available for this device",
+  "turnTunnelTemporarilyUnavailable": "Channel temporarily unavailable",
   "turnTunnelStarting": "Starting",
   "turnTunnelConnecting": "Connecting to the call",
   "turnTunnelConnected": "Tunnel connected",
@@ -583,8 +581,8 @@
   "turnTunnelDisabled": "Disabled",
   "turnTunnelStopped": "Stopped",
   "turnTunnelError": "Connection error",
-  "turnTunnelSaved": "Emergency tunnel settings saved",
   "turnTunnelCaptchaTitle": "VK verification required",
   "turnTunnelCaptchaDesc": "Complete the verification in your browser to continue connecting.",
-  "turnTunnelCaptchaOpen": "Open"
+  "turnTunnelCaptchaOpen": "Open",
+  "turnTunnelRetry": "Retry"
 }

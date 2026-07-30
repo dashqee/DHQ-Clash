@@ -12,11 +12,20 @@ import 'print.dart';
 import 'system.dart';
 
 const videoCallTunnelProxyName = 'DHQ TURN';
+const videoCallTunnelDisplayName = 'DHQ Clash';
+const videoCallTunnelSocksPort = 11789;
+const videoCallTunnelMode = 'dc';
+const videoCallTunnelHealthCheckUrl = 'https://cp.cloudflare.com/generate_204';
+const videoCallTunnelHealthCheckInterval = 30;
 
 enum VideoCallTunnelStatus {
   disabled,
+  checking,
+  notEntitled,
+  temporarilyUnavailable,
   starting,
   connecting,
+  captchaRequired,
   connected,
   reconnecting,
   stopped,
@@ -118,6 +127,13 @@ bool isValidVideoCallJoinLink(String value) {
       uri.pathSegments.length >= 3;
 }
 
+String sanitizeVideoCallTunnelLog(String value) {
+  return value.replaceAll(
+    RegExp(r'''https://(?:vk\.ru|vk\.com)/call/join/[^\s"'<>]+'''),
+    'https://vk.ru/call/join/[redacted]',
+  );
+}
+
 Uri? parseVideoCallTunnelCaptchaUri(String status) {
   const prefix = 'CAPTCHA:';
   if (!status.startsWith(prefix)) return null;
@@ -156,13 +172,19 @@ Map<String, dynamic> addVideoCallTunnelToConfig(
       })
       .toList();
   for (final group in groups) {
-    if (group is! Map || group['type']?.toString() != 'fallback') continue;
+    if (group is! Map ||
+        group['type']?.toString() != 'fallback' ||
+        group['name']?.toString() != 'Fallback') {
+      continue;
+    }
     final groupProxies = List<dynamic>.from(
       group['proxies'] as List? ?? const [],
     );
     groupProxies.removeWhere((item) => item == videoCallTunnelProxyName);
     groupProxies.add(videoCallTunnelProxyName);
     group['proxies'] = groupProxies;
+    group.putIfAbsent('url', () => videoCallTunnelHealthCheckUrl);
+    group.putIfAbsent('interval', () => videoCallTunnelHealthCheckInterval);
   }
   config['proxy-groups'] = groups;
 
@@ -186,10 +208,12 @@ class VideoCallTunnelController {
   );
   final ValueNotifier<Uri?> captchaUri = ValueNotifier(null);
   Future<void> Function()? onTunnelLost;
+  Future<void> Function()? onTunnelConnected;
+  Future<void> Function()? onTerminalError;
   Process? _process;
   StreamSubscription<String>? _stdoutSubscription;
   StreamSubscription<String>? _stderrSubscription;
-  VideoCallTunnelProps? _props;
+  String? _activeJoinLink;
   IOSink? _stdin;
 
   VideoCallTunnelController._internal();
@@ -199,29 +223,36 @@ class VideoCallTunnelController {
     return _instance!;
   }
 
-  Future<bool> start(VideoCallTunnelProps props) async {
-    await stop();
+  Future<bool> start(
+    VideoCallTunnelProps props, {
+    required String joinLink,
+  }) async {
     captchaUri.value = null;
-    _props = props;
-    if (!props.enable || props.joinLink.isEmpty) {
+    if (!props.enable || joinLink.isEmpty) {
+      await stop();
       status.value = VideoCallTunnelStatus.disabled;
       return false;
     }
-    if (!isValidVideoCallJoinLink(props.joinLink)) {
+    if (!isValidVideoCallJoinLink(joinLink)) {
+      await stop();
       status.value = VideoCallTunnelStatus.error;
       return false;
     }
+    if (!system.isAndroid) {
+      await stop();
+    }
+    _activeJoinLink = joinLink;
 
     status.value = VideoCallTunnelStatus.starting;
-    final credentials = deriveVideoCallTunnelCredentials(props.joinLink);
+    final credentials = deriveVideoCallTunnelCredentials(joinLink);
     if (system.isAndroid) {
       app?.onVideoCallTunnelStatus = _handleNativeStatus;
       final started =
           await app?.startVideoCallTunnel(
-            joinLink: props.joinLink,
-            displayName: props.displayName,
-            tunnelMode: props.tunnelMode,
-            socksPort: props.socksPort,
+            joinLink: joinLink,
+            displayName: videoCallTunnelDisplayName,
+            tunnelMode: videoCallTunnelMode,
+            socksPort: videoCallTunnelSocksPort,
             socksUsername: credentials.username,
             socksPassword: credentials.password,
           ) ??
@@ -243,7 +274,7 @@ class VideoCallTunnelController {
         '--socks-host',
         '127.0.0.1',
         '--socks-port',
-        '${props.socksPort}',
+        '$videoCallTunnelSocksPort',
         '--socks-user',
         credentials.username,
         '--socks-pass',
@@ -258,12 +289,18 @@ class VideoCallTunnelController {
       _stderrSubscription = process.stderr
           .transform(utf8.decoder)
           .transform(const LineSplitter())
-          .listen((line) => commonPrint.log('TURN: $line'));
+          .listen(
+            (line) =>
+                commonPrint.log('TURN: ${sanitizeVideoCallTunnelLog(line)}'),
+          );
       unawaited(
         process.exitCode.then((_) {
           if (_process == process &&
               status.value != VideoCallTunnelStatus.stopped) {
+            _process = null;
             status.value = VideoCallTunnelStatus.error;
+            final callback = onTerminalError;
+            if (callback != null) unawaited(callback());
           }
         }),
       );
@@ -286,9 +323,10 @@ class VideoCallTunnelController {
     _stderrSubscription = null;
     await _stdin?.close();
     _stdin = null;
-    _process?.kill();
+    final process = _process;
     _process = null;
-    _props = null;
+    process?.kill();
+    _activeJoinLink = null;
     captchaUri.value = null;
     status.value = VideoCallTunnelStatus.stopped;
   }
@@ -302,7 +340,7 @@ class VideoCallTunnelController {
       _handleNativeStatus(line.substring('STATUS:'.length));
       return;
     }
-    commonPrint.log('TURN: $line');
+    commonPrint.log('TURN: ${sanitizeVideoCallTunnelLog(line)}');
   }
 
   Future<void> _resolveForSidecar(String hostname) async {
@@ -321,7 +359,7 @@ class VideoCallTunnelController {
     final nextCaptchaUri = parseVideoCallTunnelCaptchaUri(value);
     if (nextCaptchaUri != null) {
       captchaUri.value = nextCaptchaUri;
-      status.value = VideoCallTunnelStatus.connecting;
+      status.value = VideoCallTunnelStatus.captchaRequired;
       return;
     }
     if (value.startsWith('Captcha solved') ||
@@ -343,11 +381,17 @@ class VideoCallTunnelController {
       final callback = onTunnelLost;
       if (callback != null) unawaited(callback());
     }
+    if (value == 'TUNNEL_CONNECTED') {
+      final callback = onTunnelConnected;
+      if (callback != null) unawaited(callback());
+    }
+    if (value.startsWith('ERROR:')) {
+      final callback = onTerminalError;
+      if (callback != null) unawaited(callback());
+    }
     if (value == 'READY' && !system.isAndroid) {
-      final props = _props;
-      if (props == null) return;
       _stdin?.writeln(
-        'AUTH:${jsonEncode({'joinLink': props.joinLink, 'displayName': props.displayName, 'tunnelMode': props.tunnelMode, 'vp8Fps': 0, 'vp8Batch': 0, 'dualTrack': false})}',
+        'AUTH:${jsonEncode({'joinLink': _activeJoinLink, 'displayName': videoCallTunnelDisplayName, 'tunnelMode': videoCallTunnelMode, 'vp8Fps': 0, 'vp8Batch': 0, 'dualTrack': false})}',
       );
     }
   }
