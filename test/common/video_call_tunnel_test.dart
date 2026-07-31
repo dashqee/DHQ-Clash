@@ -3,6 +3,22 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('video-call tunnel configuration', () {
+    test('selects the fallback route for foreign traffic', () {
+      final selectedMap = applyVideoCallTunnelRoutingSelections(const {
+        'PROXY': 'MAIN',
+        'Telegram': 'Local',
+        'YouTube': 'BACKUP',
+        'Custom proxy': 'Local',
+      });
+
+      expect(selectedMap, {
+        'PROXY': 'Fallback',
+        'Telegram': 'PROXY',
+        'YouTube': 'PROXY',
+        'Custom proxy': 'Local',
+      });
+    });
+
     test('accepts VK join links only', () {
       expect(isValidVideoCallJoinLink('https://vk.ru/call/join/abc'), isTrue);
       expect(isValidVideoCallJoinLink('https://vk.com/call/join/abc'), isTrue);
