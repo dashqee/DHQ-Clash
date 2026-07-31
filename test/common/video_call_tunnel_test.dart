@@ -14,19 +14,27 @@ void main() {
     });
 
     test('builds the backend link endpoint from a subscription URL', () {
-      expect(
-        buildVideoCallTunnelLinkUri(
-          'https://sub.example.com/c_device.yaml?token=ignored',
-        ),
-        Uri.parse('https://sub.example.com/turn/link/c_device.yaml'),
-      );
-      expect(
-        buildVideoCallTunnelLinkUri(
-          'https://sub.example.com/nested/c_device.yaml',
-        ),
-        Uri.parse('https://sub.example.com/turn/link/c_device.yaml'),
-      );
-      expect(buildVideoCallTunnelLinkUri('not-a-url'), isNull);
+      const validCases = {
+        'https://h/configs/c_X.yaml': 'https://h/configs/turn/link/c_X.yaml',
+        'https://h/c_X.yaml': 'https://h/turn/link/c_X.yaml',
+        'https://h/a/b/c_X.yaml': 'https://h/a/b/turn/link/c_X.yaml',
+        'https://h:8443/configs/c_X.yaml':
+            'https://h:8443/configs/turn/link/c_X.yaml',
+        'https://h/configs/c_X.yaml?t=1':
+            'https://h/configs/turn/link/c_X.yaml',
+      };
+
+      for (final MapEntry(:key, :value) in validCases.entries) {
+        expect(buildVideoCallTunnelLinkUri(key), Uri.parse(value), reason: key);
+      }
+      for (final value in [
+        'https://h/',
+        'not-a-url',
+        'https:///configs/c_X.yaml',
+        '',
+      ]) {
+        expect(buildVideoCallTunnelLinkUri(value), isNull, reason: value);
+      }
     });
 
     test('parses backend link entitlement and availability responses', () {
