@@ -199,8 +199,7 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
 
             "stopVideoCallTunnel" -> {
                 scope.launch {
-                    Service.stopVideoCallTunnel()
-                    result.success(true)
+                    result.success(Service.stopVideoCallTunnel())
                 }
             }
 

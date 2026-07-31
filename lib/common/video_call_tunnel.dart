@@ -12,11 +12,14 @@ import 'print.dart';
 import 'system.dart';
 
 const videoCallTunnelProxyName = 'DHQ TURN';
+const videoCallTunnelProviderName = 'DHQ TURN provider';
 const videoCallTunnelDisplayName = 'DHQ Clash';
 const videoCallTunnelSocksPort = 11789;
 const videoCallTunnelMode = 'dc';
 const videoCallTunnelHealthCheckUrl = 'https://cp.cloudflare.com/generate_204';
 const videoCallTunnelHealthCheckInterval = 30;
+const videoCallTunnelRestartDebounce = Duration(seconds: 2);
+const videoCallTunnelAssignmentHeartbeat = Duration(seconds: 60);
 const videoCallTunnelRoutingSelections = <String, String>{
   'PROXY': 'Fallback',
   'Telegram': 'PROXY',
@@ -43,6 +46,20 @@ enum VideoCallTunnelLinkStatus {
   temporarilyUnavailable,
   invalidSubscription,
   error,
+}
+
+bool shouldStartVideoCallTunnel({
+  required String? previousJoinLink,
+  required String joinLink,
+  required VideoCallTunnelStatus status,
+}) {
+  if (previousJoinLink != joinLink) return true;
+  return !{
+    VideoCallTunnelStatus.starting,
+    VideoCallTunnelStatus.connecting,
+    VideoCallTunnelStatus.captchaRequired,
+    VideoCallTunnelStatus.connected,
+  }.contains(status);
 }
 
 @immutable
@@ -167,7 +184,7 @@ Map<String, dynamic> addVideoCallTunnelToConfig(
     (proxy) =>
         proxy is Map && proxy['name']?.toString() == videoCallTunnelProxyName,
   );
-  proxies.add({
+  final proxy = <String, dynamic>{
     'name': videoCallTunnelProxyName,
     'type': 'socks5',
     'server': '127.0.0.1',
@@ -175,12 +192,23 @@ Map<String, dynamic> addVideoCallTunnelToConfig(
     'username': username,
     'password': password,
     'udp': true,
-  });
+  };
   config['proxies'] = proxies;
+
+  final proxyProviders = Map<String, dynamic>.from(
+    config['proxy-providers'] as Map? ?? const {},
+  );
+  proxyProviders[videoCallTunnelProviderName] = {
+    'type': 'inline',
+    'payload': [proxy],
+  };
+  config['proxy-providers'] = proxyProviders;
 
   final groups = List<dynamic>.from(config['proxy-groups'] as List? ?? const [])
       .map((group) {
-        return group is Map ? Map<String, dynamic>.from(group) : group;
+        if (group is Map) return Map<String, dynamic>.from(group);
+        if (group is ProxyGroup) return group.toJson();
+        return group;
       })
       .toList();
   for (final group in groups) {
@@ -193,8 +221,13 @@ Map<String, dynamic> addVideoCallTunnelToConfig(
       group['proxies'] as List? ?? const [],
     );
     groupProxies.removeWhere((item) => item == videoCallTunnelProxyName);
-    groupProxies.add(videoCallTunnelProxyName);
     group['proxies'] = groupProxies;
+    final groupProviders = List<dynamic>.from(
+      group['use'] as List? ?? const [],
+    );
+    groupProviders.removeWhere((item) => item == videoCallTunnelProviderName);
+    groupProviders.add(videoCallTunnelProviderName);
+    group['use'] = groupProviders;
     group.putIfAbsent('url', () => videoCallTunnelHealthCheckUrl);
     group.putIfAbsent('interval', () => videoCallTunnelHealthCheckInterval);
   }
@@ -227,6 +260,11 @@ class VideoCallTunnelController {
   StreamSubscription<String>? _stderrSubscription;
   String? _activeJoinLink;
   IOSink? _stdin;
+  Completer<void>? _leaveAckCompleter;
+  Future<void> _lifecycleQueue = Future<void>.value();
+  final Stopwatch _lifecycleClock = Stopwatch()..start();
+  int? _lastDesktopStartAtMs;
+  bool _stopping = false;
 
   VideoCallTunnelController._internal();
 
@@ -235,24 +273,39 @@ class VideoCallTunnelController {
     return _instance!;
   }
 
-  Future<bool> start(
+  Future<bool> start(VideoCallTunnelProps props, {required String joinLink}) {
+    return _enqueueLifecycle(() => _start(props, joinLink: joinLink));
+  }
+
+  Future<bool> _start(
     VideoCallTunnelProps props, {
     required String joinLink,
   }) async {
     captchaUri.value = null;
     if (!props.enable || joinLink.isEmpty) {
-      await stop();
+      await _stop();
       status.value = VideoCallTunnelStatus.disabled;
       return false;
     }
     if (!isValidVideoCallJoinLink(joinLink)) {
-      await stop();
+      await _stop();
       status.value = VideoCallTunnelStatus.error;
       return false;
     }
-    if (!system.isAndroid) {
-      await stop();
+    if (_activeJoinLink == joinLink &&
+        {
+          VideoCallTunnelStatus.starting,
+          VideoCallTunnelStatus.connecting,
+          VideoCallTunnelStatus.captchaRequired,
+          VideoCallTunnelStatus.connected,
+        }.contains(status.value)) {
+      return true;
     }
+    if (!await _stop()) {
+      status.value = VideoCallTunnelStatus.error;
+      return false;
+    }
+    if (!system.isAndroid) await _waitForDesktopRestartDebounce();
     _activeJoinLink = joinLink;
 
     status.value = VideoCallTunnelStatus.starting;
@@ -293,6 +346,7 @@ class VideoCallTunnelController {
         credentials.password,
       ]);
       _process = process;
+      _lastDesktopStartAtMs = _lifecycleClock.elapsedMilliseconds;
       _stdin = process.stdin;
       _stdoutSubscription = process.stdout
           .transform(utf8.decoder)
@@ -307,7 +361,8 @@ class VideoCallTunnelController {
           );
       unawaited(
         process.exitCode.then((_) {
-          if (_process == process &&
+          if (!_stopping &&
+              _process == process &&
               status.value != VideoCallTunnelStatus.stopped) {
             _process = null;
             status.value = VideoCallTunnelStatus.error;
@@ -324,23 +379,99 @@ class VideoCallTunnelController {
     }
   }
 
-  Future<void> stop() async {
-    app?.onVideoCallTunnelStatus = null;
-    if (system.isAndroid) {
-      await app?.stopVideoCallTunnel();
+  Future<bool> stop() {
+    return _enqueueLifecycle(_stop);
+  }
+
+  Future<bool> _stop() async {
+    _stopping = true;
+    try {
+      app?.onVideoCallTunnelStatus = null;
+      var stopped = true;
+      if (system.isAndroid) {
+        stopped = await app?.stopVideoCallTunnel() ?? false;
+      }
+      final process = _process;
+      if (process != null) {
+        final leaveAckCompleter = Completer<void>();
+        _leaveAckCompleter = leaveAckCompleter;
+        try {
+          _stdin?.writeln('LEAVE');
+          await _stdin?.flush();
+          await leaveAckCompleter.future.timeout(const Duration(seconds: 2));
+        } on TimeoutException {
+          commonPrint.log('TURN sidecar leave acknowledgement timed out');
+        } catch (error) {
+          commonPrint.log('Unable to request TURN sidecar leave: $error');
+        } finally {
+          if (_leaveAckCompleter == leaveAckCompleter) {
+            _leaveAckCompleter = null;
+          }
+        }
+      }
+      await _stdoutSubscription?.cancel();
+      await _stderrSubscription?.cancel();
+      _stdoutSubscription = null;
+      _stderrSubscription = null;
+      await _stdin?.close();
+      _stdin = null;
+      if (process != null) {
+        stopped = await _waitForProcessExit(process);
+        if (!stopped) {
+          process.kill();
+          stopped = await _waitForProcessExit(process);
+        }
+        if (!stopped) {
+          process.kill(ProcessSignal.sigkill);
+          stopped = await _waitForProcessExit(process);
+        }
+        if (!stopped) {
+          commonPrint.log('TURN sidecar did not exit after forced shutdown');
+        }
+      }
+      if (stopped) {
+        _process = null;
+        _activeJoinLink = null;
+      }
+      captchaUri.value = null;
+      status.value = stopped
+          ? VideoCallTunnelStatus.stopped
+          : VideoCallTunnelStatus.error;
+      return stopped;
+    } finally {
+      _stopping = false;
     }
-    await _stdoutSubscription?.cancel();
-    await _stderrSubscription?.cancel();
-    _stdoutSubscription = null;
-    _stderrSubscription = null;
-    await _stdin?.close();
-    _stdin = null;
-    final process = _process;
-    _process = null;
-    process?.kill();
-    _activeJoinLink = null;
-    captchaUri.value = null;
-    status.value = VideoCallTunnelStatus.stopped;
+  }
+
+  Future<bool> _waitForProcessExit(Process process) async {
+    try {
+      await process.exitCode.timeout(const Duration(seconds: 1));
+      return true;
+    } on TimeoutException {
+      return false;
+    }
+  }
+
+  Future<void> _waitForDesktopRestartDebounce() async {
+    final lastStartAt = _lastDesktopStartAtMs;
+    if (lastStartAt == null) return;
+    final elapsed = _lifecycleClock.elapsedMilliseconds - lastStartAt;
+    final remaining = videoCallTunnelRestartDebounce.inMilliseconds - elapsed;
+    if (remaining > 0) {
+      await Future<void>.delayed(Duration(milliseconds: remaining));
+    }
+  }
+
+  Future<T> _enqueueLifecycle<T>(Future<T> Function() operation) {
+    final completer = Completer<T>();
+    _lifecycleQueue = _lifecycleQueue.then((_) async {
+      try {
+        completer.complete(await operation());
+      } catch (error, stackTrace) {
+        completer.completeError(error, stackTrace);
+      }
+    });
+    return completer.future;
   }
 
   void _handleDesktopLine(String line) {
@@ -361,9 +492,9 @@ class VideoCallTunnelController {
       final address = addresses
           .where((item) => item.type == InternetAddressType.IPv4)
           .firstOrNull;
-      _stdin?.writeln((address ?? addresses.first).address);
+      _stdin?.writeln('RESOLVED:${(address ?? addresses.first).address}');
     } catch (_) {
-      _stdin?.writeln('');
+      _stdin?.writeln('RESOLVED:');
     }
   }
 
@@ -376,9 +507,14 @@ class VideoCallTunnelController {
     }
     if (value.startsWith('Captcha solved') ||
         value == 'Auth complete' ||
+        value == 'LEAVE_ACK' ||
         value == 'TUNNEL_CONNECTED' ||
         value.startsWith('ERROR:')) {
       captchaUri.value = null;
+    }
+    if (value == 'LEAVE_ACK') {
+      final completer = _leaveAckCompleter;
+      if (completer != null && !completer.isCompleted) completer.complete();
     }
     status.value = switch (value) {
       'READY' => VideoCallTunnelStatus.connecting,

@@ -197,7 +197,7 @@ void main() {
       );
     });
 
-    test('keeps the backend TURN link only in runtime state', () async {
+    test('keeps the pooled TURN assignment in runtime state', () async {
       final profile = Profile.normal(
         url: 'https://sub.example.com/c_device.yaml',
       );
@@ -230,6 +230,15 @@ void main() {
         container.read(videoCallTunnelSettingProvider).toJson(),
         isNot(contains('joinLink')),
       );
+      final retainedDuringPoolExhaustion = await container
+          .read(setupActionProvider.notifier)
+          .refreshVideoCallTunnel(
+            startTunnel: false,
+            fetchLink: (_) async => const VideoCallTunnelLinkResult(
+              VideoCallTunnelLinkStatus.temporarilyUnavailable,
+            ),
+          );
+      expect(retainedDuringPoolExhaustion, false);
       final reusedRuntimeLink = await container
           .read(setupActionProvider.notifier)
           .refreshVideoCallTunnel(

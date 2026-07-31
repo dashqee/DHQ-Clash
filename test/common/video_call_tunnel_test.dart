@@ -1,4 +1,6 @@
 import 'package:fl_clash/common/video_call_tunnel.dart';
+import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/models/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -116,6 +118,53 @@ void main() {
       expect(first.password.length, greaterThanOrEqualTo(24));
     });
 
+    test('restarts only for a rotated link or unhealthy runtime', () {
+      expect(
+        shouldStartVideoCallTunnel(
+          previousJoinLink: 'https://vk.ru/call/join/sticky',
+          joinLink: 'https://vk.ru/call/join/sticky',
+          status: VideoCallTunnelStatus.connected,
+        ),
+        false,
+      );
+      expect(
+        shouldStartVideoCallTunnel(
+          previousJoinLink: 'https://vk.ru/call/join/sticky',
+          joinLink: 'https://vk.ru/call/join/sticky',
+          status: VideoCallTunnelStatus.reconnecting,
+        ),
+        true,
+      );
+      expect(
+        shouldStartVideoCallTunnel(
+          previousJoinLink: 'https://vk.ru/call/join/old',
+          joinLink: 'https://vk.ru/call/join/new',
+          status: VideoCallTunnelStatus.connected,
+        ),
+        true,
+      );
+    });
+
+    test('serializes tunnel shutdown requests', () async {
+      final startResult = await videoCallTunnelController
+          .start(const VideoCallTunnelProps(enable: false), joinLink: '')
+          .timeout(const Duration(seconds: 1));
+
+      expect(startResult, isFalse);
+      expect(
+        videoCallTunnelController.status.value,
+        VideoCallTunnelStatus.disabled,
+      );
+      await Future.wait([
+        videoCallTunnelController.stop(),
+        videoCallTunnelController.stop(),
+      ]).timeout(const Duration(seconds: 1));
+      expect(
+        videoCallTunnelController.status.value,
+        VideoCallTunnelStatus.stopped,
+      );
+    });
+
     test('redacts call-scoped links from sidecar logs', () {
       expect(
         sanitizeVideoCallTunnelLog(
@@ -135,6 +184,7 @@ void main() {
             'name': 'Fallback',
             'type': 'fallback',
             'proxies': ['Direct VLESS'],
+            'use': ['MAIN', 'BACKUP'],
           },
           {
             'name': 'EXTRA',
@@ -158,13 +208,27 @@ void main() {
       );
 
       expect(
-        (result['proxies'] as List).last,
-        containsPair('name', videoCallTunnelProxyName),
+        (result['proxies'] as List).where(
+          (proxy) =>
+              proxy is Map &&
+              proxy['name']?.toString() == videoCallTunnelProxyName,
+        ),
+        isEmpty,
+      );
+      final turnProvider =
+          (result['proxy-providers'] as Map)[videoCallTunnelProviderName]
+              as Map;
+      expect(turnProvider['type'], 'inline');
+      expect(
+        ((turnProvider['payload'] as List).single as Map)['name'],
+        videoCallTunnelProxyName,
       );
       final groups = result['proxy-groups'] as List;
-      expect((groups.first as Map)['proxies'], [
-        'Direct VLESS',
-        videoCallTunnelProxyName,
+      expect((groups.first as Map)['proxies'], ['Direct VLESS']);
+      expect((groups.first as Map)['use'], [
+        'MAIN',
+        'BACKUP',
+        videoCallTunnelProviderName,
       ]);
       expect((groups[1] as Map)['proxies'], ['Extra VLESS']);
       expect((groups.last as Map)['proxies'], ['Direct VLESS']);
@@ -187,7 +251,13 @@ void main() {
             {
               'name': 'Fallback',
               'type': 'fallback',
-              'proxies': [videoCallTunnelProxyName, videoCallTunnelProxyName],
+              'proxies': [
+                videoCallTunnelProxyName,
+                'MAIN',
+                videoCallTunnelProxyName,
+                'BACKUP',
+              ],
+              'use': [videoCallTunnelProviderName, 'EXTRA'],
             },
           ],
         },
@@ -201,15 +271,46 @@ void main() {
         proxies.where(
           (proxy) => (proxy as Map)['name'] == videoCallTunnelProxyName,
         ),
-        hasLength(1),
+        isEmpty,
       );
-      expect((proxies.single as Map)['port'], 11790);
+      final turnProvider =
+          (result['proxy-providers'] as Map)[videoCallTunnelProviderName]
+              as Map;
+      final turnProxy = (turnProvider['payload'] as List).single as Map;
+      expect(turnProxy['port'], 11790);
       expect(((result['proxy-groups'] as List).single as Map)['proxies'], [
-        videoCallTunnelProxyName,
+        'MAIN',
+        'BACKUP',
       ]);
       final fallbackGroup = (result['proxy-groups'] as List).single as Map;
+      expect(fallbackGroup['use'], ['EXTRA', videoCallTunnelProviderName]);
       expect(fallbackGroup['url'], videoCallTunnelHealthCheckUrl);
       expect(fallbackGroup['interval'], videoCallTunnelHealthCheckInterval);
+    });
+
+    test('appends TURN after providers in an overridden Fallback model', () {
+      final result = addVideoCallTunnelToConfig(
+        {
+          'proxy-groups': [
+            const ProxyGroup(
+              id: 1,
+              name: 'Fallback',
+              type: GroupType.Fallback,
+              use: ['MAIN', 'BACKUP'],
+            ),
+          ],
+        },
+        port: 11789,
+        username: 'user',
+        password: 'secret',
+      );
+
+      final fallbackGroup = (result['proxy-groups'] as List).single as Map;
+      expect(fallbackGroup['use'], [
+        'MAIN',
+        'BACKUP',
+        videoCallTunnelProviderName,
+      ]);
     });
   });
 }

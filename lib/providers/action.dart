@@ -238,6 +238,7 @@ class CommonAction extends _$CommonAction {
 class SetupAction extends _$SetupAction {
   Timer? _updateTimer;
   Timer? _turnLinkRetryTimer;
+  Timer? _turnAssignmentHeartbeatTimer;
   final Random _turnRetryRandom = Random();
   bool _isRefreshingTurnLink = false;
   int _turnRetryAttempt = 0;
@@ -256,6 +257,7 @@ class SetupAction extends _$SetupAction {
         _handleVideoCallTunnelTerminalError;
     ref.onDispose(() {
       _turnLinkRetryTimer?.cancel();
+      _turnAssignmentHeartbeatTimer?.cancel();
       if (videoCallTunnelController.onTunnelLost ==
           _handleVideoCallTunnelLost) {
         videoCallTunnelController.onTunnelLost = null;
@@ -277,7 +279,7 @@ class SetupAction extends _$SetupAction {
     _turnRetryAttempt = 0;
   }
 
-  void _scheduleTurnLinkRetry({required bool requireChanged}) {
+  void _scheduleTurnLinkRetry() {
     if (_turnLinkRetryTimer?.isActive == true) return;
     const retrySeconds = [5, 10, 20, 30, 60];
     final baseSeconds =
@@ -287,18 +289,38 @@ class SetupAction extends _$SetupAction {
     final delay = Duration(milliseconds: (baseSeconds * jitter * 1000).round());
     _turnLinkRetryTimer = Timer(delay, () {
       _turnLinkRetryTimer = null;
-      unawaited(refreshVideoCallTunnel(requireChanged: requireChanged));
+      if (!isStart) return;
+      unawaited(refreshVideoCallTunnel());
     });
   }
 
+  void _cancelTurnAssignmentHeartbeat() {
+    _turnAssignmentHeartbeatTimer?.cancel();
+    _turnAssignmentHeartbeatTimer = null;
+  }
+
+  void _scheduleTurnAssignmentHeartbeat() {
+    _cancelTurnAssignmentHeartbeat();
+    _turnAssignmentHeartbeatTimer = Timer.periodic(
+      videoCallTunnelAssignmentHeartbeat,
+      (_) {
+        if (!isStart || !ref.read(videoCallTunnelSettingProvider).enable) {
+          _cancelTurnAssignmentHeartbeat();
+          return;
+        }
+        unawaited(refreshVideoCallTunnel());
+      },
+    );
+  }
+
   Future<VideoCallTunnelProps?> _resolveVideoCallTunnelProps({
-    bool requireChanged = false,
     VideoCallTunnelLinkFetcher? fetchLink,
   }) async {
     final props = ref.read(videoCallTunnelSettingProvider);
     if (!props.enable) return null;
     final profile = ref.read(currentProfileProvider);
     if (profile == null || profile.url.isEmpty) {
+      _cancelTurnAssignmentHeartbeat();
       _turnJoinLink = null;
       _turnSubscriptionUrl = null;
       videoCallTunnelController.status.value = VideoCallTunnelStatus.error;
@@ -307,11 +329,13 @@ class SetupAction extends _$SetupAction {
 
     final subscriptionChanged = _turnSubscriptionUrl != profile.url;
     if (subscriptionChanged) {
+      _cancelTurnAssignmentHeartbeat();
       _turnJoinLink = null;
     }
     _turnSubscriptionUrl = profile.url;
-    if (videoCallTunnelController.status.value !=
-        VideoCallTunnelStatus.reconnecting) {
+    if (_turnJoinLink == null &&
+        videoCallTunnelController.status.value !=
+            VideoCallTunnelStatus.reconnecting) {
       videoCallTunnelController.status.value = VideoCallTunnelStatus.checking;
     }
     final result = await (fetchLink ?? request.getVideoCallTunnelLink)(
@@ -320,47 +344,46 @@ class SetupAction extends _$SetupAction {
     switch (result.status) {
       case VideoCallTunnelLinkStatus.available:
         final joinLink = result.joinLink!;
-        if (requireChanged && joinLink == _turnJoinLink) {
-          _scheduleTurnLinkRetry(requireChanged: true);
-          return null;
-        }
         _cancelTurnLinkRetry();
         _turnJoinLink = joinLink;
         return props;
       case VideoCallTunnelLinkStatus.notEntitled:
         _cancelTurnLinkRetry();
+        _cancelTurnAssignmentHeartbeat();
         _turnJoinLink = null;
         videoCallTunnelController.status.value =
             VideoCallTunnelStatus.notEntitled;
         return null;
       case VideoCallTunnelLinkStatus.temporarilyUnavailable:
-        if (!requireChanged) _turnJoinLink = null;
-        videoCallTunnelController.status.value =
-            VideoCallTunnelStatus.temporarilyUnavailable;
-        _scheduleTurnLinkRetry(requireChanged: requireChanged);
+        if (_turnJoinLink == null) {
+          _cancelTurnAssignmentHeartbeat();
+          videoCallTunnelController.status.value =
+              VideoCallTunnelStatus.temporarilyUnavailable;
+        }
+        _scheduleTurnLinkRetry();
         return null;
       case VideoCallTunnelLinkStatus.invalidSubscription:
         if (!subscriptionChanged &&
-            !requireChanged &&
             isValidVideoCallJoinLink(_turnJoinLink ?? '')) {
           return props;
         }
+        _cancelTurnAssignmentHeartbeat();
         videoCallTunnelController.status.value = VideoCallTunnelStatus.error;
         return null;
       case VideoCallTunnelLinkStatus.error:
         if (!subscriptionChanged &&
-            !requireChanged &&
             isValidVideoCallJoinLink(_turnJoinLink ?? '')) {
+          _scheduleTurnLinkRetry();
           return props;
         }
+        _cancelTurnAssignmentHeartbeat();
         videoCallTunnelController.status.value = VideoCallTunnelStatus.error;
-        _scheduleTurnLinkRetry(requireChanged: requireChanged);
+        _scheduleTurnLinkRetry();
         return null;
     }
   }
 
   Future<bool> refreshVideoCallTunnel({
-    bool requireChanged = false,
     bool startTunnel = true,
     VideoCallTunnelLinkFetcher? fetchLink,
   }) async {
@@ -368,10 +391,7 @@ class SetupAction extends _$SetupAction {
     _isRefreshingTurnLink = true;
     try {
       final previousJoinLink = _turnJoinLink;
-      final props = await _resolveVideoCallTunnelProps(
-        requireChanged: requireChanged,
-        fetchLink: fetchLink,
-      );
+      final props = await _resolveVideoCallTunnelProps(fetchLink: fetchLink);
       if (props == null) {
         if (startTunnel && isStart && previousJoinLink != _turnJoinLink) {
           await videoCallTunnelController.stop();
@@ -385,6 +405,13 @@ class SetupAction extends _$SetupAction {
       }
       final joinLink = _turnJoinLink;
       if (joinLink == null) return false;
+      if (!shouldStartVideoCallTunnel(
+        previousJoinLink: previousJoinLink,
+        joinLink: joinLink,
+        status: videoCallTunnelController.status.value,
+      )) {
+        return true;
+      }
       final started = await videoCallTunnelController.start(
         props,
         joinLink: joinLink,
@@ -399,14 +426,19 @@ class SetupAction extends _$SetupAction {
   }
 
   Future<void> _handleVideoCallTunnelLost() async {
-    await refreshVideoCallTunnel(requireChanged: true);
+    _cancelTurnAssignmentHeartbeat();
+    await videoCallTunnelController.stop();
+    await refreshVideoCallTunnel();
   }
 
   Future<void> _handleVideoCallTunnelConnected() async {
     _cancelTurnLinkRetry();
+    _scheduleTurnAssignmentHeartbeat();
   }
 
   Future<void> _handleVideoCallTunnelTerminalError() async {
+    _cancelTurnAssignmentHeartbeat();
+    await videoCallTunnelController.stop();
     await refreshVideoCallTunnel();
   }
 
@@ -458,12 +490,13 @@ class SetupAction extends _$SetupAction {
       return;
     }
     _cancelTurnLinkRetry();
+    _cancelTurnAssignmentHeartbeat();
     _turnJoinLink = null;
     _turnSubscriptionUrl = null;
-    await videoCallTunnelController.stop();
+    final stopped = await videoCallTunnelController.stop();
     if (isStart) {
       await applyProfile(force: true, silence: true);
-    } else {
+    } else if (stopped) {
       videoCallTunnelController.status.value = VideoCallTunnelStatus.disabled;
     }
   }
@@ -520,6 +553,7 @@ class SetupAction extends _$SetupAction {
     startTime = null;
     _updateTimer?.cancel();
     _updateTimer = null;
+    _cancelTurnAssignmentHeartbeat();
     await coreController.stopListener();
     await videoCallTunnelController.stop();
   }
@@ -1068,7 +1102,7 @@ class SystemAction extends _$SystemAction {
   }
 
   Future<void> handleExit([bool needSave = false]) async {
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 8), () {
       system.exit();
     });
     try {
@@ -1077,9 +1111,9 @@ class SystemAction extends _$SystemAction {
         if (macOS != null) macOS!.updateDns(true),
         if (proxy != null) proxy!.stopProxy(),
         if (tray != null) tray!.destroy(),
+        videoCallTunnelController.stop(),
       ]);
       await window?.close();
-      await videoCallTunnelController.stop();
       await coreController.destroy();
       commonPrint.log('exit');
     } finally {

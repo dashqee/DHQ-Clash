@@ -26,6 +26,6 @@ interface IRemoteInterface {
         in String socksPassword,
         in IVideoCallTunnelEventInterface event
     );
-    void stopVideoCallTunnel();
+    boolean stopVideoCallTunnel();
     long getRunTime();
 }
