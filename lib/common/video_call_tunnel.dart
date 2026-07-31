@@ -74,11 +74,12 @@ Uri? buildVideoCallTunnelLinkUri(String subscriptionUrl) {
       .where((segment) => segment.isNotEmpty)
       .toList();
   if (pathSegments.isEmpty) return null;
+  final pathPrefix = pathSegments.sublist(0, pathSegments.length - 1);
   return Uri(
     scheme: subscriptionUri.scheme,
     host: subscriptionUri.host,
     port: subscriptionUri.hasPort ? subscriptionUri.port : null,
-    pathSegments: ['turn', 'link', pathSegments.last],
+    pathSegments: [...pathPrefix, 'turn', 'link', pathSegments.last],
   );
 }
 
