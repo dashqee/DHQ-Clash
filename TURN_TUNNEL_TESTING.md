@@ -42,12 +42,17 @@ The existing platform build hooks build both `DHQClashCore` and
    the application opens it.
 5. Inspect the active configuration or proxy page:
    - `DHQ TURN` must be a SOCKS5 proxy on `127.0.0.1:11789`;
-   - it must be last in the subscription's primary `Fallback` group;
+   - it must come from the `DHQ TURN provider` inline provider;
+   - that provider must be last in `Fallback.use`, after the subscription
+     providers (Mihomo places explicit `proxies` before `use` regardless of
+     their visual YAML position);
    - the group must have an active URL health check.
 6. Disable or block the direct VLESS providers and verify that the fallback
    switches to `DHQ TURN`.
 7. Check the public address on a foreign and a Russian destination according
    to the RF bridge routing policy.
+8. Turn the emergency tunnel off manually and verify that the creator logs a
+   participant leave within 1–2 seconds and no `DHQClashTurn` process remains.
 
 Also verify backend state transitions: `403` shows unavailable for the current
 subscription, `503` shows temporary unavailability, and link rotation causes

@@ -206,10 +206,10 @@ object Service {
         }.getOrNull() ?: false
     }
 
-    suspend fun stopVideoCallTunnel() {
-        delegate.useService {
+    suspend fun stopVideoCallTunnel(): Boolean {
+        return delegate.useService {
             it.stopVideoCallTunnel()
-        }
+        }.getOrNull() ?: false
     }
 
     suspend fun getRunTime(): Long {

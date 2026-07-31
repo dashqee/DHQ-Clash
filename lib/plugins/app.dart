@@ -133,8 +133,9 @@ class App {
         false;
   }
 
-  Future<void> stopVideoCallTunnel() async {
-    await methodChannel.invokeMethod<void>('stopVideoCallTunnel');
+  Future<bool> stopVideoCallTunnel() async {
+    return await methodChannel.invokeMethod<bool>('stopVideoCallTunnel') ??
+        false;
   }
 }
 

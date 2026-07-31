@@ -203,8 +203,8 @@ class RemoteService : Service(),
             )
         }
 
-        override fun stopVideoCallTunnel() {
-            TurnTunnelRuntime.stop()
+        override fun stopVideoCallTunnel(): Boolean {
+            return TurnTunnelRuntime.stop()
         }
 
         override fun getRunTime(): Long {

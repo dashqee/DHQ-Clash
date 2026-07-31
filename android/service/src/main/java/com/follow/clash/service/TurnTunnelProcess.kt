@@ -1,6 +1,7 @@
 package com.follow.clash.service
 
 import android.os.Build
+import android.os.SystemClock
 import android.util.Log
 import com.follow.clash.common.GlobalState
 import org.json.JSONObject
@@ -10,6 +11,7 @@ import java.io.OutputStreamWriter
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.security.MessageDigest
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 internal class TurnTunnelProcess(
@@ -18,6 +20,7 @@ internal class TurnTunnelProcess(
     private var process: Process? = null
     private var worker: Thread? = null
     private var stdin: BufferedWriter? = null
+    private var leaveAck = CountDownLatch(1)
 
     @Volatile
     private var running = false
@@ -34,7 +37,7 @@ internal class TurnTunnelProcess(
         socksUsername: String,
         socksPassword: String,
     ): Boolean {
-        stop()
+        if (!stop()) return false
         val nativeDir = GlobalState.application.applicationInfo.nativeLibraryDir
         val executable = File(nativeDir, SIDECAR_NAME)
         if (!executable.exists()) {
@@ -43,26 +46,31 @@ internal class TurnTunnelProcess(
             return false
         }
 
+        val child = try {
+            ProcessBuilder(
+                executable.absolutePath,
+                "--mode",
+                "vk-headless-joiner",
+                "--socks-host",
+                "127.0.0.1",
+                "--socks-port",
+                socksPort.toString(),
+                "--socks-user",
+                socksUsername,
+                "--socks-pass",
+                socksPassword,
+            ).redirectErrorStream(true).start()
+        } catch (error: Exception) {
+            Log.e(TAG, "TURN sidecar failed to start", error)
+            onStatus("ERROR:${error.message ?: "start failed"}")
+            return false
+        }
+        process = child
+        stdin = BufferedWriter(OutputStreamWriter(child.outputStream))
+        leaveAck = CountDownLatch(1)
         running = true
         worker = Thread {
             try {
-                val child = ProcessBuilder(
-                    executable.absolutePath,
-                    "--mode",
-                    "vk-headless-joiner",
-                    "--socks-host",
-                    "127.0.0.1",
-                    "--socks-port",
-                    socksPort.toString(),
-                    "--socks-user",
-                    socksUsername,
-                    "--socks-pass",
-                    socksPassword,
-                ).redirectErrorStream(true).start()
-                synchronized(this) {
-                    process = child
-                    stdin = BufferedWriter(OutputStreamWriter(child.outputStream))
-                }
                 child.inputStream.bufferedReader().forEachLine { line ->
                     when {
                         line.startsWith("RESOLVE:") -> {
@@ -71,6 +79,10 @@ internal class TurnTunnelProcess(
 
                         line.startsWith("STATUS:") -> {
                             val status = line.removePrefix("STATUS:")
+                            if (status == "LEAVE_ACK") {
+                                leaveAck.countDown()
+                                return@forEachLine
+                            }
                             onStatus(status)
                             if (status == "READY") {
                                 val params = JSONObject().apply {
@@ -95,6 +107,13 @@ internal class TurnTunnelProcess(
                 if (running) onStatus("ERROR:${error.message ?: "start failed"}")
             } finally {
                 running = false
+                synchronized(this) {
+                    if (process === child) {
+                        process = null
+                        runCatching { stdin?.close() }
+                        stdin = null
+                    }
+                }
             }
         }.also {
             it.name = "DHQClashTurn"
@@ -104,24 +123,55 @@ internal class TurnTunnelProcess(
     }
 
     @Synchronized
-    fun stop() {
+    fun stop(): Boolean {
         running = false
+        val activeProcess = process
+        if (activeProcess == null) {
+            runCatching { stdin?.close() }
+            stdin = null
+            worker?.interrupt()
+            worker = null
+            return true
+        }
+        writeLine("LEAVE")
+        val leaveAcknowledged = runCatching {
+            leaveAck.await(LEAVE_ACK_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+        }.getOrDefault(false)
+        if (!leaveAcknowledged) activeProcess.destroy()
+        var exited = waitForExit(activeProcess, PROCESS_EXIT_TIMEOUT_MS)
+        if (!exited) {
+            activeProcess.destroy()
+            exited = waitForExit(activeProcess, PROCESS_EXIT_TIMEOUT_MS)
+        }
+        if (!exited && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            activeProcess.destroyForcibly()
+            exited = waitForExit(activeProcess, FORCED_STOP_TIMEOUT_MS)
+        }
+        if (!exited) {
+            Log.e(TAG, "TURN sidecar did not exit after forced shutdown")
+            onStatus("ERROR:sidecar stop timed out")
+            return false
+        }
         runCatching { stdin?.close() }
         stdin = null
-        val activeProcess = process
         process = null
-        activeProcess?.destroy()
-        if (activeProcess != null) {
-            runCatching {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
-                    !activeProcess.waitFor(1500, TimeUnit.MILLISECONDS)
-                ) {
-                    activeProcess.destroyForcibly()
-                }
-            }
-        }
         worker?.interrupt()
         worker = null
+        return true
+    }
+
+    private fun waitForExit(activeProcess: Process, timeoutMs: Long): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            return runCatching {
+                activeProcess.waitFor(timeoutMs, TimeUnit.MILLISECONDS)
+            }.getOrDefault(false)
+        }
+        val deadline = SystemClock.elapsedRealtime() + timeoutMs
+        while (SystemClock.elapsedRealtime() < deadline) {
+            if (runCatching { activeProcess.exitValue() }.isSuccess) return true
+            SystemClock.sleep(PROCESS_POLL_INTERVAL_MS)
+        }
+        return runCatching { activeProcess.exitValue() }.isSuccess
     }
 
     private fun resolve(hostname: String) {
@@ -129,7 +179,7 @@ internal class TurnTunnelProcess(
             val addresses = InetAddress.getAllByName(hostname)
             (addresses.firstOrNull { it is Inet4Address } ?: addresses.first()).hostAddress
         }.getOrNull().orEmpty()
-        writeLine(result)
+        writeLine("RESOLVED:$result")
     }
 
     @Synchronized
@@ -151,6 +201,10 @@ internal class TurnTunnelProcess(
     companion object {
         private const val TAG = "DHQClashTurn"
         private const val SIDECAR_NAME = "libDHQClashTurn.so"
+        private const val LEAVE_ACK_TIMEOUT_MS = 2000L
+        private const val PROCESS_EXIT_TIMEOUT_MS = 1000L
+        private const val FORCED_STOP_TIMEOUT_MS = 1000L
+        private const val PROCESS_POLL_INTERVAL_MS = 25L
         private val JOIN_LINK_REGEX =
             Regex("""https://(?:vk\.ru|vk\.com)/call/join/[^\s"'<>]+""")
 
@@ -173,6 +227,7 @@ internal object TurnTunnelRuntime {
     private var activeSessionKey: String? = null
     private var lastStatus = "STOPPED"
     private var onStatus: ((String) -> Unit)? = null
+    private var lastStartAt = 0L
 
     @Synchronized
     fun start(
@@ -197,11 +252,17 @@ internal object TurnTunnelRuntime {
             return true
         }
 
-        activeProcess?.stop()
+        if (activeProcess != null && !activeProcess.stop()) {
+            emitStatus("ERROR:previous sidecar is still running")
+            return false
+        }
+        val sinceLastStart = SystemClock.elapsedRealtime() - lastStartAt
+        val debounceRemaining = RESTART_DEBOUNCE_MS - sinceLastStart
+        if (lastStartAt != 0L && debounceRemaining > 0L) {
+            runCatching { Thread.sleep(debounceRemaining) }
+        }
         val nextProcess = TurnTunnelProcess(::emitStatus)
-        process = nextProcess
-        activeSessionKey = nextSessionKey
-        return nextProcess.start(
+        val started = nextProcess.start(
             joinLink,
             displayName,
             tunnelMode,
@@ -209,14 +270,28 @@ internal object TurnTunnelRuntime {
             socksUsername,
             socksPassword,
         )
+        if (!started) {
+            process = null
+            activeSessionKey = null
+            return false
+        }
+        process = nextProcess
+        activeSessionKey = nextSessionKey
+        lastStartAt = SystemClock.elapsedRealtime()
+        return true
     }
 
     @Synchronized
-    fun stop() {
-        process?.stop()
-        process = null
-        activeSessionKey = null
-        lastStatus = "STOPPED"
+    fun stop(): Boolean {
+        val stopped = process?.stop() != false
+        if (stopped) {
+            process = null
+            activeSessionKey = null
+            lastStatus = "STOPPED"
+        } else {
+            emitStatus("ERROR:sidecar stop timed out")
+        }
+        return stopped
     }
 
     @Synchronized
@@ -224,4 +299,6 @@ internal object TurnTunnelRuntime {
         lastStatus = status
         onStatus?.invoke(status)
     }
+
+    private const val RESTART_DEBOUNCE_MS = 2000L
 }
