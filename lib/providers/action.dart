@@ -48,8 +48,7 @@ bool shouldRestartCoreForTun({
       nextEnable == true;
 }
 
-typedef VideoCallTunnelProfileRefresher =
-    Future<Profile> Function(Profile profile);
+typedef ProfileRefresher = Future<Profile> Function(Profile profile);
 
 @Riverpod(keepAlive: true)
 class CommonAction extends _$CommonAction {
@@ -443,7 +442,7 @@ class SetupAction extends _$SetupAction {
   }
 
   Future<void> _refreshVideoCallTunnelProfile({
-    VideoCallTunnelProfileRefresher? refreshProfile,
+    ProfileRefresher? refreshProfile,
   }) async {
     final profile = ref.read(currentProfileProvider);
     if (profile == null || profile.url.isEmpty) return;
@@ -477,7 +476,7 @@ class SetupAction extends _$SetupAction {
 
   Future<void> setVideoCallTunnelEnabled(
     bool enabled, {
-    VideoCallTunnelProfileRefresher? refreshProfile,
+    ProfileRefresher? refreshProfile,
     VideoCallTunnelLinkFetcher? fetchLink,
   }) async {
     ref
@@ -1420,18 +1419,22 @@ class ProfilesAction extends _$ProfilesAction {
   Future<void> updateProfile(
     Profile profile, {
     bool showLoading = false,
+    ProfileRefresher? refreshProfile,
   }) async {
     try {
       if (showLoading) {
         ref.read(isUpdatingProvider(profile.updatingKey).notifier).value = true;
       }
       ref.read(profilesProvider.notifier).put(profile);
-      final newProfile = await profile.update();
+      final newProfile = await (refreshProfile ?? (value) => value.update())(
+        profile,
+      );
       ref.read(profilesProvider.notifier).put(newProfile);
+      ref.invalidate(clashConfigProvider(profile.id));
       if (profile.id == ref.read(currentProfileIdProvider)) {
-        ref
+        await ref
             .read(setupActionProvider.notifier)
-            .applyProfileDebounce(silence: true);
+            .applyProfile(force: true, silence: true);
       }
     } finally {
       ref.read(isUpdatingProvider(profile.updatingKey).notifier).value = false;

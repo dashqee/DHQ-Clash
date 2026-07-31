@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fl_clash/common/video_call_tunnel.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
@@ -72,6 +74,67 @@ void main() {
       expect(profile?.label, edited.label);
       expect(profile?.url, edited.url);
     });
+
+    test(
+      'active profile refresh waits for a forced config application',
+      () async {
+        final profile = Profile.normal(
+          label: 'old label',
+          url: 'https://example.com/subscription',
+        );
+        final refreshedProfile = profile.copyWith(
+          label: 'new label',
+          lastUpdateDate: DateTime(2026),
+        );
+        final applyCompleter = Completer<void>();
+        final setupAction = _TestSetupAction(applyCompleter);
+        var clashConfigReadCount = 0;
+        final container = ProviderContainer(
+          overrides: [
+            currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
+            profilesProvider.overrideWith(() => _TestProfiles([profile])),
+            setupActionProvider.overrideWith(() => setupAction),
+            clashConfigProvider.overrideWith((_, _) async {
+              clashConfigReadCount++;
+              return const ClashConfig();
+            }),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        final clashConfigSubscription = container.listen(
+          clashConfigProvider(profile.id),
+          (_, _) {},
+          fireImmediately: true,
+        );
+        addTearDown(clashConfigSubscription.close);
+        await container.read(clashConfigProvider(profile.id).future);
+        var updateCompleted = false;
+        final updateFuture = container
+            .read(profilesActionProvider.notifier)
+            .updateProfile(
+              profile,
+              refreshProfile: (_) async => refreshedProfile,
+            )
+            .whenComplete(() => updateCompleted = true);
+
+        await setupAction.applyStarted.future;
+        expect(updateCompleted, false);
+        expect(setupAction.force, true);
+        expect(setupAction.silence, true);
+        expect(
+          container.read(profilesProvider).getProfile(profile.id),
+          refreshedProfile,
+        );
+        expect(clashConfigReadCount, 1);
+
+        applyCompleter.complete();
+        await updateFuture;
+        await container.read(clashConfigProvider(profile.id).future);
+
+        expect(clashConfigReadCount, 2);
+      },
+    );
   });
 
   group('SetupAction', () {
@@ -337,5 +400,29 @@ class _TestProfiles extends Profiles {
       next[index] = profile;
     }
     state = next;
+  }
+}
+
+class _TestSetupAction extends SetupAction {
+  final Completer<void> applyCompleter;
+  final Completer<void> applyStarted = Completer<void>();
+  bool? force;
+  bool? silence;
+
+  _TestSetupAction(this.applyCompleter);
+
+  @override
+  void build() {}
+
+  @override
+  Future<void> applyProfile({
+    bool silence = false,
+    bool force = false,
+    void Function()? preloadInvoke,
+  }) async {
+    this.force = force;
+    this.silence = silence;
+    applyStarted.complete();
+    await applyCompleter.future;
   }
 }
