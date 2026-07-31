@@ -48,6 +48,9 @@ bool shouldRestartCoreForTun({
       nextEnable == true;
 }
 
+typedef VideoCallTunnelProfileRefresher =
+    Future<Profile> Function(Profile profile);
+
 @Riverpod(keepAlive: true)
 class CommonAction extends _$CommonAction {
   @override
@@ -407,12 +410,51 @@ class SetupAction extends _$SetupAction {
     await refreshVideoCallTunnel();
   }
 
-  Future<void> setVideoCallTunnelEnabled(bool enabled) async {
+  Future<void> _refreshVideoCallTunnelProfile({
+    VideoCallTunnelProfileRefresher? refreshProfile,
+  }) async {
+    final profile = ref.read(currentProfileProvider);
+    if (profile == null || profile.url.isEmpty) return;
+    try {
+      final updatedProfile =
+          await (refreshProfile ??
+              (profile) {
+                return profile.update();
+              })(profile);
+      ref.read(profilesProvider.notifier).put(updatedProfile);
+    } catch (error) {
+      commonPrint.log(
+        'Unable to refresh profile before enabling video-call tunnel '
+        '(${error.runtimeType})',
+        logLevel: LogLevel.warning,
+      );
+    }
+  }
+
+  Profile? _applyVideoCallTunnelRouting() {
+    final profile = ref.read(currentProfileProvider);
+    if (profile == null) return null;
+    final updatedProfile = profile.copyWith(
+      selectedMap: applyVideoCallTunnelRoutingSelections(profile.selectedMap),
+    );
+    if (updatedProfile.selectedMap != profile.selectedMap) {
+      ref.read(profilesProvider.notifier).put(updatedProfile);
+    }
+    return updatedProfile;
+  }
+
+  Future<void> setVideoCallTunnelEnabled(
+    bool enabled, {
+    VideoCallTunnelProfileRefresher? refreshProfile,
+    VideoCallTunnelLinkFetcher? fetchLink,
+  }) async {
     ref
         .read(videoCallTunnelSettingProvider.notifier)
         .update((state) => state.copyWith(enable: enabled));
     if (enabled) {
-      await refreshVideoCallTunnel(startTunnel: isStart);
+      await _refreshVideoCallTunnelProfile(refreshProfile: refreshProfile);
+      _applyVideoCallTunnelRouting();
+      await refreshVideoCallTunnel(startTunnel: isStart, fetchLink: fetchLink);
       return;
     }
     _cancelTurnLinkRetry();
@@ -778,6 +820,9 @@ class SetupAction extends _$SetupAction {
       ref.read(profilesProvider.notifier).put(nextProfile);
     }
     final videoCallTunnel = ref.read(videoCallTunnelSettingProvider);
+    if (videoCallTunnel.enable) {
+      profile = _applyVideoCallTunnelRouting() ?? profile;
+    }
     if (videoCallTunnel.enable &&
         profile?.url.isNotEmpty == true &&
         profile?.url != _turnSubscriptionUrl) {

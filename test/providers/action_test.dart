@@ -5,6 +5,7 @@ import 'package:fl_clash/providers/action.dart';
 import 'package:fl_clash/providers/app.dart';
 import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/providers/database.dart';
+import 'package:fl_clash/providers/state.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod/riverpod.dart';
 
@@ -101,6 +102,61 @@ void main() {
       expect(container.read(patchClashConfigProvider).tun.enable, false);
       expect(container.read(vpnSettingProvider).enable, false);
     });
+
+    test(
+      'enabling TURN refreshes the profile and selects its routes',
+      () async {
+        final profile =
+            Profile.normal(
+              label: 'Cached profile',
+              url: 'https://sub.example.com/configs/c_device.yaml',
+            ).copyWith(
+              selectedMap: const {
+                'PROXY': 'MAIN',
+                'Telegram': 'Local',
+                'YouTube': 'BACKUP',
+                'Custom proxy': 'Local',
+              },
+            );
+        var refreshCount = 0;
+        final container = ProviderContainer(
+          overrides: [
+            currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
+            profilesProvider.overrideWith(() => _TestProfiles([profile])),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        await container
+            .read(setupActionProvider.notifier)
+            .setVideoCallTunnelEnabled(
+              true,
+              refreshProfile: (currentProfile) async {
+                refreshCount++;
+                expect(currentProfile, profile);
+                return currentProfile.copyWith(label: 'Refreshed profile');
+              },
+              fetchLink: (subscriptionUrl) async {
+                expect(subscriptionUrl, profile.url);
+                return const VideoCallTunnelLinkResult(
+                  VideoCallTunnelLinkStatus.available,
+                  joinLink: 'https://vk.ru/call/join/backend-link',
+                );
+              },
+            );
+
+        final updatedProfile = container.read(currentProfileProvider)!;
+        expect(refreshCount, 1);
+        expect(updatedProfile.label, 'Refreshed profile');
+        expect(updatedProfile.selectedMap, {
+          'PROXY': 'Fallback',
+          'Telegram': 'PROXY',
+          'YouTube': 'PROXY',
+          'Custom proxy': 'Local',
+        });
+        expect(container.read(videoCallTunnelSettingProvider).enable, true);
+      },
+    );
 
     test('active Windows client restarts only when TUN is enabled', () {
       expect(

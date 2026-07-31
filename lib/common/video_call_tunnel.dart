@@ -17,6 +17,11 @@ const videoCallTunnelSocksPort = 11789;
 const videoCallTunnelMode = 'dc';
 const videoCallTunnelHealthCheckUrl = 'https://cp.cloudflare.com/generate_204';
 const videoCallTunnelHealthCheckInterval = 30;
+const videoCallTunnelRoutingSelections = <String, String>{
+  'PROXY': 'Fallback',
+  'Telegram': 'PROXY',
+  'YouTube': 'PROXY',
+};
 
 enum VideoCallTunnelStatus {
   disabled,
@@ -50,6 +55,12 @@ class VideoCallTunnelLinkResult {
 
 typedef VideoCallTunnelLinkFetcher =
     Future<VideoCallTunnelLinkResult> Function(String subscriptionUrl);
+
+Map<String, String> applyVideoCallTunnelRoutingSelections(
+  Map<String, String> selectedMap,
+) {
+  return {...selectedMap, ...videoCallTunnelRoutingSelections};
+}
 
 @immutable
 class VideoCallTunnelCredentials {
