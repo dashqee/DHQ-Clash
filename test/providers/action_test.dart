@@ -436,6 +436,69 @@ void main() {
       expect(action.hasPendingTurnEntitlementRecheck, false);
     });
 
+    test('a dropped transport does not kill the sidecar', () async {
+      final container = ProviderContainer(
+        overrides: [
+          videoCallTunnelSettingProvider.overrideWithBuild(
+            (_, _) => const VideoCallTunnelProps(enable: true),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final action = container.read(setupActionProvider.notifier);
+      videoCallTunnelController.status.value =
+          VideoCallTunnelStatus.reconnecting;
+
+      // The sidecar retries on its own and re-announces the loss before each try;
+      // respawning it here would cost the user a fresh VK captcha.
+      await videoCallTunnelController.onTunnelLost!();
+
+      expect(action.hasPendingTurnReconnectGrace, true);
+      expect(
+        videoCallTunnelController.status.value,
+        VideoCallTunnelStatus.reconnecting,
+      );
+    });
+
+    test('recovering on its own clears the restart deadline', () async {
+      final container = ProviderContainer(
+        overrides: [
+          videoCallTunnelSettingProvider.overrideWithBuild(
+            (_, _) => const VideoCallTunnelProps(enable: true),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final action = container.read(setupActionProvider.notifier);
+      await videoCallTunnelController.onTunnelLost!();
+      expect(action.hasPendingTurnReconnectGrace, true);
+
+      await videoCallTunnelController.onTunnelConnected!();
+
+      expect(action.hasPendingTurnReconnectGrace, false);
+    });
+
+    test('turning the tunnel off drops the restart deadline', () async {
+      final container = ProviderContainer(
+        overrides: [
+          videoCallTunnelSettingProvider.overrideWithBuild(
+            (_, _) => const VideoCallTunnelProps(enable: true),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final action = container.read(setupActionProvider.notifier);
+      await videoCallTunnelController.onTunnelLost!();
+      expect(action.hasPendingTurnReconnectGrace, true);
+
+      await action.setVideoCallTunnelEnabled(false);
+
+      expect(action.hasPendingTurnReconnectGrace, false);
+    });
+
     test('turning the tunnel off drops the entitlement re-check', () async {
       final profile = Profile.normal(
         url: 'https://sub.example.com/c_device.yaml',

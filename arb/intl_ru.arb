@@ -318,6 +318,7 @@
   "noResolve": "Не разрешать IP",
   "saveChanges": "Сохранить изменения?",
   "findProcessModeDesc": "При включении возможны небольшие потери производительности",
+  "findProcessModeTunnelLocked": "Требуется аварийному туннелю, пока он включён",
   "tabAnimationDesc": "Действительно только в мобильном виде",
   "colorSchemes": "Цветовые схемы",
   "palette": "Палитра",

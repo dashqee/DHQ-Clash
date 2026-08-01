@@ -547,24 +547,37 @@ class FindProcessItem extends ConsumerWidget {
         (state) => state.findProcessMode == FindProcessMode.always,
       ),
     );
+    // The emergency tunnel keeps its own traffic out of itself with PROCESS-NAME
+    // rules, which do nothing without process matching. Turning this off while the
+    // tunnel runs would loop the sidecar into its own SOCKS port, so the config
+    // builder forces it on and the switch reflects that rather than lying.
+    final lockedByTunnel = ref.watch(
+      videoCallTunnelSettingProvider.select((state) => state.enable),
+    );
 
     return ListItem.switchItem(
       leading: const Icon(Icons.polymer_outlined),
       title: Text(appLocalizations.findProcessMode),
-      subtitle: Text(appLocalizations.findProcessModeDesc),
+      subtitle: Text(
+        lockedByTunnel
+            ? appLocalizations.findProcessModeTunnelLocked
+            : appLocalizations.findProcessModeDesc,
+      ),
       delegate: SwitchDelegate(
-        value: findProcess,
-        onChanged: (bool value) async {
-          ref
-              .read(patchClashConfigProvider.notifier)
-              .update(
-                (state) => state.copyWith(
-                  findProcessMode: value
-                      ? FindProcessMode.always
-                      : FindProcessMode.off,
-                ),
-              );
-        },
+        value: findProcess || lockedByTunnel,
+        onChanged: lockedByTunnel
+            ? null
+            : (bool value) async {
+                ref
+                    .read(patchClashConfigProvider.notifier)
+                    .update(
+                      (state) => state.copyWith(
+                        findProcessMode: value
+                            ? FindProcessMode.always
+                            : FindProcessMode.off,
+                      ),
+                    );
+              },
       ),
     );
   }

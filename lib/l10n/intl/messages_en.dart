@@ -408,6 +408,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "findProcessModeDesc": MessageLookupByLibrary.simpleMessage(
       "There is a certain performance loss after opening",
     ),
+    "findProcessModeTunnelLocked": MessageLookupByLibrary.simpleMessage(
+      "Required by the emergency tunnel while it is enabled",
+    ),
     "fontFamily": MessageLookupByLibrary.simpleMessage("FontFamily"),
     "forceRestartCoreTip": MessageLookupByLibrary.simpleMessage(
       "Are you sure you want to force restart the core?",

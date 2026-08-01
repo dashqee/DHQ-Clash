@@ -44,13 +44,18 @@ class Request {
     );
   }
 
-  /// Fetch [url] through the clash proxy, but retry once directly if the
-  /// request went through the local mixed-proxy port and that port refused the
-  /// connection. This happens while the core is starting/reconfiguring: the
-  /// download is routed to `localhost:<mixedPort>` (see
-  /// [AppHttpOverrides.handleFindProxy]) which is briefly not listening,
-  /// surfacing as `SocketException` (errno 1225 = WSAECONNREFUSED on Windows).
-  /// Common trigger: installing a profile from a deep link while connected.
+  /// Fetch [url] through the clash proxy, but retry once directly if the proxied
+  /// attempt failed in a way the direct path can plausibly fix.
+  ///
+  /// Refusal: while the core is starting/reconfiguring the request is routed to
+  /// `localhost:<mixedPort>` (see [AppHttpOverrides.handleFindProxy]) which is
+  /// briefly not listening, surfacing as `SocketException` (errno 1225 =
+  /// WSAECONNREFUSED on Windows). Common trigger: installing a profile from a deep
+  /// link while connected.
+  ///
+  /// Timeout: the port accepts but the selected outbound is a black hole — notably
+  /// when that outbound is the video-call tunnel and the tunnel itself is what we are
+  /// trying to repair. Only callers that set a timeout can hit this branch.
   Future<Response<T>> _getWithDirectFallback<T>(
     String url,
     Options options,
@@ -61,9 +66,15 @@ class Request {
     try {
       return await _clashDio.get<T>(url, options: options);
     } on DioException catch (e) {
-      if (wasProxied && e.error is SocketException) {
+      const timeouts = {
+        DioExceptionType.connectionTimeout,
+        DioExceptionType.sendTimeout,
+        DioExceptionType.receiveTimeout,
+      };
+      final recoverable = e.error is SocketException || timeouts.contains(e.type);
+      if (wasProxied && recoverable) {
         commonPrint.log(
-          'proxied fetch refused, retrying direct: $url',
+          'proxied fetch failed (${e.type.name}), retrying direct: $url',
           logLevel: LogLevel.warning,
         );
         return _directDio.get<T>(url, options: options);
@@ -115,6 +126,11 @@ class Request {
           responseType: ResponseType.json,
           validateStatus: (_) => true,
           headers: const {'Cache-Control': 'no-cache'},
+          // This request is how a broken tunnel gets repaired, and the proxied path
+          // may run through that very tunnel. Bound it well under the sidecar's 20s
+          // SOCKS CONNECT timeout so the direct retry actually gets a turn.
+          sendTimeout: videoCallTunnelLinkTimeout,
+          receiveTimeout: videoCallTunnelLinkTimeout,
         ),
       );
       return parseVideoCallTunnelLinkResponse(

@@ -239,6 +239,7 @@ class SetupAction extends _$SetupAction {
   Timer? _turnLinkRetryTimer;
   Timer? _turnAssignmentHeartbeatTimer;
   Timer? _turnEntitlementRecheckTimer;
+  Timer? _turnReconnectGraceTimer;
   final Random _turnRetryRandom = Random();
   bool _isRefreshingTurnLink = false;
   int _turnRetryAttempt = 0;
@@ -259,6 +260,7 @@ class SetupAction extends _$SetupAction {
       _turnLinkRetryTimer?.cancel();
       _turnAssignmentHeartbeatTimer?.cancel();
       _turnEntitlementRecheckTimer?.cancel();
+      _turnReconnectGraceTimer?.cancel();
       if (videoCallTunnelController.onTunnelLost ==
           _handleVideoCallTunnelLost) {
         videoCallTunnelController.onTunnelLost = null;
@@ -304,6 +306,32 @@ class SetupAction extends _$SetupAction {
     _turnEntitlementRecheckTimer?.cancel();
     _turnEntitlementRecheckTimer = null;
   }
+
+  void _cancelTurnReconnectGrace() {
+    _turnReconnectGraceTimer?.cancel();
+    _turnReconnectGraceTimer = null;
+  }
+
+  /// Restarts the silence window. Rescheduling (rather than keeping the first timer)
+  /// is what makes this "no progress for 60s" instead of "no recovery in 60s" — the
+  /// sidecar's own retry sequence can legitimately run longer than one window.
+  void _scheduleTurnReconnectGrace() {
+    _cancelTurnReconnectGrace();
+    _turnReconnectGraceTimer = Timer(videoCallTunnelReconnectGrace, () {
+      _turnReconnectGraceTimer = null;
+      if (!ref.read(videoCallTunnelSettingProvider).enable) return;
+      if (videoCallTunnelController.status.value ==
+          VideoCallTunnelStatus.connected) {
+        return;
+      }
+      commonPrint.log('TURN tunnel did not recover on its own; restarting');
+      unawaited(_restartVideoCallTunnel());
+    });
+  }
+
+  @visibleForTesting
+  bool get hasPendingTurnReconnectGrace =>
+      _turnReconnectGraceTimer?.isActive == true;
 
   @visibleForTesting
   bool get hasPendingTurnEntitlementRecheck =>
@@ -449,19 +477,30 @@ class SetupAction extends _$SetupAction {
     }
   }
 
+  /// A lost transport is not a lost tunnel: the sidecar reconnects on its own and
+  /// re-announces the loss before each attempt. Respawning it here would pre-empt that
+  /// and force a new VK captcha, so only step in once it has gone quiet — every fresh
+  /// TUNNEL_LOST pushes the deadline back.
   Future<void> _handleVideoCallTunnelLost() async {
     _cancelTurnAssignmentHeartbeat();
-    await videoCallTunnelController.stop();
-    await refreshVideoCallTunnel();
+    _scheduleTurnReconnectGrace();
   }
 
   Future<void> _handleVideoCallTunnelConnected() async {
     _cancelTurnLinkRetry();
+    _cancelTurnReconnectGrace();
     _scheduleTurnAssignmentHeartbeat();
   }
 
+  /// The sidecar is single-shot — an ERROR or a process exit is unrecoverable, so this
+  /// path still restarts immediately.
   Future<void> _handleVideoCallTunnelTerminalError() async {
     _cancelTurnAssignmentHeartbeat();
+    _cancelTurnReconnectGrace();
+    await _restartVideoCallTunnel();
+  }
+
+  Future<void> _restartVideoCallTunnel() async {
     await videoCallTunnelController.stop();
     await refreshVideoCallTunnel();
   }
@@ -516,6 +555,7 @@ class SetupAction extends _$SetupAction {
     _cancelTurnLinkRetry();
     _cancelTurnAssignmentHeartbeat();
     _cancelTurnEntitlementRecheck();
+    _cancelTurnReconnectGrace();
     _turnJoinLink = null;
     _turnSubscriptionUrl = null;
     final stopped = await videoCallTunnelController.stop();
