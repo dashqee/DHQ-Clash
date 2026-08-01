@@ -1,6 +1,7 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/l10n/l10n.dart';
+import 'package:fl_clash/providers/action.dart';
 import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
@@ -324,6 +325,29 @@ class UpdateChannelItem extends ConsumerWidget {
   }
 }
 
+class CheckUpdateItem extends ConsumerWidget {
+  final VoidCallback? onCheckUpdate;
+
+  const CheckUpdateItem({super.key, this.onCheckUpdate});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ListItem(
+      leading: const Icon(Icons.system_update_alt),
+      title: Text(context.appLocalizations.checkUpdate),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () {
+        final callback = onCheckUpdate;
+        if (callback != null) {
+          callback();
+          return;
+        }
+        ref.read(commonActionProvider.notifier).checkForUpdate();
+      },
+    );
+  }
+}
+
 class ApplicationSettingView extends StatelessWidget {
   const ApplicationSettingView({super.key});
 
@@ -344,6 +368,7 @@ class ApplicationSettingView extends StatelessWidget {
       if (system.isAndroid) const CrashlyticsItem(),
       const AutoCheckUpdateItem(),
       const UpdateChannelItem(),
+      if (system.isAndroid) const CheckUpdateItem(),
     ];
     return BaseScaffold(
       title: context.appLocalizations.application,
