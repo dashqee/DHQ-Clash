@@ -7,6 +7,7 @@ import 'package:fl_clash/state.dart';
 import 'package:fl_clash/views/dashboard/dashboard.dart';
 import 'package:fl_clash/views/dashboard/widgets/outbound_mode.dart';
 import 'package:fl_clash/views/dashboard/widgets/quick_options.dart';
+import 'package:fl_clash/views/dashboard/widgets/traffic_usage.dart';
 import 'package:fl_clash/views/dashboard/widgets/video_call_tunnel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -138,7 +139,7 @@ void main() {
     variant: TargetPlatformVariant.all(),
   );
 
-  testWidgets('start control stays inside status card on compact layouts', (
+  testWidgets('start control gets its own full-width row on compact layouts', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -168,9 +169,11 @@ void main() {
       findsOneWidget,
     );
     expect(
-      tester.getTopRight(startButton).dy,
-      lessThan(tester.getTopLeft(metrics).dy),
+      tester.getTopLeft(startButton).dy,
+      greaterThan(tester.getBottomLeft(metrics).dy),
     );
+    expect(tester.getSize(startButton).width, greaterThan(300));
+    expect(tester.getSize(startButton).height, greaterThanOrEqualTo(64));
     expect(tester.takeException(), isNull);
   });
 
@@ -199,6 +202,24 @@ void main() {
       tester.getTopLeft(startButton).dy,
       closeTo(tester.getTopLeft(metrics).dy, 0.01),
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('traffic usage keeps the total outside a readable donut', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: _TestApp(child: SizedBox(width: 360, child: TrafficUsage())),
+      ),
+    );
+    await tester.pump();
+
+    final chart = find.byKey(const ValueKey('traffic-usage-chart'));
+    final total = find.byKey(const ValueKey('traffic-usage-total'));
+    expect(tester.getSize(chart), const Size.square(66));
+    expect(total, findsOneWidget);
+    expect(find.descendant(of: chart, matching: total), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

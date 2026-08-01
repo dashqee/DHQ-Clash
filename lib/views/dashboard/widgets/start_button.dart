@@ -12,176 +12,89 @@ class StartButton extends ConsumerStatefulWidget {
   ConsumerState<StartButton> createState() => _StartButtonState();
 }
 
-class _StartButtonState extends ConsumerState<StartButton>
-    with SingleTickerProviderStateMixin {
-  AnimationController? _controller;
-  late Animation<double> _animation;
-  bool isStart = false;
+class _StartButtonState extends ConsumerState<StartButton> {
+  late bool _isStart;
 
   @override
   void initState() {
     super.initState();
-    isStart = ref.read(isStartProvider);
-    _controller = AnimationController(
-      vsync: this,
-      value: isStart ? 1 : 0,
-      duration: const Duration(milliseconds: 200),
-    );
-    _animation = CurvedAnimation(
-      parent: _controller!,
-      curve: Curves.easeOutBack,
-    );
-    ref.listenManual(isStartProvider, (prev, next) {
-      if (next != isStart) {
-        isStart = next;
-        updateController();
+    _isStart = ref.read(isStartProvider);
+    ref.listenManual(isStartProvider, (_, next) {
+      if (mounted && next != _isStart) {
+        setState(() {
+          _isStart = next;
+        });
       }
     }, fireImmediately: true);
   }
 
-  @override
-  void dispose() {
-    _controller?.dispose();
-    _controller = null;
-    super.dispose();
-  }
-
-  void handleSwitchStart() {
-    isStart = !isStart;
-    updateController();
+  void _handleSwitchStart() {
+    setState(() {
+      _isStart = !_isStart;
+    });
     debouncer.call(FunctionTag.updateStatus, () {
       globalState.container
           .read(setupActionProvider.notifier)
-          .updateStatus(isStart, isInit: !ref.read(initProvider));
+          .updateStatus(_isStart, isInit: !ref.read(initProvider));
     }, duration: commonDuration);
-  }
-
-  void updateController() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (isStart && mounted) {
-        _controller?.forward();
-      } else {
-        _controller?.reverse();
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final hasProfile = ref.watch(
-      profilesProvider.select((state) => state.isNotEmpty),
-    );
-    if (!hasProfile) {
-      return Container();
-    }
     final suspend = ref.watch(suspendProvider);
-    final theme = Theme.of(context);
     final appLocalizations = context.appLocalizations;
-    return RepaintBoundary(
-      child: Theme(
-        data: theme.copyWith(
-          floatingActionButtonTheme: theme.floatingActionButtonTheme.copyWith(
-            sizeConstraints: const BoxConstraints(minWidth: 56, maxWidth: 200),
-          ),
+    final label = suspend
+        ? appLocalizations.suspended
+        : _isStart
+        ? appLocalizations.stop
+        : appLocalizations.start;
+    final icon = suspend
+        ? Icons.pause_circle_outline
+        : _isStart
+        ? Icons.stop_rounded
+        : Icons.power_settings_new_rounded;
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: 156, minHeight: 64),
+      child: DecoratedBox(
+        decoration: const ShapeDecoration(
+          gradient: AppTheme.brandGradient,
+          shape: StadiumBorder(side: BorderSide(color: Color(0x33FFFFFF))),
+          shadows: [
+            BoxShadow(
+              color: Color(0x594877F4),
+              blurRadius: 30,
+              offset: Offset(0, 12),
+            ),
+          ],
         ),
-        child: AnimatedBuilder(
-          animation: _controller!.view,
-          builder: (_, child) {
-            final textWidth = suspend
-                ? globalState.measure
-                          .computeTextSize(
-                            Text(
-                              appLocalizations.suspended,
-                              style: context.textTheme.titleMedium,
-                            ),
-                          )
-                          .width +
-                      24
-                : globalState.measure
-                          .computeTextSize(
-                            Text(
-                              utils.getTimeDifference(DateTime.now()),
-                              style: context.textTheme.titleMedium?.toSoftBold,
-                            ),
-                          )
-                          .width +
-                      16;
-            return DecoratedBox(
-              decoration: const ShapeDecoration(
-                gradient: AppTheme.brandGradient,
-                shape: StadiumBorder(
-                  side: BorderSide(color: Color(0x26FFFFFF)),
-                ),
-                shadows: [
-                  BoxShadow(
-                    color: Color(0x594877F4),
-                    blurRadius: 30,
-                    offset: Offset(0, 12),
-                  ),
-                ],
+        child: FilledButton.icon(
+          onPressed: _handleSwitchStart,
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(156, 64),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            foregroundColor: Colors.white,
+            backgroundColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            shape: const StadiumBorder(),
+          ),
+          icon: AnimatedSwitcher(
+            duration: commonDuration,
+            child: Icon(icon, key: ValueKey(icon), size: 26),
+          ),
+          label: AnimatedSwitcher(
+            duration: commonDuration,
+            child: Text(
+              label,
+              key: ValueKey(label),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: context.textTheme.titleMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
               ),
-              child: FloatingActionButton(
-                clipBehavior: Clip.antiAlias,
-                materialTapTargetSize: MaterialTapTargetSize.padded,
-                heroTag: null,
-                elevation: 0,
-                hoverElevation: 0,
-                focusElevation: 0,
-                highlightElevation: 0,
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.transparent,
-                shape: const StadiumBorder(),
-                onPressed: () {
-                  handleSwitchStart();
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      height: 56,
-                      padding: EdgeInsets.only(
-                        left: 16,
-                        right: 16 - 8 * _animation.value,
-                      ),
-                      alignment: Alignment.centerLeft,
-                      child: AnimatedIcon(
-                        icon: AnimatedIcons.play_pause,
-                        progress: _animation,
-                      ),
-                    ),
-                    SizedBox(
-                      width: textWidth * _animation.value,
-                      child: child!,
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-          child: suspend
-              ? Text(
-                  appLocalizations.suspended,
-                  maxLines: 1,
-                  overflow: TextOverflow.visible,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: context.colorScheme.onPrimaryContainer,
-                  ),
-                )
-              : Consumer(
-                  builder: (_, ref, _) {
-                    final runTime = ref.watch(runTimeProvider);
-                    final text = utils.getTimeText(runTime);
-                    return Text(
-                      text,
-                      maxLines: 1,
-                      overflow: TextOverflow.visible,
-                      style: Theme.of(context).textTheme.titleMedium?.toSoftBold
-                          .copyWith(
-                            color: context.colorScheme.onPrimaryContainer,
-                          ),
-                    );
-                  },
-                ),
+            ),
+          ),
         ),
       ),
     );

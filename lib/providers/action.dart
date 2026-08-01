@@ -717,14 +717,35 @@ class SetupAction extends _$SetupAction {
     }, args: [silence, force]);
   }
 
-  void changeMode(Mode mode) {
+  Future<void> changeMode(Mode mode) async {
     ref
         .read(patchClashConfigProvider.notifier)
         .update((state) => state.copyWith(mode: mode));
     if (mode == Mode.global) {
+      const globalGroupName = 'GLOBAL';
+      const defaultProxyName = 'PROXY';
       ref
           .read(proxiesActionProvider.notifier)
-          .updateCurrentGroupName(GroupName.GLOBAL.name);
+          .updateCurrentGroupName(globalGroupName);
+      final selectedMap = ref.read(selectedMapProvider);
+      if ((selectedMap[globalGroupName] ?? '').isNotEmpty) {
+        return;
+      }
+      ref
+          .read(profilesActionProvider.notifier)
+          .updateCurrentSelectedMap(globalGroupName, defaultProxyName);
+      final globalGroup = ref.read(groupsProvider).getGroup(globalGroupName);
+      final hasDefaultProxy =
+          globalGroup?.all.any((proxy) => proxy.name == defaultProxyName) ??
+          false;
+      if (hasDefaultProxy) {
+        await ref
+            .read(proxiesActionProvider.notifier)
+            .changeProxy(
+              groupName: globalGroupName,
+              proxyName: defaultProxyName,
+            );
+      }
     }
   }
 

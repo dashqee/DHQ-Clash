@@ -416,23 +416,21 @@ class DashboardConnectionOverview extends ConsumerWidget {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(child: status),
-                    if (hasProfile) ...[
-                      const SizedBox(width: 12),
-                      const StartButton(
-                        key: ValueKey('connection-start-button'),
-                      ),
-                    ],
-                  ],
-                ),
+                status,
                 const SizedBox(height: 18),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: metrics,
                 ),
+                if (hasProfile) ...[
+                  const SizedBox(height: 20),
+                  const SizedBox(
+                    width: double.infinity,
+                    child: StartButton(
+                      key: ValueKey('connection-start-button'),
+                    ),
+                  ),
+                ],
               ],
             );
           }

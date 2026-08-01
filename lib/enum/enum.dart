@@ -304,7 +304,7 @@ enum FunctionTag {
 enum DashboardWidget {
   networkSpeed(GridItem(crossAxisCellCount: 8, child: NetworkSpeed())),
   outboundModeV2(GridItem(crossAxisCellCount: 8, child: OutboundModeV2())),
-  trafficUsage(GridItem(crossAxisCellCount: 4, child: TrafficUsage())),
+  trafficUsage(GridItem(crossAxisCellCount: 8, child: TrafficUsage())),
   networkDetection(GridItem(crossAxisCellCount: 4, child: NetworkDetection())),
   tunButton(
     GridItem(crossAxisCellCount: 4, child: TUNButton()),
@@ -316,10 +316,16 @@ enum DashboardWidget {
   ),
   systemProxyButton(
     GridItem(crossAxisCellCount: 4, child: SystemProxyButton()),
-    platforms: desktopPlatforms,
+    platforms: [],
   ),
-  intranetIp(GridItem(crossAxisCellCount: 4, child: IntranetIP())),
-  memoryInfo(GridItem(crossAxisCellCount: 4, child: MemoryInfo()));
+  intranetIp(
+    GridItem(crossAxisCellCount: 4, child: IntranetIP()),
+    platforms: [],
+  ),
+  memoryInfo(
+    GridItem(crossAxisCellCount: 4, child: MemoryInfo()),
+    platforms: [],
+  );
 
   final GridItem widget;
   final List<SupportPlatform> platforms;

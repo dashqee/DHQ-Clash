@@ -41,11 +41,9 @@ const List<DashboardWidget> defaultDashboardWidgets = [
   DashboardWidget.networkSpeed,
   DashboardWidget.outboundModeV2,
   DashboardWidget.networkDetection,
-  DashboardWidget.intranetIp,
-  DashboardWidget.trafficUsage,
   DashboardWidget.tunButton,
-  DashboardWidget.systemProxyButton,
-  DashboardWidget.memoryInfo,
+  DashboardWidget.vpnButton,
+  DashboardWidget.trafficUsage,
 ];
 
 List<DashboardWidget> dashboardWidgetsSafeFormJson(
@@ -61,7 +59,23 @@ List<DashboardWidget> dashboardWidgetsSafeFormJson(
         })
         .toSet()
         .toList();
-    return widgets ?? defaultDashboardWidgets;
+    if (widgets == null) {
+      return defaultDashboardWidgets;
+    }
+    const retiredDashboardWidgets = {
+      DashboardWidget.intranetIp,
+      DashboardWidget.systemProxyButton,
+      DashboardWidget.memoryInfo,
+    };
+    final visibleWidgets =
+        widgets
+            .where((widget) => !retiredDashboardWidgets.contains(widget))
+            .toSet()
+          ..add(DashboardWidget.tunButton)
+          ..add(DashboardWidget.vpnButton);
+    return defaultDashboardWidgets
+        .where(visibleWidgets.contains)
+        .toList(growable: false);
   } catch (_) {
     return defaultDashboardWidgets;
   }
