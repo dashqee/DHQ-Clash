@@ -4,6 +4,16 @@ import 'package:fl_clash/enum/enum.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('coreAuthorizationBypass', () {
+    test('skips desktop core authorization on Android', () {
+      expect(coreAuthorizationBypass(isAndroid: true), AuthorizeCode.none);
+    });
+
+    test('keeps desktop authorization in the platform-specific flow', () {
+      expect(coreAuthorizationBypass(isAndroid: false), isNull);
+    });
+  });
+
   group('parseWindowsHelperServiceNames', () {
     test('keeps valid discovered service names and rejects shell input', () {
       final names = parseWindowsHelperServiceNames(
