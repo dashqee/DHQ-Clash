@@ -2459,6 +2459,16 @@ class AppLocalizations {
     );
   }
 
+  /// `Required by the emergency tunnel while it is enabled`
+  String get findProcessModeTunnelLocked {
+    return Intl.message(
+      'Required by the emergency tunnel while it is enabled',
+      name: 'findProcessModeTunnelLocked',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Effective only in mobile view`
   String get tabAnimationDesc {
     return Intl.message(

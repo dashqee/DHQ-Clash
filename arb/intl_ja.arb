@@ -318,6 +318,7 @@
   "noResolve": "IPを解決しない",
   "saveChanges": "変更を保存しますか？",
   "findProcessModeDesc": "有効化するとパフォーマンスが若干低下します",
+  "findProcessModeTunnelLocked": "緊急トンネルの動作中は必須です",
   "tabAnimationDesc": "モバイル表示でのみ有効",
   "colorSchemes": "カラースキーム",
   "palette": "パレット",

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/plugins/app.dart';
 import 'package:flutter/foundation.dart';
@@ -23,6 +24,19 @@ const videoCallTunnelAssignmentHeartbeat = Duration(seconds: 60);
 // Entitlement is bought in the mini app, not here, so a 403 is not final: re-ask on a
 // slow timer instead of waiting for a restart to notice the slot has been assigned.
 const videoCallTunnelEntitlementRecheck = Duration(minutes: 5);
+// A dropped transport is routine — the sidecar reconnects on its own (10 attempts,
+// 1→16s backoff) and re-emits TUNNEL_LOST before each try. So this is a *silence*
+// timeout, restarted by every sign of life, not a deadline for full recovery.
+// Respawning the process instead pre-empts that retry loop and, because the VK
+// session is not cached, costs the user a fresh captcha.
+const videoCallTunnelReconnectGrace = Duration(seconds: 60);
+// Upper bound on resolving a hostname for the sidecar. It blocks on our answer while
+// holding its resolve mutex, so a lookup that never returns wedges the tunnel for good.
+const videoCallTunnelResolveTimeout = Duration(seconds: 5);
+// Budget for fetching the join link. The proxied attempt can be routed through the
+// tunnel we are trying to repair, where the relay waits 20s for MsgConnectOK before
+// giving up — stay well under that so the direct retry still happens.
+const videoCallTunnelLinkTimeout = Duration(seconds: 6);
 const videoCallTunnelRoutingSelections = <String, String>{
   'PROXY': 'Fallback',
   'Telegram': 'PROXY',
@@ -245,6 +259,12 @@ Map<String, dynamic> addVideoCallTunnelToConfig(
   ];
   rules.removeWhere(bypassRules.contains);
   config['rules'] = [...bypassRules, ...rules];
+  // TUN takes every route on desktop, so the sidecar's own traffic to VK comes back
+  // through the core. These PROCESS-NAME rules are the ONLY thing keeping it from
+  // being sent into the sidecar's own SOCKS port once DHQ TURN is the active
+  // outbound, and they are inert without process matching — so it is not the user's
+  // setting to make while the tunnel is running.
+  config['find-process-mode'] = FindProcessMode.always.name;
   return config;
 }
 
@@ -363,10 +383,14 @@ class VideoCallTunnelController {
                 commonPrint.log('TURN: ${sanitizeVideoCallTunnelLog(line)}'),
           );
       unawaited(
-        process.exitCode.then((_) {
+        process.exitCode.then((code) {
           if (!_stopping &&
               _process == process &&
               status.value != VideoCallTunnelStatus.stopped) {
+            // The sidecar is single-shot: once it returns there is no way back, so a
+            // real exit IS terminal. Log the code — without it a crash and a clean
+            // exit are indistinguishable in the log.
+            commonPrint.log('TURN sidecar exited unexpectedly (code $code)');
             _process = null;
             status.value = VideoCallTunnelStatus.error;
             final callback = onTerminalError;
@@ -490,13 +514,19 @@ class VideoCallTunnelController {
   }
 
   Future<void> _resolveForSidecar(String hostname) async {
+    // The sidecar blocks on this answer while holding its resolve mutex, so it must
+    // always get exactly one reply — an empty one is a failure it can recover from,
+    // silence is not.
     try {
-      final addresses = await InternetAddress.lookup(hostname);
+      final addresses = await InternetAddress.lookup(
+        hostname,
+      ).timeout(videoCallTunnelResolveTimeout);
       final address = addresses
           .where((item) => item.type == InternetAddressType.IPv4)
           .firstOrNull;
       _stdin?.writeln('RESOLVED:${(address ?? addresses.first).address}');
-    } catch (_) {
+    } catch (error) {
+      commonPrint.log('TURN sidecar resolve failed (${error.runtimeType})');
       _stdin?.writeln('RESOLVED:');
     }
   }

@@ -312,5 +312,25 @@ void main() {
         videoCallTunnelProviderName,
       ]);
     });
+
+    test('forces process matching on, whatever the user picked', () {
+      // The PROCESS-NAME bypass rules are the only thing keeping the sidecar's own
+      // traffic out of its own SOCKS port; without process matching they are inert.
+      final result = addVideoCallTunnelToConfig(
+        {'find-process-mode': FindProcessMode.off.name},
+        port: 11789,
+        username: 'user',
+        password: 'secret',
+      );
+
+      expect(result['find-process-mode'], FindProcessMode.always.name);
+      expect(
+        (result['rules'] as List).take(4),
+        containsAll(<String>[
+          'PROCESS-NAME,DHQClashTurn,DIRECT',
+          'PROCESS-NAME,DHQClashTurn.exe,DIRECT',
+        ]),
+      );
+    });
   });
 }

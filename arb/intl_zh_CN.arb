@@ -318,6 +318,7 @@
   "noResolve": "不解析IP",
   "saveChanges": "是否保存更改？",
   "findProcessModeDesc": "开启后会有一定性能损耗",
+  "findProcessModeTunnelLocked": "应急隧道启用期间必须开启",
   "tabAnimationDesc": "仅在移动视图中有效",
   "colorSchemes": "配色方案",
   "palette": "调色板",
