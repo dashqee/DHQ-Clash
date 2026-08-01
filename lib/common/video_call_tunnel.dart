@@ -20,6 +20,9 @@ const videoCallTunnelHealthCheckUrl = 'https://cp.cloudflare.com/generate_204';
 const videoCallTunnelHealthCheckInterval = 30;
 const videoCallTunnelRestartDebounce = Duration(seconds: 2);
 const videoCallTunnelAssignmentHeartbeat = Duration(seconds: 60);
+// Entitlement is bought in the mini app, not here, so a 403 is not final: re-ask on a
+// slow timer instead of waiting for a restart to notice the slot has been assigned.
+const videoCallTunnelEntitlementRecheck = Duration(minutes: 5);
 const videoCallTunnelRoutingSelections = <String, String>{
   'PROXY': 'Fallback',
   'Telegram': 'PROXY',

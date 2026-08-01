@@ -238,6 +238,7 @@ class SetupAction extends _$SetupAction {
   Timer? _updateTimer;
   Timer? _turnLinkRetryTimer;
   Timer? _turnAssignmentHeartbeatTimer;
+  Timer? _turnEntitlementRecheckTimer;
   final Random _turnRetryRandom = Random();
   bool _isRefreshingTurnLink = false;
   int _turnRetryAttempt = 0;
@@ -257,6 +258,7 @@ class SetupAction extends _$SetupAction {
     ref.onDispose(() {
       _turnLinkRetryTimer?.cancel();
       _turnAssignmentHeartbeatTimer?.cancel();
+      _turnEntitlementRecheckTimer?.cancel();
       if (videoCallTunnelController.onTunnelLost ==
           _handleVideoCallTunnelLost) {
         videoCallTunnelController.onTunnelLost = null;
@@ -296,6 +298,27 @@ class SetupAction extends _$SetupAction {
   void _cancelTurnAssignmentHeartbeat() {
     _turnAssignmentHeartbeatTimer?.cancel();
     _turnAssignmentHeartbeatTimer = null;
+  }
+
+  void _cancelTurnEntitlementRecheck() {
+    _turnEntitlementRecheckTimer?.cancel();
+    _turnEntitlementRecheckTimer = null;
+  }
+
+  @visibleForTesting
+  bool get hasPendingTurnEntitlementRecheck =>
+      _turnEntitlementRecheckTimer?.isActive == true;
+
+  /// A slot bought (or moved to this device) in the mini app must be picked up
+  /// without restarting the app, so `notEntitled` schedules a slow re-ask rather
+  /// than giving up for good.
+  void _scheduleTurnEntitlementRecheck() {
+    if (_turnEntitlementRecheckTimer?.isActive == true) return;
+    _turnEntitlementRecheckTimer = Timer(videoCallTunnelEntitlementRecheck, () {
+      _turnEntitlementRecheckTimer = null;
+      if (!ref.read(videoCallTunnelSettingProvider).enable) return;
+      unawaited(refreshVideoCallTunnel(startTunnel: isStart));
+    });
   }
 
   void _scheduleTurnAssignmentHeartbeat() {
@@ -344,6 +367,7 @@ class SetupAction extends _$SetupAction {
       case VideoCallTunnelLinkStatus.available:
         final joinLink = result.joinLink!;
         _cancelTurnLinkRetry();
+        _cancelTurnEntitlementRecheck();
         _turnJoinLink = joinLink;
         return props;
       case VideoCallTunnelLinkStatus.notEntitled:
@@ -352,6 +376,7 @@ class SetupAction extends _$SetupAction {
         _turnJoinLink = null;
         videoCallTunnelController.status.value =
             VideoCallTunnelStatus.notEntitled;
+        _scheduleTurnEntitlementRecheck();
         return null;
       case VideoCallTunnelLinkStatus.temporarilyUnavailable:
         if (_turnJoinLink == null) {
@@ -490,6 +515,7 @@ class SetupAction extends _$SetupAction {
     }
     _cancelTurnLinkRetry();
     _cancelTurnAssignmentHeartbeat();
+    _cancelTurnEntitlementRecheck();
     _turnJoinLink = null;
     _turnSubscriptionUrl = null;
     final stopped = await videoCallTunnelController.stop();

@@ -1064,7 +1064,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "turnTunnelError": MessageLookupByLibrary.simpleMessage("Connection error"),
     "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
-      "Not available for this device",
+      "No bypass slot — assign one in the mini app",
     ),
     "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage(
       "Reconnecting",

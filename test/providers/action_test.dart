@@ -356,6 +356,71 @@ void main() {
       );
       expect(reusedRuntimeLink, false);
     });
+
+    test('denied entitlement keeps re-asking until a slot is assigned', () async {
+      final profile = Profile.normal(
+        url: 'https://sub.example.com/c_device.yaml',
+      );
+      final container = ProviderContainer(
+        overrides: [
+          currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
+          profilesProvider.overrideWith(() => _TestProfiles([profile])),
+          videoCallTunnelSettingProvider.overrideWithBuild(
+            (_, _) => const VideoCallTunnelProps(enable: true),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final action = container.read(setupActionProvider.notifier);
+      // The slot is bought in the mini app, so a 403 must not stop the client from
+      // asking again — otherwise the purchase needs an app restart to take effect.
+      await action.refreshVideoCallTunnel(
+        startTunnel: false,
+        fetchLink: (_) async => const VideoCallTunnelLinkResult(
+          VideoCallTunnelLinkStatus.notEntitled,
+        ),
+      );
+      expect(action.hasPendingTurnEntitlementRecheck, true);
+
+      await action.refreshVideoCallTunnel(
+        startTunnel: false,
+        fetchLink: (_) async => const VideoCallTunnelLinkResult(
+          VideoCallTunnelLinkStatus.available,
+          joinLink: 'https://vk.ru/call/join/granted-link',
+        ),
+      );
+      expect(action.hasPendingTurnEntitlementRecheck, false);
+    });
+
+    test('turning the tunnel off drops the entitlement re-check', () async {
+      final profile = Profile.normal(
+        url: 'https://sub.example.com/c_device.yaml',
+      );
+      final container = ProviderContainer(
+        overrides: [
+          currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
+          profilesProvider.overrideWith(() => _TestProfiles([profile])),
+          videoCallTunnelSettingProvider.overrideWithBuild(
+            (_, _) => const VideoCallTunnelProps(enable: true),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final action = container.read(setupActionProvider.notifier);
+      await action.refreshVideoCallTunnel(
+        startTunnel: false,
+        fetchLink: (_) async => const VideoCallTunnelLinkResult(
+          VideoCallTunnelLinkStatus.notEntitled,
+        ),
+      );
+      expect(action.hasPendingTurnEntitlementRecheck, true);
+
+      await action.setVideoCallTunnelEnabled(false);
+
+      expect(action.hasPendingTurnEntitlementRecheck, false);
+    });
   });
 
   group('GeoResourceAction', () {

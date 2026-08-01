@@ -572,7 +572,7 @@
   "turnTunnelEnable": "緊急トンネルを有効化",
   "turnTunnelDesc": "直接のVLESSサーバーが利用できない場合、VKビデオ通話をローカルSOCKS5フォールバックとして使用します。",
   "turnTunnelChecking": "アクセスを確認中",
-  "turnTunnelNotEntitled": "このデバイスでは利用できません",
+  "turnTunnelNotEntitled": "バイパス枠が未割り当てです — ミニアプリで有効にしてください",
   "turnTunnelTemporarilyUnavailable": "チャンネルは一時的に利用できません",
   "turnTunnelStarting": "起動中",
   "turnTunnelConnecting": "通話に接続中",

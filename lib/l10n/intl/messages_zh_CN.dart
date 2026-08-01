@@ -749,7 +749,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "turnTunnelDisabled": MessageLookupByLibrary.simpleMessage("已禁用"),
     "turnTunnelEnable": MessageLookupByLibrary.simpleMessage("启用应急隧道"),
     "turnTunnelError": MessageLookupByLibrary.simpleMessage("连接错误"),
-    "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage("此设备不可用"),
+    "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
+      "未分配绕过名额 — 请在小程序中开启",
+    ),
     "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage("正在重新连接"),
     "turnTunnelRetry": MessageLookupByLibrary.simpleMessage("重试"),
     "turnTunnelStarting": MessageLookupByLibrary.simpleMessage("正在启动"),

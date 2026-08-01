@@ -572,7 +572,7 @@
   "turnTunnelEnable": "启用应急隧道",
   "turnTunnelDesc": "当直连 VLESS 服务器不可用时，使用 VK 视频通话作为本地 SOCKS5 备用通道。",
   "turnTunnelChecking": "正在检查访问权限",
-  "turnTunnelNotEntitled": "此设备不可用",
+  "turnTunnelNotEntitled": "未分配绕过名额 — 请在小程序中开启",
   "turnTunnelTemporarilyUnavailable": "通道暂时不可用",
   "turnTunnelStarting": "正在启动",
   "turnTunnelConnecting": "正在连接通话",

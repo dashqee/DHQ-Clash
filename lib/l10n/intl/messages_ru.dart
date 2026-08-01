@@ -1125,7 +1125,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Ошибка подключения",
     ),
     "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
-      "Недоступно для этого устройства",
+      "Слот обхода не назначен — включите в мини-приложении",
     ),
     "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage(
       "Переподключение",

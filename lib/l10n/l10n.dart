@@ -4699,10 +4699,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Not available for this device`
+  /// `No bypass slot — assign one in the mini app`
   String get turnTunnelNotEntitled {
     return Intl.message(
-      'Not available for this device',
+      'No bypass slot — assign one in the mini app',
       name: 'turnTunnelNotEntitled',
       desc: '',
       args: [],

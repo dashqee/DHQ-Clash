@@ -572,7 +572,7 @@
   "turnTunnelEnable": "Enable emergency tunnel",
   "turnTunnelDesc": "Uses a VK video call as a local SOCKS5 fallback when direct VLESS servers are unavailable.",
   "turnTunnelChecking": "Checking access",
-  "turnTunnelNotEntitled": "Not available for this device",
+  "turnTunnelNotEntitled": "No bypass slot — assign one in the mini app",
   "turnTunnelTemporarilyUnavailable": "Channel temporarily unavailable",
   "turnTunnelStarting": "Starting",
   "turnTunnelConnecting": "Connecting to the call",
