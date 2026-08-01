@@ -25,6 +25,14 @@ List<String> _windowsCoreCleanupCommands() {
 }
 
 @visibleForTesting
+AuthorizeCode? coreAuthorizationBypass({required bool isAndroid}) {
+  if (isAndroid) {
+    return AuthorizeCode.none;
+  }
+  return null;
+}
+
+@visibleForTesting
 List<String> parseWindowsHelperServiceNames(String output) {
   final validName = RegExp(r'^[A-Za-z0-9_. -]+$');
   return output
@@ -150,8 +158,9 @@ class System {
   Future<AuthorizeCode> authorizeCore({
     bool forceMacOSHelperInstall = false,
   }) async {
-    if (system.isAndroid) {
-      return AuthorizeCode.error;
+    final bypassCode = coreAuthorizationBypass(isAndroid: system.isAndroid);
+    if (bypassCode != null) {
+      return bypassCode;
     }
     final isAdmin = await checkIsAdmin();
     if (isAdmin) {
