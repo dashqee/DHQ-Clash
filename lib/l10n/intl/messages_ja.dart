@@ -864,7 +864,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "turnTunnelEnable": MessageLookupByLibrary.simpleMessage("緊急トンネルを有効化"),
     "turnTunnelError": MessageLookupByLibrary.simpleMessage("接続エラー"),
     "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
-      "このデバイスでは利用できません",
+      "バイパス枠が未割り当てです — ミニアプリで有効にしてください",
     ),
     "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage("再接続中"),
     "turnTunnelRetry": MessageLookupByLibrary.simpleMessage("再試行"),

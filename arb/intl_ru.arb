@@ -572,7 +572,7 @@
   "turnTunnelEnable": "Включить аварийный туннель",
   "turnTunnelDesc": "Использует видеозвонок VK как локальный SOCKS5-резерв, когда прямые VLESS-серверы недоступны.",
   "turnTunnelChecking": "Проверка доступа",
-  "turnTunnelNotEntitled": "Недоступно для этого устройства",
+  "turnTunnelNotEntitled": "Слот обхода не назначен — включите в мини-приложении",
   "turnTunnelTemporarilyUnavailable": "Канал временно недоступен",
   "turnTunnelStarting": "Запуск",
   "turnTunnelConnecting": "Подключение к звонку",
