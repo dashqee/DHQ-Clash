@@ -91,26 +91,33 @@ void main() {
   });
 
   group('AppSettingProps JSON round-trip', () {
-    test('uses the new outbound mode widget by default', () {
-      expect(defaultDashboardWidgets, contains(DashboardWidget.outboundModeV2));
+    test('uses the redesigned dashboard order by default', () {
+      expect(defaultDashboardWidgets, [
+        DashboardWidget.networkSpeed,
+        DashboardWidget.outboundModeV2,
+        DashboardWidget.networkDetection,
+        DashboardWidget.tunButton,
+        DashboardWidget.vpnButton,
+        DashboardWidget.trafficUsage,
+      ]);
     });
 
-    test(
-      'migrates the legacy outbound mode widget without resetting layout',
-      () {
-        final widgets = dashboardWidgetsSafeFormJson([
-          'trafficUsage',
-          'outboundMode',
-          'tunButton',
-        ]);
+    test('migrates legacy widgets into the redesigned dashboard order', () {
+      final widgets = dashboardWidgetsSafeFormJson([
+        'trafficUsage',
+        'outboundMode',
+        'tunButton',
+        'systemProxyButton',
+        'intranetIp',
+      ]);
 
-        expect(widgets, [
-          DashboardWidget.trafficUsage,
-          DashboardWidget.outboundModeV2,
-          DashboardWidget.tunButton,
-        ]);
-      },
-    );
+      expect(widgets, [
+        DashboardWidget.outboundModeV2,
+        DashboardWidget.tunButton,
+        DashboardWidget.vpnButton,
+        DashboardWidget.trafficUsage,
+      ]);
+    });
 
     test('deduplicates outbound mode widget during migration', () {
       final widgets = dashboardWidgetsSafeFormJson([
@@ -118,7 +125,11 @@ void main() {
         'outboundModeV2',
       ]);
 
-      expect(widgets, [DashboardWidget.outboundModeV2]);
+      expect(widgets, [
+        DashboardWidget.outboundModeV2,
+        DashboardWidget.tunButton,
+        DashboardWidget.vpnButton,
+      ]);
     });
 
     test('default values survive round-trip', () {

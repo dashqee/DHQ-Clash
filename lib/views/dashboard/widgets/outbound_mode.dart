@@ -64,8 +64,10 @@ class _OutboundModeV2State extends ConsumerState<OutboundModeV2>
     super.dispose();
   }
 
-  void _handleChangeMode(Mode mode) {
-    globalState.container.read(setupActionProvider.notifier).changeMode(mode);
+  Future<void> _handleChangeMode(Mode mode) async {
+    await globalState.container
+        .read(setupActionProvider.notifier)
+        .changeMode(mode);
   }
 
   @override
@@ -100,7 +102,9 @@ class _OutboundModeV2State extends ConsumerState<OutboundModeV2>
                                     mode: item,
                                     selected: item == mode,
                                     animationProgress: progress,
-                                    onPressed: () => _handleChangeMode(item),
+                                    onPressed: () async {
+                                      await _handleChangeMode(item);
+                                    },
                                   ),
                                 ),
                               ),

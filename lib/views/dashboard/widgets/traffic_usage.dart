@@ -1,8 +1,5 @@
-import 'dart:math';
-
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/providers/app.dart';
-import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -52,7 +49,7 @@ class TrafficUsage extends StatelessWidget {
     const primaryColor = AppTheme.blue;
     const secondaryColor = AppTheme.violet;
     return SizedBox(
-      height: getWidgetHeight(2),
+      height: getWidgetHeight(2.5),
       child: RepaintBoundary(
         child: CommonCard(
           info: Info(
@@ -75,136 +72,56 @@ class TrafficUsage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Flexible(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
                         child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            AspectRatio(
-                              aspectRatio: 1,
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  DonutChart(
-                                    data: [
-                                      DonutChartData(
-                                        value: upTotalTrafficValue.toDouble(),
-                                        color: primaryColor,
-                                      ),
-                                      DonutChartData(
-                                        value: downTotalTrafficValue.toDouble(),
-                                        color: secondaryColor,
-                                      ),
-                                    ],
+                            SizedBox.square(
+                              key: const ValueKey('traffic-usage-chart'),
+                              dimension: 66,
+                              child: DonutChart(
+                                data: [
+                                  DonutChartData(
+                                    value: upTotalTrafficValue.toDouble(),
+                                    color: primaryColor,
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(18),
-                                    child: FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            totalTrafficValue.traffic.value,
-                                            style:
-                                                context.textTheme.titleMedium,
-                                          ),
-                                          Text(
-                                            totalTrafficValue.traffic.unit,
-                                            style: context.textTheme.labelSmall
-                                                ?.copyWith(
-                                                  color: AppTheme.muted,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                                  DonutChartData(
+                                    value: downTotalTrafficValue.toDouble(),
+                                    color: secondaryColor,
                                   ),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: LayoutBuilder(
-                                builder: (_, container) {
-                                  final uploadText = Text(
-                                    maxLines: 1,
-                                    appLocalizations.upload,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: context.textTheme.bodySmall,
-                                  );
-                                  final downloadText = Text(
-                                    maxLines: 1,
-                                    appLocalizations.download,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: context.textTheme.bodySmall,
-                                  );
-                                  final uploadTextSize = globalState.measure
-                                      .computeTextSize(uploadText);
-                                  final downloadTextSize = globalState.measure
-                                      .computeTextSize(downloadText);
-                                  final maxTextWidth = max(
-                                    uploadTextSize.width,
-                                    downloadTextSize.width,
-                                  );
-                                  if (maxTextWidth + 24 > container.maxWidth) {
-                                    return Container();
-                                  }
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Container(
-                                            width: 20,
-                                            height: 8,
-                                            decoration: ShapeDecoration(
-                                              color: primaryColor,
-                                              shape: RoundedSuperellipseBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(3),
-                                              ),
-                                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  FittedBox(
+                                    key: const ValueKey('traffic-usage-total'),
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      '${totalTrafficValue.traffic.value} '
+                                      '${totalTrafficValue.traffic.unit}',
+                                      style: context.textTheme.titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w800,
                                           ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            maxLines: 1,
-                                            appLocalizations.upload,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: context.textTheme.bodySmall,
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Container(
-                                            width: 20,
-                                            height: 8,
-                                            decoration: ShapeDecoration(
-                                              color: secondaryColor,
-                                              shape: RoundedSuperellipseBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(3),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            maxLines: 1,
-                                            appLocalizations.download,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: context.textTheme.bodySmall,
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  );
-                                },
+                                    ),
+                                  ),
+                                  const SizedBox(height: 7),
+                                  _TrafficLegend(
+                                    color: primaryColor,
+                                    label: appLocalizations.upload,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  _TrafficLegend(
+                                    color: secondaryColor,
+                                    label: appLocalizations.download,
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -237,6 +154,41 @@ class TrafficUsage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _TrafficLegend extends StatelessWidget {
+  final Color color;
+  final String label;
+
+  const _TrafficLegend({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 20,
+          height: 8,
+          decoration: ShapeDecoration(
+            color: color,
+            shape: RoundedSuperellipseBorder(
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: context.textTheme.bodySmall,
+          ),
+        ),
+      ],
     );
   }
 }

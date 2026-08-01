@@ -140,6 +140,49 @@ void main() {
   group('SetupAction', () {
     tearDown(videoCallTunnelController.stop);
 
+    test('global mode defaults to PROXY for a new profile selection', () async {
+      final profile = Profile.normal(url: 'https://example.com/subscription');
+      final container = ProviderContainer(
+        overrides: [
+          currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
+          profilesProvider.overrideWith(() => _TestProfiles([profile])),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container
+          .read(setupActionProvider.notifier)
+          .changeMode(Mode.global);
+
+      expect(container.read(patchClashConfigProvider).mode, Mode.global);
+      expect(
+        container.read(currentProfileProvider)?.selectedMap['GLOBAL'],
+        'PROXY',
+      );
+    });
+
+    test('global mode preserves an explicit proxy selection', () async {
+      final profile = Profile.normal(
+        url: 'https://example.com/subscription',
+      ).copyWith(selectedMap: const {'GLOBAL': 'Custom proxy'});
+      final container = ProviderContainer(
+        overrides: [
+          currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
+          profilesProvider.overrideWith(() => _TestProfiles([profile])),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container
+          .read(setupActionProvider.notifier)
+          .changeMode(Mode.global);
+
+      expect(
+        container.read(currentProfileProvider)?.selectedMap['GLOBAL'],
+        'Custom proxy',
+      );
+    });
+
     test('deep link enables TUN without enabling system proxy', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
