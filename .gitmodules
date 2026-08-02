@@ -3,4 +3,6 @@
 	url = https://github.com/dashqee/Clash.Meta.git
 [submodule "third_party/whitelist-bypass"]
 	path = third_party/whitelist-bypass
-	url = https://github.com/kulikov0/whitelist-bypass.git
+	# Our fork, because the pinned commit only exists there. Upstream is
+	# kulikov0/whitelist-bypass (MIT); pull from it into the fork to take updates.
+	url = https://github.com/dashqee/whitelist-bypass.git
