@@ -340,21 +340,24 @@ void main() {
   group('ProxiesStyleProps JSON round-trip', () {
     test('default values', () {
       const props = ProxiesStyleProps();
-      expect(props.type, ProxiesType.tab);
+      expect(props.type, ProxiesType.list);
       expect(props.sortType, ProxiesSortType.none);
       expect(props.layout, ProxiesLayout.standard);
+
+      final restored = ProxiesStyleProps.fromJson(const {});
+      expect(restored.type, ProxiesType.list);
     });
 
     test('round-trip with custom values', () {
       const props = ProxiesStyleProps(
-        type: ProxiesType.list,
+        type: ProxiesType.tab,
         sortType: ProxiesSortType.delay,
       );
       final restored = roundTrip(
         () => props.toJson(),
         ProxiesStyleProps.fromJson,
       );
-      expect(restored.type, ProxiesType.list);
+      expect(restored.type, ProxiesType.tab);
       expect(restored.sortType, ProxiesSortType.delay);
     });
   });
