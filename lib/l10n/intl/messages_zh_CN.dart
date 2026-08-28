@@ -255,6 +255,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "editSsid": MessageLookupByLibrary.simpleMessage("编辑SSID"),
     "emptyTip": m4,
     "en": MessageLookupByLibrary.simpleMessage("英语"),
+    "enableTun": MessageLookupByLibrary.simpleMessage("开启 TUN"),
     "entries": MessageLookupByLibrary.simpleMessage("个条目"),
     "entriesCount": m5,
     "exclude": MessageLookupByLibrary.simpleMessage("从最近任务中隐藏"),
@@ -699,6 +700,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "标准模式，覆写基本配置，提供简单追加规则能力",
     ),
     "start": MessageLookupByLibrary.simpleMessage("启动"),
+    "startRequiresTun": MessageLookupByLibrary.simpleMessage(
+      "未启用 TUN 时，应用不会接管系统流量，仅作为本地代理运行。请开启 TUN 后再连接。",
+    ),
     "startVpn": MessageLookupByLibrary.simpleMessage("正在启动VPN..."),
     "status": MessageLookupByLibrary.simpleMessage("状态"),
     "statusDesc": MessageLookupByLibrary.simpleMessage("关闭后将使用系统DNS"),

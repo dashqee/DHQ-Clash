@@ -35,6 +35,8 @@
   "allowLanDesc": "Allow access proxy through the LAN",
   "tun": "TUN",
   "tunDesc": "only effective in administrator mode",
+  "startRequiresTun": "Without TUN the app does not route your system traffic — it only runs a local proxy. Turn TUN on to connect.",
+  "enableTun": "Turn on TUN",
   "macosTunHelper": "TUN access",
   "macosTunHelperDesc": "Grants the core elevated permissions. Required only for TUN mode.",
   "macosTunHelperInstalled": "TUN access is installed",

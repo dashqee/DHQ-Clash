@@ -35,6 +35,8 @@
   "allowLanDesc": "LAN経由でのプロキシアクセスを許可",
   "tun": "TUN",
   "tunDesc": "管理者モードでのみ有効",
+  "startRequiresTun": "TUN がオフの場合、システムのトラフィックは転送されず、ローカルプロキシとして動作するだけです。接続するには TUN をオンにしてください。",
+  "enableTun": "TUN をオンにする",
   "macosTunHelper": "TUN アクセス権",
   "macosTunHelperDesc": "コアに昇格権限を付与します。TUN モードでのみ必要です。",
   "macosTunHelperInstalled": "TUN アクセス権はインストール済みです",

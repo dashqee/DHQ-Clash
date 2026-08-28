@@ -289,6 +289,21 @@ class AppLocalizations {
     );
   }
 
+  /// `Without TUN the app does not route your system traffic — it only runs a local proxy. Turn TUN on to connect.`
+  String get startRequiresTun {
+    return Intl.message(
+      'Without TUN the app does not route your system traffic — it only runs a local proxy. Turn TUN on to connect.',
+      name: 'startRequiresTun',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Turn on TUN`
+  String get enableTun {
+    return Intl.message('Turn on TUN', name: 'enableTun', desc: '', args: []);
+  }
+
   /// `TUN access`
   String get macosTunHelper {
     return Intl.message(

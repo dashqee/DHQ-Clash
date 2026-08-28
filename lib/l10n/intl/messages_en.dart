@@ -363,6 +363,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "editSsid": MessageLookupByLibrary.simpleMessage("Edit SSID"),
     "emptyTip": m4,
     "en": MessageLookupByLibrary.simpleMessage("English"),
+    "enableTun": MessageLookupByLibrary.simpleMessage("Turn on TUN"),
     "entries": MessageLookupByLibrary.simpleMessage(" entries"),
     "entriesCount": m5,
     "exclude": MessageLookupByLibrary.simpleMessage("Hidden from recent tasks"),
@@ -989,6 +990,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Standard mode, override basic configuration, provide simple rule addition capability",
     ),
     "start": MessageLookupByLibrary.simpleMessage("Start"),
+    "startRequiresTun": MessageLookupByLibrary.simpleMessage(
+      "Without TUN the app does not route your system traffic — it only runs a local proxy. Turn TUN on to connect.",
+    ),
     "startVpn": MessageLookupByLibrary.simpleMessage("Starting VPN..."),
     "status": MessageLookupByLibrary.simpleMessage("Status"),
     "statusDesc": MessageLookupByLibrary.simpleMessage(
