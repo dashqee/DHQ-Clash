@@ -11,6 +11,11 @@ on:
 env:
   FLUTTER_VERSION: '3.44.4'
 
+# A newer push to main makes the previous smoke run irrelevant.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-android:
     runs-on: ubuntu-latest
@@ -122,3 +127,44 @@ jobs:
           path: ./dist
           overwrite: true
           if-no-files-found: error
+
+  # Release runs happen on tags, and a cache written under a tag ref cannot be
+  # read by the next tag -- only the default branch's caches carry over. The
+  # jobs above already leave Linux and Windows caches on main, which is why
+  # those platforms hit; macOS had none, so every release re-downloaded the
+  # Flutter SDK and the pub packages on both runners and saved them again, for
+  # roughly nine minutes of the Intel job alone.
+  #
+  # This builds nothing. It exists to leave those caches on main. The action
+  # inputs must stay identical to release.yaml's, because the cache keys are
+  # derived from them and a single difference makes the release miss again.
+  warm-macos-cache:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15-intel, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.4'
+          cache-dependency-path: |
+            core/go.sum
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: master
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Get Flutter Dependency
+        run: |
+          flutter --version
+          flutter pub get
