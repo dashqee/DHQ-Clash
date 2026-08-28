@@ -38,6 +38,8 @@ mixin CoreInterface {
 
   Future<String>? getExternalProvider(String externalProviderName);
 
+  Future<String>? getRuleSetContent(String ruleSetName);
+
   Future<String> updateGeoData(String type);
 
   Future<String> sideLoadExternalProvider({
@@ -209,6 +211,15 @@ abstract class CoreHandlerInterface with CoreInterface {
     return await _invoke<String>(
           method: ActionMethod.getExternalProvider,
           data: externalProviderName,
+        ) ??
+        '';
+  }
+
+  @override
+  Future<String> getRuleSetContent(String ruleSetName) async {
+    return await _invoke<String>(
+          method: ActionMethod.getRuleSetContent,
+          data: ruleSetName,
         ) ??
         '';
   }

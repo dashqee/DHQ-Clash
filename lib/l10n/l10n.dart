@@ -1749,6 +1749,31 @@ class AppLocalizations {
     );
   }
 
+  /// `Contents`
+  String get ruleSetContent {
+    return Intl.message('Contents', name: 'ruleSetContent', desc: '', args: []);
+  }
+
+  /// `Showing {shown} of {total}`
+  String ruleSetShownCount(Object shown, Object total) {
+    return Intl.message(
+      'Showing $shown of $total',
+      name: 'ruleSetShownCount',
+      desc: '',
+      args: [shown, total],
+    );
+  }
+
+  /// `Could not read this rule set`
+  String get ruleSetLoadFailed {
+    return Intl.message(
+      'Could not read this rule set',
+      name: 'ruleSetLoadFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Override Dns`
   String get overrideDns {
     return Intl.message(

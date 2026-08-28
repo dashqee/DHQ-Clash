@@ -65,13 +65,15 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m21(label) => "${label} は 1024 から 49151 の間でなければなりません";
 
-  static String m22(count) => "${count} 秒";
+  static String m22(shown, total) => "${total} 件中 ${shown} 件を表示";
 
-  static String m23(count) => "${count} 項目が選択されています";
+  static String m23(count) => "${count} 秒";
 
-  static String m24(label) => "${label}はURLである必要があります";
+  static String m24(count) => "${count} 項目が選択されています";
 
-  static String m25(count) => "${count}年前";
+  static String m25(label) => "${label}はURLである必要があります";
+
+  static String m26(count) => "${count}年前";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -757,6 +759,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "ruleName": MessageLookupByLibrary.simpleMessage("ルール名"),
     "ruleProviders": MessageLookupByLibrary.simpleMessage("ルールプロバイダー"),
     "ruleSet": MessageLookupByLibrary.simpleMessage("ルールセット"),
+    "ruleSetContent": MessageLookupByLibrary.simpleMessage("内容"),
+    "ruleSetLoadFailed": MessageLookupByLibrary.simpleMessage(
+      "ルールセットを読み込めませんでした",
+    ),
+    "ruleSetShownCount": m22,
     "ruleTarget": MessageLookupByLibrary.simpleMessage("ルール対象"),
     "save": MessageLookupByLibrary.simpleMessage("保存"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("変更を保存しますか？"),
@@ -766,7 +773,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "search": MessageLookupByLibrary.simpleMessage("検索"),
     "seconds": MessageLookupByLibrary.simpleMessage("秒"),
-    "secondsCount": m22,
+    "secondsCount": m23,
     "selectAll": MessageLookupByLibrary.simpleMessage("すべて選択"),
     "selectProxies": MessageLookupByLibrary.simpleMessage("プロキシを選択"),
     "selectProxyProviders": MessageLookupByLibrary.simpleMessage(
@@ -778,7 +785,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "selectSubRule": MessageLookupByLibrary.simpleMessage("サブルールを選択してください"),
     "selected": MessageLookupByLibrary.simpleMessage("選択済み"),
-    "selectedCountTitle": m23,
+    "selectedCountTitle": m24,
     "settings": MessageLookupByLibrary.simpleMessage("設定"),
     "show": MessageLookupByLibrary.simpleMessage("表示"),
     "shrink": MessageLookupByLibrary.simpleMessage("縮小"),
@@ -889,7 +896,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "upload": MessageLookupByLibrary.simpleMessage("アップロード"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage("URL経由でプロファイルを取得"),
-    "urlTip": m24,
+    "urlTip": m25,
     "useHosts": MessageLookupByLibrary.simpleMessage("ホストを使用"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("システムホストを使用"),
     "userAgent": MessageLookupByLibrary.simpleMessage("ユーザーエージェント"),
@@ -920,7 +927,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "windowsTunHelperReinstallSuccess": MessageLookupByLibrary.simpleMessage(
       "Windows TUN ヘルパーを再インストールしました",
     ),
-    "yearsAgo": m25,
+    "yearsAgo": m26,
     "zh_CN": MessageLookupByLibrary.simpleMessage("簡体字中国語"),
   };
 }

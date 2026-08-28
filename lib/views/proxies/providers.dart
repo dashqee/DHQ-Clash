@@ -12,6 +12,8 @@ import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'rule_set_content.dart';
+
 typedef UpdatingMap = Map<String, bool>;
 
 class ProvidersView extends ConsumerStatefulWidget {
@@ -134,6 +136,17 @@ class ProviderItem extends StatelessWidget {
             spacing: 12,
             runAlignment: WrapAlignment.center,
             children: [
+              // Rule sets only: a proxy provider's file is a proxy list, and
+              // the core's decoder would have nothing to say about it.
+              if (provider.type == 'Rule')
+                CommonChip(
+                  avatar: const Icon(Icons.list_alt),
+                  label: context.appLocalizations.ruleSetContent,
+                  onPressed: () => BaseNavigator.push(
+                    context,
+                    RuleSetContentPage(providerName: provider.name),
+                  ),
+                ),
               CommonChip(
                 avatar: const Icon(Icons.upload),
                 label: context.appLocalizations.upload,

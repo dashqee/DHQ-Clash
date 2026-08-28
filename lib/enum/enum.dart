@@ -247,6 +247,7 @@ enum ActionMethod {
   closeConnection,
   getExternalProviders,
   getExternalProvider,
+  getRuleSetContent,
   updateGeoData,
   updateExternalProvider,
   sideLoadExternalProvider,
