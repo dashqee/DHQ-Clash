@@ -15,6 +15,11 @@ jobs:
   build:
     runs-on: ${{ matrix.os }}
     strategy:
+      # One platform failing used to cancel the rest, and the macOS Intel job
+      # runs three times longer than the others -- so a six-minute Windows
+      # failure threw away twenty minutes of macOS and the retry rebuilt
+      # everything. Let the others finish; three artifacts beat none.
+      fail-fast: false
       matrix:
         include:
           - platform: android
