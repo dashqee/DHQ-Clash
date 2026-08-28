@@ -334,16 +334,23 @@ class GlobalState {
     container.read(commonActionProvider.notifier).autoCheckUpdate();
     final appSetting = container.read(appSettingProvider);
     autoLaunch?.updateStatus(appSetting.autoLaunch);
-    // Never hide the first launch: the user still needs to see and accept the
-    // initial disclaimer. Subsequent launches follow the silent-launch setting.
-    if (!appSetting.silentLaunch || !appSetting.disclaimerAccepted) {
+    // Never hide a launch that has nothing to run yet. Silent launch is on by
+    // default, so without this someone who just installed the app would see it
+    // disappear into the tray with no profile and no way to notice.
+    final hasProfiles = container.read(profilesProvider).isNotEmpty;
+    if (!appSetting.silentLaunch || !hasProfiles) {
       window?.show();
     } else {
       window?.hide();
     }
+    // With no profile there is nothing for the dashboard to show, and adding
+    // one is the whole of what the client has to do next -- so open where that
+    // happens. Decided here rather than in the provider's build() so reading
+    // the profile database stays out of it.
+    if (!hasProfiles) {
+      container.read(currentPageLabelProvider.notifier).toProfiles();
+    }
     await _handleFailedPreference();
-    await _handlerDisclaimer();
-    await _showCrashlyticsTip();
     await container.read(coreActionProvider.notifier).connectCore();
     await container.read(coreActionProvider.notifier).initCore();
     await container.read(setupActionProvider.notifier).initStatus();
@@ -387,38 +394,6 @@ class GlobalState {
           ),
         ) ??
         false;
-  }
-
-  Future<void> _showCrashlyticsTip() async {
-    if (!system.isAndroid) return;
-    if (container.read(
-      appSettingProvider.select((state) => state.crashlyticsTip),
-    )) {
-      return;
-    }
-    await showMessage(
-      title: currentAppLocalizations.dataCollectionTip,
-      cancelable: false,
-      message: TextSpan(text: currentAppLocalizations.dataCollectionContent),
-    );
-    container
-        .read(appSettingProvider.notifier)
-        .update((state) => state.copyWith(crashlyticsTip: true));
-  }
-
-  Future<void> _handlerDisclaimer() async {
-    if (container.read(
-      appSettingProvider.select((state) => state.disclaimerAccepted),
-    )) {
-      return;
-    }
-    final isDisclaimerAccepted = await showDisclaimer();
-    if (!isDisclaimerAccepted) {
-      await container.read(systemActionProvider.notifier).handleExit();
-    }
-    container
-        .read(appSettingProvider.notifier)
-        .update((state) => state.copyWith(disclaimerAccepted: true));
   }
 }
 

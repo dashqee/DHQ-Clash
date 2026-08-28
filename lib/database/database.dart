@@ -33,7 +33,7 @@ class Database extends _$Database {
   Database([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   static LazyDatabase _openConnection() {
     return LazyDatabase(() async {
@@ -52,6 +52,9 @@ class Database extends _$Database {
           await _resetOrders();
           await _migrateRules(m);
         }
+        if (from < 3) {
+          await shortenDefaultUpdateInterval();
+        }
       },
       beforeOpen: (details) async {
         // final m = Migrator(this);
@@ -61,6 +64,28 @@ class Database extends _$Database {
         // await m.createTable(proxyGroups);
       },
     );
+  }
+
+  /// Pull profiles still on the old daily default up to the current one.
+  ///
+  /// Only rows that hold exactly the previous default are touched. The interval
+  /// is editable per profile, so anything else is a choice somebody made, and a
+  /// new default is no reason to overwrite it.
+  static const _legacyUpdateDurationMillis = 24 * 60 * 60 * 1000;
+
+  Future<void> shortenDefaultUpdateInterval() async {
+    await (update(profiles)
+          ..where(
+            (row) =>
+                row.autoUpdateDurationMillis.equals(_legacyUpdateDurationMillis),
+          ))
+        .write(
+          ProfilesCompanion(
+            autoUpdateDurationMillis: Value(
+              defaultUpdateDuration.inMilliseconds,
+            ),
+          ),
+        );
   }
 
   Future<void> _migrateRules(Migrator m) async {
