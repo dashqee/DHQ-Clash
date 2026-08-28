@@ -7,7 +7,7 @@ class Migration {
 
   Migration._internal();
 
-  final currentVersion = 3;
+  final currentVersion = 4;
 
   // Theme defaults shipped before v3 (pre "fruit mix"). Existing clients still
   // on these untouched defaults are moved to the new palette; anyone who picked
@@ -60,6 +60,9 @@ class Migration {
     if (_oldVersion < 3) {
       data = _applyFruitMixTheme(data);
     }
+    if (_oldVersion < 4) {
+      data = _useListProxiesStyle(data);
+    }
     final res = await sync(data);
     await preferences.setVersion(currentVersion);
     return res;
@@ -83,6 +86,26 @@ class Migration {
       'autoRun': true,
     });
     nextConfigMap['appSettingProps'] = appSettingProps;
+    return data.copyWith(configMap: nextConfigMap);
+  }
+
+  /// Switch existing clients to the list view of Proxies.
+  ///
+  /// The default became `list` for fresh installs, but everyone already using
+  /// the app has `tab` written into their config and would never see the
+  /// change. Only `type` is touched: sort order, layout, icon style and card
+  /// size may have been set deliberately, and changing the view is no reason to
+  /// reset them.
+  MigrationData _useListProxiesStyle(MigrationData data) {
+    final configMap = data.configMap;
+    if (configMap == null) return data;
+
+    final nextConfigMap = Map<String, Object?>.from(configMap);
+    final proxiesStyleProps = Map<String, Object?>.from(
+      nextConfigMap['proxiesStyleProps'] as Map? ?? const {},
+    );
+    proxiesStyleProps['type'] = 'list';
+    nextConfigMap['proxiesStyleProps'] = proxiesStyleProps;
     return data.copyWith(configMap: nextConfigMap);
   }
 

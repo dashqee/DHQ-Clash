@@ -1279,15 +1279,20 @@ class AppLocalizations {
     );
   }
 
-  /// `Requests`
+  /// `Request history`
   String get requests {
-    return Intl.message('Requests', name: 'requests', desc: '', args: []);
+    return Intl.message(
+      'Request history',
+      name: 'requests',
+      desc: '',
+      args: [],
+    );
   }
 
-  /// `View recently request records`
+  /// `View recent request records`
   String get requestsDesc {
     return Intl.message(
-      'View recently request records',
+      'View recent request records',
       name: 'requestsDesc',
       desc: '',
       args: [],
@@ -1319,9 +1324,14 @@ class AppLocalizations {
     );
   }
 
-  /// `Connections`
+  /// `Active connections`
   String get connections {
-    return Intl.message('Connections', name: 'connections', desc: '', args: []);
+    return Intl.message(
+      'Active connections',
+      name: 'connections',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `View current connections data`

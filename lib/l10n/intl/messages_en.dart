@@ -257,7 +257,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "connected": MessageLookupByLibrary.simpleMessage("Connected"),
     "connecting": MessageLookupByLibrary.simpleMessage("Connecting..."),
     "connection": MessageLookupByLibrary.simpleMessage("Connection"),
-    "connections": MessageLookupByLibrary.simpleMessage("Connections"),
+    "connections": MessageLookupByLibrary.simpleMessage("Active connections"),
     "connectionsDesc": MessageLookupByLibrary.simpleMessage(
       "View current connections data",
     ),
@@ -772,9 +772,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "remove": MessageLookupByLibrary.simpleMessage("Remove"),
     "rename": MessageLookupByLibrary.simpleMessage("Rename"),
     "request": MessageLookupByLibrary.simpleMessage("Request"),
-    "requests": MessageLookupByLibrary.simpleMessage("Requests"),
+    "requests": MessageLookupByLibrary.simpleMessage("Request history"),
     "requestsDesc": MessageLookupByLibrary.simpleMessage(
-      "View recently request records",
+      "View recent request records",
     ),
     "reset": MessageLookupByLibrary.simpleMessage("Reset"),
     "resetPageChangesTip": MessageLookupByLibrary.simpleMessage(

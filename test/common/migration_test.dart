@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -44,7 +45,7 @@ void main() {
       expect(migrated.appSettingProps.autoLaunch, true);
       expect(migrated.appSettingProps.silentLaunch, true);
       expect(migrated.appSettingProps.autoRun, true);
-      expect(await preferences.getVersion(), 3);
+      expect(await preferences.getVersion(), 4);
     },
   );
 
@@ -89,7 +90,72 @@ void main() {
 
     expect(migrated.themeProps.primaryColor, defaultPrimaryColor);
     expect(migrated.themeProps.primaryColors, defaultPrimaryColors);
-    expect(await preferences.getVersion(), 3);
+    expect(await preferences.getVersion(), 4);
+  });
+
+  test('migration v4 switches existing clients to the list view', () async {
+    // The default became `list` for fresh installs only; everyone already using
+    // the app has `tab` written into their config and would never see it.
+    await configurePreferences(3);
+
+    const tabbed = Config(
+      themeProps: defaultThemeProps,
+      proxiesStyleProps: ProxiesStyleProps(type: ProxiesType.tab),
+    );
+
+    final migrated = await migration.migrationIfNeeded(
+      storedConfigMap(tabbed),
+      sync: (data) async => Config.realFromJson(data.configMap),
+    );
+
+    expect(migrated.proxiesStyleProps.type, ProxiesType.list);
+    expect(await preferences.getVersion(), 4);
+  });
+
+  test('migration v4 keeps the rest of the proxies style', () async {
+    // Sort order, layout, icon style and card size may have been set
+    // deliberately; changing the view is no reason to reset them.
+    await configurePreferences(3);
+
+    const styled = Config(
+      themeProps: defaultThemeProps,
+      proxiesStyleProps: ProxiesStyleProps(
+        type: ProxiesType.tab,
+        sortType: ProxiesSortType.delay,
+        layout: ProxiesLayout.tight,
+        iconStyle: ProxiesIconStyle.none,
+        cardType: ProxyCardType.min,
+      ),
+    );
+
+    final migrated = await migration.migrationIfNeeded(
+      storedConfigMap(styled),
+      sync: (data) async => Config.realFromJson(data.configMap),
+    );
+
+    expect(migrated.proxiesStyleProps.type, ProxiesType.list);
+    expect(migrated.proxiesStyleProps.sortType, ProxiesSortType.delay);
+    expect(migrated.proxiesStyleProps.layout, ProxiesLayout.tight);
+    expect(migrated.proxiesStyleProps.iconStyle, ProxiesIconStyle.none);
+    expect(migrated.proxiesStyleProps.cardType, ProxyCardType.min);
+  });
+
+  test('migration v4 leaves a client who went back to tabs alone', () async {
+    // Once the switch has happened, choosing tabs again is a decision. Running
+    // on every start would undo it after each launch.
+    await configurePreferences(4);
+
+    const tabbed = Config(
+      themeProps: defaultThemeProps,
+      proxiesStyleProps: ProxiesStyleProps(type: ProxiesType.tab),
+    );
+
+    final migrated = await migration.migrationIfNeeded(
+      storedConfigMap(tabbed),
+      sync: (data) async => Config.realFromJson(data.configMap),
+    );
+
+    expect(migrated.proxiesStyleProps.type, ProxiesType.tab);
   });
 
   test('migration v3 keeps a user-customized theme', () async {
