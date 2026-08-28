@@ -3361,6 +3361,284 @@ $SubscriptionInfoCopyWith<$Res>? get subscriptionInfo {
 
 
 /// @nodoc
+mixin _$RuleSetContent {
+
+ List<String> get lines; int get total; bool get truncated; String get error;
+/// Create a copy of RuleSetContent
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RuleSetContentCopyWith<RuleSetContent> get copyWith => _$RuleSetContentCopyWithImpl<RuleSetContent>(this as RuleSetContent, _$identity);
+
+  /// Serializes this RuleSetContent to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RuleSetContent&&const DeepCollectionEquality().equals(other.lines, lines)&&(identical(other.total, total) || other.total == total)&&(identical(other.truncated, truncated) || other.truncated == truncated)&&(identical(other.error, error) || other.error == error));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(lines),total,truncated,error);
+
+@override
+String toString() {
+  return 'RuleSetContent(lines: $lines, total: $total, truncated: $truncated, error: $error)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RuleSetContentCopyWith<$Res>  {
+  factory $RuleSetContentCopyWith(RuleSetContent value, $Res Function(RuleSetContent) _then) = _$RuleSetContentCopyWithImpl;
+@useResult
+$Res call({
+ List<String> lines, int total, bool truncated, String error
+});
+
+
+
+
+}
+/// @nodoc
+class _$RuleSetContentCopyWithImpl<$Res>
+    implements $RuleSetContentCopyWith<$Res> {
+  _$RuleSetContentCopyWithImpl(this._self, this._then);
+
+  final RuleSetContent _self;
+  final $Res Function(RuleSetContent) _then;
+
+/// Create a copy of RuleSetContent
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? lines = null,Object? total = null,Object? truncated = null,Object? error = null,}) {
+  return _then(_self.copyWith(
+lines: null == lines ? _self.lines : lines // ignore: cast_nullable_to_non_nullable
+as List<String>,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
+as int,truncated: null == truncated ? _self.truncated : truncated // ignore: cast_nullable_to_non_nullable
+as bool,error: null == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [RuleSetContent].
+extension RuleSetContentPatterns on RuleSetContent {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _RuleSetContent value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _RuleSetContent() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _RuleSetContent value)  $default,){
+final _that = this;
+switch (_that) {
+case _RuleSetContent():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _RuleSetContent value)?  $default,){
+final _that = this;
+switch (_that) {
+case _RuleSetContent() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<String> lines,  int total,  bool truncated,  String error)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _RuleSetContent() when $default != null:
+return $default(_that.lines,_that.total,_that.truncated,_that.error);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<String> lines,  int total,  bool truncated,  String error)  $default,) {final _that = this;
+switch (_that) {
+case _RuleSetContent():
+return $default(_that.lines,_that.total,_that.truncated,_that.error);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<String> lines,  int total,  bool truncated,  String error)?  $default,) {final _that = this;
+switch (_that) {
+case _RuleSetContent() when $default != null:
+return $default(_that.lines,_that.total,_that.truncated,_that.error);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _RuleSetContent implements RuleSetContent {
+  const _RuleSetContent({final  List<String> lines = const [], this.total = 0, this.truncated = false, this.error = ''}): _lines = lines;
+  factory _RuleSetContent.fromJson(Map<String, dynamic> json) => _$RuleSetContentFromJson(json);
+
+ final  List<String> _lines;
+@override@JsonKey() List<String> get lines {
+  if (_lines is EqualUnmodifiableListView) return _lines;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_lines);
+}
+
+@override@JsonKey() final  int total;
+@override@JsonKey() final  bool truncated;
+@override@JsonKey() final  String error;
+
+/// Create a copy of RuleSetContent
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RuleSetContentCopyWith<_RuleSetContent> get copyWith => __$RuleSetContentCopyWithImpl<_RuleSetContent>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$RuleSetContentToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RuleSetContent&&const DeepCollectionEquality().equals(other._lines, _lines)&&(identical(other.total, total) || other.total == total)&&(identical(other.truncated, truncated) || other.truncated == truncated)&&(identical(other.error, error) || other.error == error));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_lines),total,truncated,error);
+
+@override
+String toString() {
+  return 'RuleSetContent(lines: $lines, total: $total, truncated: $truncated, error: $error)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RuleSetContentCopyWith<$Res> implements $RuleSetContentCopyWith<$Res> {
+  factory _$RuleSetContentCopyWith(_RuleSetContent value, $Res Function(_RuleSetContent) _then) = __$RuleSetContentCopyWithImpl;
+@override @useResult
+$Res call({
+ List<String> lines, int total, bool truncated, String error
+});
+
+
+
+
+}
+/// @nodoc
+class __$RuleSetContentCopyWithImpl<$Res>
+    implements _$RuleSetContentCopyWith<$Res> {
+  __$RuleSetContentCopyWithImpl(this._self, this._then);
+
+  final _RuleSetContent _self;
+  final $Res Function(_RuleSetContent) _then;
+
+/// Create a copy of RuleSetContent
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? lines = null,Object? total = null,Object? truncated = null,Object? error = null,}) {
+  return _then(_RuleSetContent(
+lines: null == lines ? _self._lines : lines // ignore: cast_nullable_to_non_nullable
+as List<String>,total: null == total ? _self.total : total // ignore: cast_nullable_to_non_nullable
+as int,truncated: null == truncated ? _self.truncated : truncated // ignore: cast_nullable_to_non_nullable
+as bool,error: null == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$Action {
 
  ActionMethod get method; dynamic get data; String get id;

@@ -250,6 +250,24 @@ Map<String, dynamic> _$ExternalProviderToJson(_ExternalProvider instance) =>
       'update-at': instance.updateAt.toIso8601String(),
     };
 
+_RuleSetContent _$RuleSetContentFromJson(Map<String, dynamic> json) =>
+    _RuleSetContent(
+      lines:
+          (json['lines'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+          const [],
+      total: (json['total'] as num?)?.toInt() ?? 0,
+      truncated: json['truncated'] as bool? ?? false,
+      error: json['error'] as String? ?? '',
+    );
+
+Map<String, dynamic> _$RuleSetContentToJson(_RuleSetContent instance) =>
+    <String, dynamic>{
+      'lines': instance.lines,
+      'total': instance.total,
+      'truncated': instance.truncated,
+      'error': instance.error,
+    };
+
 _Action _$ActionFromJson(Map<String, dynamic> json) => _Action(
   method: $enumDecode(_$ActionMethodEnumMap, json['method']),
   data: json['data'],
@@ -283,6 +301,7 @@ const _$ActionMethodEnumMap = {
   ActionMethod.closeConnection: 'closeConnection',
   ActionMethod.getExternalProviders: 'getExternalProviders',
   ActionMethod.getExternalProvider: 'getExternalProvider',
+  ActionMethod.getRuleSetContent: 'getRuleSetContent',
   ActionMethod.updateGeoData: 'updateGeoData',
   ActionMethod.updateExternalProvider: 'updateExternalProvider',
   ActionMethod.sideLoadExternalProvider: 'sideLoadExternalProvider',

@@ -93,6 +93,7 @@ const (
 	closeConnectionMethod          Method = "closeConnection"
 	getExternalProvidersMethod     Method = "getExternalProviders"
 	getExternalProviderMethod      Method = "getExternalProvider"
+	getRuleSetContentMethod        Method = "getRuleSetContent"
 	getCountryCodeMethod           Method = "getCountryCode"
 	getMemoryMethod                Method = "getMemory"
 	updateGeoDataMethod            Method = "updateGeoData"

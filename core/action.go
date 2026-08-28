@@ -130,6 +130,10 @@ func handleAction(action *Action, result ActionResult) {
 		externalProviderName := action.Data.(string)
 		result.success(handleGetExternalProvider(externalProviderName))
 		return
+	case getRuleSetContentMethod:
+		ruleSetName := action.Data.(string)
+		result.success(handleGetRuleSetContent(ruleSetName))
+		return
 	case updateGeoDataMethod:
 		geoType := action.Data.(string)
 		handleUpdateGeoData(geoType)

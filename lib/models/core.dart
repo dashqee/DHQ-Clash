@@ -168,6 +168,24 @@ extension ExternalProviderExt on ExternalProvider {
   String get updatingKey => 'provider_$name';
 }
 
+/// The readable rules of one rule-set provider.
+///
+/// [lines] is a window, not the whole set: a geosite set runs to hundreds of
+/// thousands of entries and the core caps what it hands over. [total] is the
+/// real count, so "showing N of M" can be honest.
+@freezed
+abstract class RuleSetContent with _$RuleSetContent {
+  const factory RuleSetContent({
+    @Default([]) List<String> lines,
+    @Default(0) int total,
+    @Default(false) bool truncated,
+    @Default('') String error,
+  }) = _RuleSetContent;
+
+  factory RuleSetContent.fromJson(Map<String, Object?> json) =>
+      _$RuleSetContentFromJson(json);
+}
+
 @freezed
 abstract class Action with _$Action {
   const factory Action({

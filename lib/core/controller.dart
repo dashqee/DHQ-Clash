@@ -177,6 +177,19 @@ class CoreController {
     return ExternalProvider.fromJson(json.decode(externalProvidersRawString));
   }
 
+  /// Rules of one rule-set, decoded by the core.
+  ///
+  /// Most sets are MRS, a compressed binary the app cannot read on its own; the
+  /// core decodes them and caps the result, so this never carries a whole
+  /// geosite set across the boundary.
+  Future<RuleSetContent> getRuleSetContent(String ruleSetName) async {
+    final raw = await _interface.getRuleSetContent(ruleSetName);
+    if (raw.isEmpty) {
+      return const RuleSetContent(error: 'empty response');
+    }
+    return RuleSetContent.fromJson(json.decode(raw));
+  }
+
   Future<String> updateGeoData(String type) {
     return _interface.updateGeoData(type);
   }

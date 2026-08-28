@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"cmp"
 	"context"
 	"encoding/json"
@@ -18,6 +19,7 @@ import (
 	"github.com/metacubex/mihomo/hub/executor"
 	"github.com/metacubex/mihomo/listener"
 	"github.com/metacubex/mihomo/log"
+	rp "github.com/metacubex/mihomo/rules/provider"
 	"github.com/metacubex/mihomo/tunnel"
 	"github.com/metacubex/mihomo/tunnel/statistic"
 	"golang.org/x/exp/slices"
@@ -26,6 +28,7 @@ import (
 	"runtime"
 	"runtime/debug"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -343,6 +346,81 @@ func handleGetExternalProvider(externalProviderName string) string {
 	data, err := json.Marshal(e)
 	if err != nil {
 		return ""
+	}
+	return string(data)
+}
+
+// A rule set can hold hundreds of thousands of entries. The cap is applied
+// here rather than in Dart so that neither the FFI boundary nor the Flutter
+// heap ever sees the whole of a geosite set: the UI shows a window, and
+// `total` keeps the count honest.
+const maxRuleSetLines = 5000
+
+type ruleSetContent struct {
+	Lines     []string `json:"lines"`
+	Total     int      `json:"total"`
+	Truncated bool     `json:"truncated"`
+	Error     string   `json:"error,omitempty"`
+}
+
+func ruleSetContentError(message string) string {
+	data, err := json.Marshal(ruleSetContent{Lines: []string{}, Error: message})
+	if err != nil {
+		return ""
+	}
+	return string(data)
+}
+
+// handleGetRuleSetContent returns the readable rules of one rule-set provider.
+//
+// Most sets are MRS, a zstd-compressed binary the app cannot read on its own —
+// but the core it is linked against can: ConvertToMrs with format MrsRule takes
+// the "export to TextRule" branch and writes the entries out as lines. Text
+// formats (classical .list files, inline payloads) fail that decode, and their
+// file is already readable, so the raw bytes are the fallback. The provider's
+// own `format` field is unexported, which is why this asks the decoder rather
+// than the provider.
+func handleGetRuleSetContent(ruleSetName string) string {
+	runLock.Lock()
+	defer runLock.Unlock()
+	externalProvider, exist := externalProviders[ruleSetName]
+	if !exist {
+		return ruleSetContentError("provider not found")
+	}
+	ruleSetProvider, ok := externalProvider.(*rp.RuleSetProvider)
+	if !ok {
+		return ruleSetContentError("provider is not a rule set")
+	}
+	path := ruleSetProvider.Vehicle().Path()
+	buf, err := os.ReadFile(path)
+	if err != nil {
+		return ruleSetContentError(err.Error())
+	}
+
+	var decoded bytes.Buffer
+	text := ""
+	if err = rp.ConvertToMrs(buf, ruleSetProvider.Behavior(), cp.MrsRule, &decoded); err == nil {
+		text = decoded.String()
+	} else {
+		text = string(buf)
+	}
+
+	content := ruleSetContent{Lines: []string{}}
+	for _, line := range strings.Split(text, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		content.Total++
+		if len(content.Lines) < maxRuleSetLines {
+			content.Lines = append(content.Lines, line)
+		}
+	}
+	content.Truncated = content.Total > len(content.Lines)
+
+	data, err := json.Marshal(content)
+	if err != nil {
+		return ruleSetContentError(err.Error())
 	}
 	return string(data)
 }
