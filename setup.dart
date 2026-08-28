@@ -237,7 +237,11 @@ Future<int> _package(
     'git',
     'https://github.com/chen08209/flutter_distributor.git',
     '--git-ref',
-    'cdeeef2d8f8325bb6ae0bc86b39f56e4325d1a58',
+    // Tip of that repo's FlClash branch. The previous pin was garbage-collected
+    // when the branch was re-initialised upstream on 2026-08-22, which broke
+    // every release build: the ref simply stopped existing. Nothing here stops
+    // that happening again -- a fork we control would.
+    'c30ce409bef798c4f5fcedc45293eb4bc33da597',
     '--git-path',
     'packages/flutter_distributor',
   ]);
