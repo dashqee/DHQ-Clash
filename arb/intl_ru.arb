@@ -590,5 +590,8 @@
   "turnTunnelCaptchaTitle": "Требуется проверка VK",
   "turnTunnelCaptchaDesc": "Пройдите проверку в браузере, чтобы продолжить подключение.",
   "turnTunnelCaptchaOpen": "Открыть",
-  "turnTunnelRetry": "Повторить"
+  "turnTunnelRetry": "Повторить",
+  "turnTunnelPinned": "Весь трафик идёт через туннель",
+  "turnTunnelPinnedDesc": "Пока аварийный туннель подключён, весь трафик идёт в него. Выключите тумблер, чтобы вернуть обычную маршрутизацию.",
+  "turnTunnelPinnedModeLocked": "Режим удерживается на «Правилах», пока весь трафик идёт через аварийный туннель."
 }

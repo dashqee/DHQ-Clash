@@ -273,6 +273,7 @@ Future<VM2<String, String>> _makeRealProfileTask(
       port: data.videoCallTunnelPort,
       username: data.videoCallTunnelUsername,
       password: data.videoCallTunnelPassword,
+      pinned: data.videoCallTunnelPinned,
     );
   }
   final yaml = await _encodeYaml(Map<String, dynamic>.from(rawConfig));

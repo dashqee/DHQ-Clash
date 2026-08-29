@@ -313,6 +313,143 @@ void main() {
       ]);
     });
 
+    test('leaves routing to the rules while it is only a fallback', () {
+      // The pin must not leak into ordinary use: unpinned, the tunnel is
+      // reachable only through the provider the Fallback group uses, and the
+      // profile's own rules still decide everything.
+      final result = addVideoCallTunnelToConfig(
+        {
+          'rules': ['RULE-SET,ads,REJECT', 'MATCH,Local'],
+        },
+        port: 11789,
+        username: 'user',
+        password: 'secret',
+      );
+
+      expect(
+        (result['proxies'] as List).where(
+          (proxy) => (proxy as Map)['name'] == videoCallTunnelProxyName,
+        ),
+        isEmpty,
+      );
+      expect((result['rules'] as List).skip(4), [
+        'RULE-SET,ads,REJECT',
+        'MATCH,Local',
+      ]);
+    });
+
+    test('pinned, every route ends at the tunnel', () {
+      final result = addVideoCallTunnelToConfig(
+        {
+          'rules': ['RULE-SET,ads,REJECT', 'MATCH,Local'],
+        },
+        port: 11789,
+        username: 'user',
+        password: 'secret',
+        pinned: true,
+      );
+
+      // A rule target is resolved against `proxies:` and the group names, so a
+      // provider-only proxy would leave MATCH pointing at nothing.
+      expect(
+        ((result['proxies'] as List).single as Map)['name'],
+        videoCallTunnelProxyName,
+      );
+      expect(result['rules'], [
+        ...videoCallTunnelBypassRules,
+        ...videoCallTunnelPinRules,
+      ]);
+      // The sidecar's own way out has to stay above the catch-all, or it ends
+      // up dialling its own SOCKS port.
+      final rules = result['rules'] as List;
+      expect(
+        rules.indexOf('PROCESS-NAME,DHQClashTurn,DIRECT'),
+        lessThan(rules.indexOf('MATCH,$videoCallTunnelProxyName')),
+      );
+      // So does the LAN: with the catch-all above it, even the core's own
+      // external-controller would be routed into the call.
+      expect(
+        rules.indexOf('IP-CIDR,192.168.0.0/16,DIRECT,no-resolve'),
+        lessThan(rules.indexOf('MATCH,$videoCallTunnelProxyName')),
+      );
+      expect(rules.last, 'MATCH,$videoCallTunnelProxyName');
+    });
+
+    test('pinning twice changes nothing the second time', () {
+      // The config is regenerated on every applyProfile, and the pin is applied
+      // to whatever the previous pass produced.
+      Map<String, dynamic> pin(Map<String, dynamic> source) =>
+          addVideoCallTunnelToConfig(
+            source,
+            port: 11789,
+            username: 'user',
+            password: 'secret',
+            pinned: true,
+          );
+
+      final once = pin({
+        'rules': ['MATCH,Local'],
+      });
+      final twice = pin(once);
+
+      expect((twice['proxies'] as List).length, 1);
+      expect(twice['rules'], once['rules']);
+    });
+
+    test('unpinning brings the original rules back', () {
+      final source = {
+        'rules': ['RULE-SET,ads,REJECT', 'MATCH,Local'],
+      };
+      final pinned = addVideoCallTunnelToConfig(
+        source,
+        port: 11789,
+        username: 'user',
+        password: 'secret',
+        pinned: true,
+      );
+      // Nothing carries the old rules back on its own — they come from the
+      // profile, which is what the next applyProfile regenerates from.
+      final unpinned = addVideoCallTunnelToConfig(
+        source,
+        port: 11789,
+        username: 'user',
+        password: 'secret',
+      );
+
+      expect(pinned['rules'], isNot(unpinned['rules']));
+      expect((unpinned['rules'] as List).skip(4), [
+        'RULE-SET,ads,REJECT',
+        'MATCH,Local',
+      ]);
+      expect(
+        (unpinned['proxies'] as List).where(
+          (proxy) => (proxy as Map)['name'] == videoCallTunnelProxyName,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('the mode may not leave rule matching while pinned', () {
+      // In global or direct the core matches no rules at all, so the catch-all
+      // that carries everything into the tunnel would simply not run.
+      const pinned = VideoCallTunnelProps(enable: true, pinned: true);
+      expect(videoCallTunnelAllowsMode(pinned, Mode.rule), isTrue);
+      expect(videoCallTunnelAllowsMode(pinned, Mode.global), isFalse);
+      expect(videoCallTunnelAllowsMode(pinned, Mode.direct), isFalse);
+    });
+
+    test('an unpinned tunnel does not hold the mode', () {
+      for (final props in const [
+        VideoCallTunnelProps(enable: true),
+        VideoCallTunnelProps(pinned: true),
+        VideoCallTunnelProps(),
+      ]) {
+        for (final mode in Mode.values) {
+          expect(videoCallTunnelAllowsMode(props, mode), isTrue);
+        }
+      }
+    });
+
     test('forces process matching on, whatever the user picked', () {
       // The PROCESS-NAME bypass rules are the only thing keeping the sidecar's own
       // traffic out of its own SOCKS port; without process matching they are inert.

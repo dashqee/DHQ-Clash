@@ -880,6 +880,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
       "バイパス枠が未割り当てです — ミニアプリで有効にしてください",
     ),
+    "turnTunnelPinned": MessageLookupByLibrary.simpleMessage(
+      "すべての通信がトンネル経由になります",
+    ),
+    "turnTunnelPinnedDesc": MessageLookupByLibrary.simpleMessage(
+      "緊急トンネルの接続中は、すべての通信がトンネルを通ります。通常のルーティングに戻すにはスイッチをオフにしてください。",
+    ),
+    "turnTunnelPinnedModeLocked": MessageLookupByLibrary.simpleMessage(
+      "すべての通信が緊急トンネルを通る間、モードは「ルール」に固定されます。",
+    ),
     "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage("再接続中"),
     "turnTunnelRetry": MessageLookupByLibrary.simpleMessage("再試行"),
     "turnTunnelStarting": MessageLookupByLibrary.simpleMessage("起動中"),

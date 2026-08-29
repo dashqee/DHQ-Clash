@@ -37,6 +37,31 @@ const videoCallTunnelResolveTimeout = Duration(seconds: 5);
 // tunnel we are trying to repair, where the relay waits 20s for MsgConnectOK before
 // giving up — stay well under that so the direct retry still happens.
 const videoCallTunnelLinkTimeout = Duration(seconds: 6);
+// The sidecar's own traffic to VK. TUN takes every route on desktop, so without
+// these its connection comes back through the core and into its own SOCKS port.
+const videoCallTunnelBypassRules = <String>[
+  'PROCESS-NAME,DHQClashTurn,DIRECT',
+  'PROCESS-NAME,DHQClashTurn.exe,DIRECT',
+  'PROCESS-NAME,libDHQClashTurn.so,DIRECT',
+  'PROCESS-NAME,app.dhqclash,DIRECT',
+];
+
+// What replaces the rule list once the tunnel is pinned. Private ranges are
+// spelled out rather than left to `GEOIP,private`, which needs the mmdb: with
+// the catch-all above them the LAN and the core's own external-controller would
+// both be routed into the call.
+const videoCallTunnelPinRules = <String>[
+  'IP-CIDR,127.0.0.0/8,DIRECT,no-resolve',
+  'IP-CIDR,10.0.0.0/8,DIRECT,no-resolve',
+  'IP-CIDR,172.16.0.0/12,DIRECT,no-resolve',
+  'IP-CIDR,192.168.0.0/16,DIRECT,no-resolve',
+  'IP-CIDR,169.254.0.0/16,DIRECT,no-resolve',
+  'IP-CIDR6,::1/128,DIRECT,no-resolve',
+  'IP-CIDR6,fc00::/7,DIRECT,no-resolve',
+  'IP-CIDR6,fe80::/10,DIRECT,no-resolve',
+  'MATCH,$videoCallTunnelProxyName',
+];
+
 const videoCallTunnelRoutingSelections = <String, String>{
   'PROXY': 'Fallback',
   'Telegram': 'PROXY',
@@ -89,6 +114,16 @@ class VideoCallTunnelLinkResult {
 
 typedef VideoCallTunnelLinkFetcher =
     Future<VideoCallTunnelLinkResult> Function(String subscriptionUrl);
+
+/// Whether the outbound mode may be changed to [mode] right now.
+///
+/// The pin is a rule, and the core matches no rules at all in global or direct
+/// (`proxy = proxies["GLOBAL"]`), so switching modes would silently route around
+/// the tunnel the dashboard says everything is going through.
+bool videoCallTunnelAllowsMode(VideoCallTunnelProps props, Mode mode) {
+  if (mode == Mode.rule) return true;
+  return !(props.enable && props.pinned);
+}
 
 Map<String, String> applyVideoCallTunnelRoutingSelections(
   Map<String, String> selectedMap,
@@ -194,6 +229,7 @@ Map<String, dynamic> addVideoCallTunnelToConfig(
   required int port,
   required String username,
   required String password,
+  bool pinned = false,
 }) {
   final config = Map<String, dynamic>.from(source);
   final proxies = List<dynamic>.from(config['proxies'] as List? ?? const []);
@@ -210,6 +246,13 @@ Map<String, dynamic> addVideoCallTunnelToConfig(
     'password': password,
     'udp': true,
   };
+  // Unpinned, the tunnel reaches the core only through the inline provider the
+  // Fallback group uses. A rule target, though, is looked up in the proxy map
+  // built from `proxies:` and the group names — a provider-only proxy is not in
+  // it — so pinning has to put the proxy there as well for MATCH to resolve.
+  if (pinned) {
+    proxies.add(proxy);
+  }
   config['proxies'] = proxies;
 
   final proxyProviders = Map<String, dynamic>.from(
@@ -251,14 +294,15 @@ Map<String, dynamic> addVideoCallTunnelToConfig(
   config['proxy-groups'] = groups;
 
   final rules = List<String>.from(config['rules'] as List? ?? const []);
-  const bypassRules = [
-    'PROCESS-NAME,DHQClashTurn,DIRECT',
-    'PROCESS-NAME,DHQClashTurn.exe,DIRECT',
-    'PROCESS-NAME,libDHQClashTurn.so,DIRECT',
-    'PROCESS-NAME,app.dhqclash,DIRECT',
-  ];
-  rules.removeWhere(bypassRules.contains);
-  config['rules'] = [...bypassRules, ...rules];
+  rules.removeWhere(videoCallTunnelBypassRules.contains);
+  rules.removeWhere(videoCallTunnelPinRules.contains);
+  config['rules'] = pinned
+      // Everything below the catch-all is unreachable, which is the point: this
+      // is what the user asked GLOBAL for. GLOBAL itself cannot be used — the
+      // core skips rule matching entirely in that mode, and the bypass rules
+      // above are the only thing keeping the sidecar out of its own SOCKS port.
+      ? [...videoCallTunnelBypassRules, ...videoCallTunnelPinRules]
+      : [...videoCallTunnelBypassRules, ...rules];
   // TUN takes every route on desktop, so the sidecar's own traffic to VK comes back
   // through the core. These PROCESS-NAME rules are the ONLY thing keeping it from
   // being sent into the sidecar's own SOCKS port once DHQ TURN is the active

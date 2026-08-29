@@ -458,9 +458,11 @@ void main() {
         restored.videoCallTunnelProps.toJson(),
         isNot(contains('joinLink')),
       );
+      // Pinned routing and the mode to hand back have to survive a restart;
+      // the join link, which is call-scoped, still must not.
       expect(
         restored.videoCallTunnelProps.toJson().keys,
-        unorderedEquals(['enable']),
+        unorderedEquals(['enable', 'pinned', 'restoreMode']),
       );
       expect(restored.windowProps.width, 1280);
       expect(restored.windowProps.height, 720);

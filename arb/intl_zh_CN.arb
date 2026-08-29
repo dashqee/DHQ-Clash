@@ -590,5 +590,8 @@
   "turnTunnelCaptchaTitle": "需要 VK 验证",
   "turnTunnelCaptchaDesc": "请在浏览器中完成验证以继续连接。",
   "turnTunnelCaptchaOpen": "打开",
-  "turnTunnelRetry": "重试"
+  "turnTunnelRetry": "重试",
+  "turnTunnelPinned": "全部流量走隧道",
+  "turnTunnelPinnedDesc": "应急隧道连接期间，所有流量都会经过它。关闭开关即可恢复正常分流。",
+  "turnTunnelPinnedModeLocked": "全部流量走应急隧道期间，模式固定为「规则」。"
 }

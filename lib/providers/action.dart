@@ -50,6 +50,24 @@ bool shouldRestartCoreForTun({
 
 typedef ProfileRefresher = Future<Profile> Function(Profile profile);
 
+/// Guard shared by every place that writes the outbound mode. Refusing is not
+/// enough on its own — a tap that appears to do nothing reads as a bug — so it
+/// also says why.
+bool isModeChangeAllowed(Ref ref, Mode mode) {
+  final props = ref.read(videoCallTunnelSettingProvider);
+  if (videoCallTunnelAllowsMode(props, mode)) return true;
+  // Taken from the tree rather than from AppLocalizations.current: that one
+  // asserts when no delegate has loaded, and this guard runs from the tray and
+  // the hotkey as well as from the dashboard.
+  final context = globalState.navigatorKey.currentContext;
+  if (context != null) {
+    globalState.showNotifier(
+      context.appLocalizations.turnTunnelPinnedModeLocked,
+    );
+  }
+  return false;
+}
+
 @Riverpod(keepAlive: true)
 class CommonAction extends _$CommonAction {
   @override
@@ -72,7 +90,9 @@ class CommonAction extends _$CommonAction {
       final index = Mode.values.indexWhere((item) => item == state.mode);
       if (index == -1) return state;
       final nextIndex = index + 1 > Mode.values.length - 1 ? 0 : index + 1;
-      return state.copyWith(mode: Mode.values[nextIndex]);
+      final next = Mode.values[nextIndex];
+      if (!isModeChangeAllowed(ref, next)) return state;
+      return state.copyWith(mode: next);
     });
   }
 
@@ -490,6 +510,48 @@ class SetupAction extends _$SetupAction {
     _cancelTurnLinkRetry();
     _cancelTurnReconnectGrace();
     _scheduleTurnAssignmentHeartbeat();
+    await _pinVideoCallTunnelRouting();
+  }
+
+  /// Send everything through the tunnel, and keep it that way until the switch
+  /// on the dashboard says otherwise. A dropped transport does *not* lift this:
+  /// the sidecar reconnects on its own, and unpinning on every blip would swing
+  /// routing back and forth under the user.
+  Future<void> _pinVideoCallTunnelRouting() async {
+    final props = ref.read(videoCallTunnelSettingProvider);
+    if (!props.enable || props.pinned) return;
+    final currentMode = ref.read(patchClashConfigProvider).mode;
+    ref
+        .read(videoCallTunnelSettingProvider.notifier)
+        .update(
+          (state) => state.copyWith(
+            pinned: true,
+            // Only remember a mode we are actually taking away.
+            restoreMode: currentMode == Mode.rule ? null : currentMode,
+          ),
+        );
+    if (currentMode != Mode.rule) {
+      ref
+          .read(patchClashConfigProvider.notifier)
+          .update((state) => state.copyWith(mode: Mode.rule));
+    }
+    if (isStart) {
+      await applyProfile(force: true, silence: true);
+    }
+  }
+
+  Future<void> _unpinVideoCallTunnelRouting() async {
+    final props = ref.read(videoCallTunnelSettingProvider);
+    if (!props.pinned) return;
+    final restoreMode = props.restoreMode;
+    ref
+        .read(videoCallTunnelSettingProvider.notifier)
+        .update((state) => state.copyWith(pinned: false, restoreMode: null));
+    if (restoreMode != null) {
+      ref
+          .read(patchClashConfigProvider.notifier)
+          .update((state) => state.copyWith(mode: restoreMode));
+    }
   }
 
   /// The sidecar is single-shot — an ERROR or a process exit is unrecoverable, so this
@@ -558,6 +620,7 @@ class SetupAction extends _$SetupAction {
     _cancelTurnReconnectGrace();
     _turnJoinLink = null;
     _turnSubscriptionUrl = null;
+    await _unpinVideoCallTunnelRouting();
     final stopped = await videoCallTunnelController.stop();
     if (isStart) {
       await applyProfile(force: true, silence: true);
@@ -758,6 +821,7 @@ class SetupAction extends _$SetupAction {
   }
 
   Future<void> changeMode(Mode mode) async {
+    if (!isModeChangeAllowed(ref, mode)) return;
     ref
         .read(patchClashConfigProvider.notifier)
         .update((state) => state.copyWith(mode: mode));
@@ -864,6 +928,10 @@ class SetupAction extends _$SetupAction {
         defaultUA: defaultUA,
         videoCallTunnelEnabled:
             videoCallTunnel.enable && turnJoinLink.isNotEmpty,
+        videoCallTunnelPinned:
+            videoCallTunnel.enable &&
+            videoCallTunnel.pinned &&
+            turnJoinLink.isNotEmpty,
         videoCallTunnelPort: videoCallTunnelSocksPort,
         videoCallTunnelUsername: videoCallCredentials.username,
         videoCallTunnelPassword: videoCallCredentials.password,

@@ -764,6 +764,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
       "未分配绕过名额 — 请在小程序中开启",
     ),
+    "turnTunnelPinned": MessageLookupByLibrary.simpleMessage("全部流量走隧道"),
+    "turnTunnelPinnedDesc": MessageLookupByLibrary.simpleMessage(
+      "应急隧道连接期间，所有流量都会经过它。关闭开关即可恢复正常分流。",
+    ),
+    "turnTunnelPinnedModeLocked": MessageLookupByLibrary.simpleMessage(
+      "全部流量走应急隧道期间，模式固定为「规则」。",
+    ),
     "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage("正在重新连接"),
     "turnTunnelRetry": MessageLookupByLibrary.simpleMessage("重试"),
     "turnTunnelStarting": MessageLookupByLibrary.simpleMessage("正在启动"),

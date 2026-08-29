@@ -4883,6 +4883,36 @@ class AppLocalizations {
   String get turnTunnelRetry {
     return Intl.message('Retry', name: 'turnTunnelRetry', desc: '', args: []);
   }
+
+  /// `All traffic goes through the tunnel`
+  String get turnTunnelPinned {
+    return Intl.message(
+      'All traffic goes through the tunnel',
+      name: 'turnTunnelPinned',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `While the emergency tunnel is connected, every route ends at it. Turn the switch off to go back to normal routing.`
+  String get turnTunnelPinnedDesc {
+    return Intl.message(
+      'While the emergency tunnel is connected, every route ends at it. Turn the switch off to go back to normal routing.',
+      name: 'turnTunnelPinnedDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Routing mode is held on Rules while all traffic goes through the emergency tunnel.`
+  String get turnTunnelPinnedModeLocked {
+    return Intl.message(
+      'Routing mode is held on Rules while all traffic goes through the emergency tunnel.',
+      name: 'turnTunnelPinnedModeLocked',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {
