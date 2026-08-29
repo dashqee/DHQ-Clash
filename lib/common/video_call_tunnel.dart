@@ -39,11 +39,29 @@ const videoCallTunnelResolveTimeout = Duration(seconds: 5);
 const videoCallTunnelLinkTimeout = Duration(seconds: 6);
 // The sidecar's own traffic to VK. TUN takes every route on desktop, so without
 // these its connection comes back through the core and into its own SOCKS port.
+//
+// Two independent contours on purpose. The process rules are exact but they all
+// depend on one thing — the core resolving which process owns a connection — and
+// on Windows the core runs in a separate elevated service, where that resolution
+// is the part most likely to come back empty. When it does, all four rules miss
+// at once and the sidecar dials itself, which looks from outside exactly like
+// the reported symptom: the proxy red, no traffic passing.
+//
+// The destination rules do not depend on process matching, and they are correct
+// on their own terms regardless of platform: the tunnel *is* a VK call, so VK
+// has to be reachable without it or there is no tunnel to reach it through.
 const videoCallTunnelBypassRules = <String>[
   'PROCESS-NAME,DHQClashTurn,DIRECT',
   'PROCESS-NAME,DHQClashTurn.exe,DIRECT',
   'PROCESS-NAME,libDHQClashTurn.so,DIRECT',
   'PROCESS-NAME,app.dhqclash,DIRECT',
+  'DOMAIN-SUFFIX,vk.ru,DIRECT',
+  'DOMAIN-SUFFIX,vk.com,DIRECT',
+  'DOMAIN-SUFFIX,vk-apps.com,DIRECT',
+  'DOMAIN-SUFFIX,vkuservideo.net,DIRECT',
+  'DOMAIN-SUFFIX,userapi.com,DIRECT',
+  'DOMAIN-SUFFIX,mycdn.me,DIRECT',
+  'DOMAIN-SUFFIX,vk-cdn.net,DIRECT',
 ];
 
 // What replaces the rule list once the tunnel is pinned. Private ranges are
@@ -607,6 +625,7 @@ class VideoCallTunnelController {
       if (callback != null) unawaited(callback());
     }
     if (value == 'TUNNEL_CONNECTED') {
+      unawaited(_logSocksReachability());
       final callback = onTunnelConnected;
       if (callback != null) unawaited(callback());
     }
@@ -617,6 +636,34 @@ class VideoCallTunnelController {
     if (value == 'READY' && !system.isAndroid) {
       _stdin?.writeln(
         'AUTH:${jsonEncode({'joinLink': _activeJoinLink, 'displayName': videoCallTunnelDisplayName, 'tunnelMode': videoCallTunnelMode, 'vp8Fps': 0, 'vp8Batch': 0, 'dualTrack': false})}',
+      );
+    }
+  }
+}
+
+extension on VideoCallTunnelController {
+  /// One line in the log saying whether the sidecar's SOCKS port answers.
+  ///
+  /// "The proxy is red and no traffic passes" has several very different
+  /// causes, and this splits the first one off: a port that does not answer
+  /// means the sidecar never opened it, while a port that answers while the
+  /// proxy stays red means the failure is past it — in the call, or in the
+  /// core's route to it. Guessing between those from a bug report is what cost
+  /// the last round.
+  Future<void> _logSocksReachability() async {
+    try {
+      final socket = await Socket.connect(
+        '127.0.0.1',
+        videoCallTunnelSocksPort,
+        timeout: const Duration(seconds: 2),
+      );
+      socket.destroy();
+      commonPrint.log('TURN SOCKS on $videoCallTunnelSocksPort is accepting');
+    } catch (error) {
+      commonPrint.log(
+        'TURN SOCKS on $videoCallTunnelSocksPort is NOT accepting '
+        '(${error.runtimeType}) — the tunnel reported connected, so the sidecar '
+        'is up but its proxy port is not usable',
       );
     }
   }
