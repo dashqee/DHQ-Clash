@@ -285,6 +285,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "editSsid": MessageLookupByLibrary.simpleMessage("SSIDを編集"),
     "emptyTip": m4,
     "en": MessageLookupByLibrary.simpleMessage("英語"),
+    "enableTun": MessageLookupByLibrary.simpleMessage("TUN をオンにする"),
     "entries": MessageLookupByLibrary.simpleMessage(" エントリ"),
     "entriesCount": m5,
     "exclude": MessageLookupByLibrary.simpleMessage("最近のタスクから非表示"),
@@ -811,6 +812,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "標準モード、基本設定を上書きし、シンプルなルール追加機能を提供",
     ),
     "start": MessageLookupByLibrary.simpleMessage("開始"),
+    "startRequiresTun": MessageLookupByLibrary.simpleMessage(
+      "TUN がオフの場合、システムのトラフィックは転送されず、ローカルプロキシとして動作するだけです。接続するには TUN をオンにしてください。",
+    ),
     "startVpn": MessageLookupByLibrary.simpleMessage("VPNを開始中..."),
     "status": MessageLookupByLibrary.simpleMessage("ステータス"),
     "statusDesc": MessageLookupByLibrary.simpleMessage("無効時はシステムDNSを使用"),

@@ -35,6 +35,8 @@
   "allowLanDesc": "允许通过局域网访问代理",
   "tun": "虚拟网卡",
   "tunDesc": "仅在管理员模式生效",
+  "startRequiresTun": "未启用 TUN 时，应用不会接管系统流量，仅作为本地代理运行。请开启 TUN 后再连接。",
+  "enableTun": "开启 TUN",
   "macosTunHelper": "TUN 权限",
   "macosTunHelperDesc": "授予核心提升的权限。仅 TUN 模式需要。",
   "macosTunHelperInstalled": "已安装 TUN 权限",

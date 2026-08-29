@@ -372,6 +372,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "editSsid": MessageLookupByLibrary.simpleMessage("Изменить SSID"),
     "emptyTip": m4,
     "en": MessageLookupByLibrary.simpleMessage("Английский"),
+    "enableTun": MessageLookupByLibrary.simpleMessage("Включить TUN"),
     "entries": MessageLookupByLibrary.simpleMessage(" записей"),
     "entriesCount": m5,
     "exclude": MessageLookupByLibrary.simpleMessage(
@@ -1040,6 +1041,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "Стандартный режим, переопределение базовой конфигурации, предоставление возможности простого добавления правил",
     ),
     "start": MessageLookupByLibrary.simpleMessage("Старт"),
+    "startRequiresTun": MessageLookupByLibrary.simpleMessage(
+      "Без TUN приложение не заворачивает системный трафик — работает только локальный прокси. Включите TUN, чтобы подключиться.",
+    ),
     "startVpn": MessageLookupByLibrary.simpleMessage("Запуск VPN..."),
     "status": MessageLookupByLibrary.simpleMessage("Статус"),
     "statusDesc": MessageLookupByLibrary.simpleMessage(

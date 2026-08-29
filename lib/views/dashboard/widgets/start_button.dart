@@ -5,6 +5,20 @@ import 'package:fl_clash/state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+/// Whether pressing start should stop and explain instead of starting.
+///
+/// Without TUN the core still runs, but nothing is routed through it — the app
+/// is a local proxy and the button looks exactly as it does when the tunnel is
+/// up, which is the worst way to be unprotected.
+///
+/// Desktop only. On Android the tunnel is the system VpnService and this flag is
+/// not the switch anybody sees; guarding on it there would block start for good.
+bool needsTunToStart({
+  required bool isStarting,
+  required bool isDesktop,
+  required bool tunEnabled,
+}) => isStarting && isDesktop && !tunEnabled;
+
 class StartButton extends ConsumerStatefulWidget {
   const StartButton({super.key});
 
@@ -28,7 +42,27 @@ class _StartButtonState extends ConsumerState<StartButton> {
     }, fireImmediately: true);
   }
 
-  void _handleSwitchStart() {
+  Future<void> _handleSwitchStart() async {
+    if (!_isStart &&
+        needsTunToStart(
+          isStarting: true,
+          isDesktop: system.isDesktop,
+          tunEnabled: ref.read(
+            patchClashConfigProvider.select((state) => state.tun.enable),
+          ),
+        )) {
+      final appLocalizations = context.appLocalizations;
+      final enable = await globalState.showMessage(
+        title: appLocalizations.tun,
+        message: TextSpan(text: appLocalizations.startRequiresTun),
+        confirmText: appLocalizations.enableTun,
+      );
+      // The dialog is awaited, so the screen may be gone by the time it
+      // returns; ref is disposed with it.
+      if (enable != true || !mounted) return;
+      ref.read(setupActionProvider.notifier).setTunEnabled(true);
+    }
+
     setState(() {
       _isStart = !_isStart;
     });
@@ -69,7 +103,7 @@ class _StartButtonState extends ConsumerState<StartButton> {
           ],
         ),
         child: FilledButton.icon(
-          onPressed: _handleSwitchStart,
+          onPressed: () => _handleSwitchStart(),
           style: FilledButton.styleFrom(
             minimumSize: const Size(156, 64),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
