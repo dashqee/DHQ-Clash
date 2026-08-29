@@ -341,12 +341,22 @@ Future<int> _ensureMacosDependencies() async {
     stdout.writeln('appdmg already installed, skipping.');
     return 0;
   }
+  // appdmg builds a native module, so npm has to fetch the Node headers from
+  // nodejs.org. That fetch has timed out on the macOS runner and taken a whole
+  // release with it — the other three platforms were already built. Retry
+  // before giving up: it is a download, not a compile error.
   stdout.writeln('Installing appdmg (DMG creator)...');
-  final result = await Process.run('npm', ['install', '-g', 'appdmg']);
-  if (result.exitCode != 0) {
+  ProcessResult? result;
+  for (var attempt = 1; attempt <= 3; attempt++) {
+    result = await Process.run('npm', ['install', '-g', 'appdmg']);
+    if (result.exitCode == 0) return 0;
     stderr.write(result.stderr);
+    if (attempt < 3) {
+      stdout.writeln('appdmg install failed, retrying ($attempt/3)...');
+      await Future<void>.delayed(Duration(seconds: 15 * attempt));
+    }
   }
-  return result.exitCode;
+  return result?.exitCode ?? 1;
 }
 
 Future<int> _ensureLinuxDependencies(String arch) async {
