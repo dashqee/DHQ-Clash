@@ -332,7 +332,7 @@ void main() {
         ),
         isEmpty,
       );
-      expect((result['rules'] as List).skip(4), [
+      expect((result['rules'] as List).skip(videoCallTunnelBypassRules.length), [
         'RULE-SET,ads,REJECT',
         'MATCH,Local',
       ]);
@@ -417,7 +417,7 @@ void main() {
       );
 
       expect(pinned['rules'], isNot(unpinned['rules']));
-      expect((unpinned['rules'] as List).skip(4), [
+      expect((unpinned['rules'] as List).skip(videoCallTunnelBypassRules.length), [
         'RULE-SET,ads,REJECT',
         'MATCH,Local',
       ]);
@@ -427,6 +427,30 @@ void main() {
         ),
         isEmpty,
       );
+    });
+
+    test('VK stays reachable without the tunnel it carries', () {
+      // The process rules all rest on the core resolving the owning process,
+      // which is the part that fails on Windows; these do not depend on it, and
+      // a tunnel that rides on a VK call needs VK reachable either way.
+      for (final pinned in [false, true]) {
+        final result = addVideoCallTunnelToConfig(
+          {
+            'rules': ['MATCH,Local'],
+          },
+          port: 11789,
+          username: 'user',
+          password: 'secret',
+          pinned: pinned,
+        );
+        final rules = (result['rules'] as List).cast<String>();
+        expect(rules, contains('DOMAIN-SUFFIX,vk.ru,DIRECT'));
+        expect(rules, contains('DOMAIN-SUFFIX,vk.com,DIRECT'));
+        final catchAll = rules.indexOf('MATCH,$videoCallTunnelProxyName');
+        if (catchAll >= 0) {
+          expect(rules.indexOf('DOMAIN-SUFFIX,vk.ru,DIRECT'), lessThan(catchAll));
+        }
+      }
     });
 
     test('the mode may not leave rule matching while pinned', () {
@@ -462,7 +486,7 @@ void main() {
 
       expect(result['find-process-mode'], FindProcessMode.always.name);
       expect(
-        (result['rules'] as List).take(4),
+        (result['rules'] as List).take(videoCallTunnelBypassRules.length),
         containsAll(<String>[
           'PROCESS-NAME,DHQClashTurn,DIRECT',
           'PROCESS-NAME,DHQClashTurn.exe,DIRECT',
