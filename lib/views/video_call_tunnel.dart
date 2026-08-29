@@ -53,6 +53,9 @@ class VideoCallTunnelPanel extends ConsumerWidget {
     final enabled = ref.watch(
       videoCallTunnelSettingProvider.select((state) => state.enable),
     );
+    final pinned = ref.watch(
+      videoCallTunnelSettingProvider.select((state) => state.pinned),
+    );
     return ListView(
       key: const ValueKey('video-call-tunnel-panel'),
       padding: const EdgeInsets.all(16),
@@ -68,6 +71,18 @@ class VideoCallTunnelPanel extends ConsumerWidget {
                 .setVideoCallTunnelEnabled(value);
           },
         ),
+        // Everything, including what the rules would normally keep direct, goes
+        // into the call while this is on. Left unsaid, that reads as the app
+        // having broken rather than as the state the user asked for.
+        if (enabled && pinned)
+          Card.filled(
+            key: const ValueKey('video-call-tunnel-pinned'),
+            child: ListTile(
+              leading: const Icon(Icons.alt_route),
+              title: Text(context.appLocalizations.turnTunnelPinned),
+              subtitle: Text(context.appLocalizations.turnTunnelPinnedDesc),
+            ),
+          ),
         const SizedBox(height: 16),
         ListenableBuilder(
           listenable: Listenable.merge([

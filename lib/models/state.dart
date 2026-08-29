@@ -346,6 +346,7 @@ abstract class MakeRealProfileState with _$MakeRealProfileState {
     required List<Rule> addedRules,
     required String defaultUA,
     required bool videoCallTunnelEnabled,
+    required bool videoCallTunnelPinned,
     required int videoCallTunnelPort,
     required String videoCallTunnelUsername,
     required String videoCallTunnelPassword,

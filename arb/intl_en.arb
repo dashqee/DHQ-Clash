@@ -590,5 +590,8 @@
   "turnTunnelCaptchaTitle": "VK verification required",
   "turnTunnelCaptchaDesc": "Complete the verification in your browser to continue connecting.",
   "turnTunnelCaptchaOpen": "Open",
-  "turnTunnelRetry": "Retry"
+  "turnTunnelRetry": "Retry",
+  "turnTunnelPinned": "All traffic goes through the tunnel",
+  "turnTunnelPinnedDesc": "While the emergency tunnel is connected, every route ends at it. Turn the switch off to go back to normal routing.",
+  "turnTunnelPinnedModeLocked": "Routing mode is held on Rules while all traffic goes through the emergency tunnel."
 }

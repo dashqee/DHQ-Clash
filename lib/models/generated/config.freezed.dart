@@ -1211,7 +1211,13 @@ $AccessControlPropsCopyWith<$Res> get accessControlProps {
 /// @nodoc
 mixin _$VideoCallTunnelProps {
 
- bool get enable;
+ bool get enable;// Whether every route currently ends at the tunnel. Persisted, because a
+// restart that quietly dropped back to fallback routing would look like the
+// channel had failed rather than like the pin had been lifted.
+ bool get pinned;// The mode to hand back when the pin is lifted. Pinning forces `rule`: the
+// core does not match rules in global or direct, so the catch-all that
+// carries everything into the tunnel would simply not run.
+ Mode? get restoreMode;
 /// Create a copy of VideoCallTunnelProps
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1224,16 +1230,16 @@ $VideoCallTunnelPropsCopyWith<VideoCallTunnelProps> get copyWith => _$VideoCallT
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is VideoCallTunnelProps&&(identical(other.enable, enable) || other.enable == enable));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is VideoCallTunnelProps&&(identical(other.enable, enable) || other.enable == enable)&&(identical(other.pinned, pinned) || other.pinned == pinned)&&(identical(other.restoreMode, restoreMode) || other.restoreMode == restoreMode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,enable);
+int get hashCode => Object.hash(runtimeType,enable,pinned,restoreMode);
 
 @override
 String toString() {
-  return 'VideoCallTunnelProps(enable: $enable)';
+  return 'VideoCallTunnelProps(enable: $enable, pinned: $pinned, restoreMode: $restoreMode)';
 }
 
 
@@ -1244,7 +1250,7 @@ abstract mixin class $VideoCallTunnelPropsCopyWith<$Res>  {
   factory $VideoCallTunnelPropsCopyWith(VideoCallTunnelProps value, $Res Function(VideoCallTunnelProps) _then) = _$VideoCallTunnelPropsCopyWithImpl;
 @useResult
 $Res call({
- bool enable
+ bool enable, bool pinned, Mode? restoreMode
 });
 
 
@@ -1261,10 +1267,12 @@ class _$VideoCallTunnelPropsCopyWithImpl<$Res>
 
 /// Create a copy of VideoCallTunnelProps
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? enable = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? enable = null,Object? pinned = null,Object? restoreMode = freezed,}) {
   return _then(_self.copyWith(
 enable: null == enable ? _self.enable : enable // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,pinned: null == pinned ? _self.pinned : pinned // ignore: cast_nullable_to_non_nullable
+as bool,restoreMode: freezed == restoreMode ? _self.restoreMode : restoreMode // ignore: cast_nullable_to_non_nullable
+as Mode?,
   ));
 }
 
@@ -1349,10 +1357,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool enable)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool enable,  bool pinned,  Mode? restoreMode)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _VideoCallTunnelProps() when $default != null:
-return $default(_that.enable);case _:
+return $default(_that.enable,_that.pinned,_that.restoreMode);case _:
   return orElse();
 
 }
@@ -1370,10 +1378,10 @@ return $default(_that.enable);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool enable)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool enable,  bool pinned,  Mode? restoreMode)  $default,) {final _that = this;
 switch (_that) {
 case _VideoCallTunnelProps():
-return $default(_that.enable);case _:
+return $default(_that.enable,_that.pinned,_that.restoreMode);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1390,10 +1398,10 @@ return $default(_that.enable);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool enable)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool enable,  bool pinned,  Mode? restoreMode)?  $default,) {final _that = this;
 switch (_that) {
 case _VideoCallTunnelProps() when $default != null:
-return $default(_that.enable);case _:
+return $default(_that.enable,_that.pinned,_that.restoreMode);case _:
   return null;
 
 }
@@ -1405,10 +1413,18 @@ return $default(_that.enable);case _:
 @JsonSerializable()
 
 class _VideoCallTunnelProps implements VideoCallTunnelProps {
-  const _VideoCallTunnelProps({this.enable = false});
+  const _VideoCallTunnelProps({this.enable = false, this.pinned = false, this.restoreMode});
   factory _VideoCallTunnelProps.fromJson(Map<String, dynamic> json) => _$VideoCallTunnelPropsFromJson(json);
 
 @override@JsonKey() final  bool enable;
+// Whether every route currently ends at the tunnel. Persisted, because a
+// restart that quietly dropped back to fallback routing would look like the
+// channel had failed rather than like the pin had been lifted.
+@override@JsonKey() final  bool pinned;
+// The mode to hand back when the pin is lifted. Pinning forces `rule`: the
+// core does not match rules in global or direct, so the catch-all that
+// carries everything into the tunnel would simply not run.
+@override final  Mode? restoreMode;
 
 /// Create a copy of VideoCallTunnelProps
 /// with the given fields replaced by the non-null parameter values.
@@ -1423,16 +1439,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VideoCallTunnelProps&&(identical(other.enable, enable) || other.enable == enable));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VideoCallTunnelProps&&(identical(other.enable, enable) || other.enable == enable)&&(identical(other.pinned, pinned) || other.pinned == pinned)&&(identical(other.restoreMode, restoreMode) || other.restoreMode == restoreMode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,enable);
+int get hashCode => Object.hash(runtimeType,enable,pinned,restoreMode);
 
 @override
 String toString() {
-  return 'VideoCallTunnelProps(enable: $enable)';
+  return 'VideoCallTunnelProps(enable: $enable, pinned: $pinned, restoreMode: $restoreMode)';
 }
 
 
@@ -1443,7 +1459,7 @@ abstract mixin class _$VideoCallTunnelPropsCopyWith<$Res> implements $VideoCallT
   factory _$VideoCallTunnelPropsCopyWith(_VideoCallTunnelProps value, $Res Function(_VideoCallTunnelProps) _then) = __$VideoCallTunnelPropsCopyWithImpl;
 @override @useResult
 $Res call({
- bool enable
+ bool enable, bool pinned, Mode? restoreMode
 });
 
 
@@ -1460,10 +1476,12 @@ class __$VideoCallTunnelPropsCopyWithImpl<$Res>
 
 /// Create a copy of VideoCallTunnelProps
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? enable = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? enable = null,Object? pinned = null,Object? restoreMode = freezed,}) {
   return _then(_VideoCallTunnelProps(
 enable: null == enable ? _self.enable : enable // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,pinned: null == pinned ? _self.pinned : pinned // ignore: cast_nullable_to_non_nullable
+as bool,restoreMode: freezed == restoreMode ? _self.restoreMode : restoreMode // ignore: cast_nullable_to_non_nullable
+as Mode?,
   ));
 }
 

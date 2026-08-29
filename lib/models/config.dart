@@ -195,8 +195,17 @@ abstract class VpnProps with _$VpnProps {
 
 @freezed
 abstract class VideoCallTunnelProps with _$VideoCallTunnelProps {
-  const factory VideoCallTunnelProps({@Default(false) bool enable}) =
-      _VideoCallTunnelProps;
+  const factory VideoCallTunnelProps({
+    @Default(false) bool enable,
+    // Whether every route currently ends at the tunnel. Persisted, because a
+    // restart that quietly dropped back to fallback routing would look like the
+    // channel had failed rather than like the pin had been lifted.
+    @Default(false) bool pinned,
+    // The mode to hand back when the pin is lifted. Pinning forces `rule`: the
+    // core does not match rules in global or direct, so the catch-all that
+    // carries everything into the tunnel would simply not run.
+    Mode? restoreMode,
+  }) = _VideoCallTunnelProps;
 
   factory VideoCallTunnelProps.fromJson(Map<String, Object?>? json) =>
       json == null

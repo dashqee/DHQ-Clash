@@ -590,5 +590,8 @@
   "turnTunnelCaptchaTitle": "VKの確認が必要です",
   "turnTunnelCaptchaDesc": "接続を続けるには、ブラウザで確認を完了してください。",
   "turnTunnelCaptchaOpen": "開く",
-  "turnTunnelRetry": "再試行"
+  "turnTunnelRetry": "再試行",
+  "turnTunnelPinned": "すべての通信がトンネル経由になります",
+  "turnTunnelPinnedDesc": "緊急トンネルの接続中は、すべての通信がトンネルを通ります。通常のルーティングに戻すにはスイッチをオフにしてください。",
+  "turnTunnelPinnedModeLocked": "すべての通信が緊急トンネルを通る間、モードは「ルール」に固定されます。"
 }

@@ -9062,7 +9062,7 @@ $ProxiesDataCopyWith<$Res> get proxiesData {
 /// @nodoc
 mixin _$MakeRealProfileState {
 
- String get profilesPath; int get profileId; Map<String, dynamic> get rawConfig; PatchClashConfig get realPatchConfig; bool get overrideDns; bool get appendSystemDns; List<ProxyGroup> get proxyGroups; List<Rule> get rules; List<Rule> get addedRules; String get defaultUA; bool get videoCallTunnelEnabled; int get videoCallTunnelPort; String get videoCallTunnelUsername; String get videoCallTunnelPassword;
+ String get profilesPath; int get profileId; Map<String, dynamic> get rawConfig; PatchClashConfig get realPatchConfig; bool get overrideDns; bool get appendSystemDns; List<ProxyGroup> get proxyGroups; List<Rule> get rules; List<Rule> get addedRules; String get defaultUA; bool get videoCallTunnelEnabled; bool get videoCallTunnelPinned; int get videoCallTunnelPort; String get videoCallTunnelUsername; String get videoCallTunnelPassword;
 /// Create a copy of MakeRealProfileState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -9073,16 +9073,16 @@ $MakeRealProfileStateCopyWith<MakeRealProfileState> get copyWith => _$MakeRealPr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MakeRealProfileState&&(identical(other.profilesPath, profilesPath) || other.profilesPath == profilesPath)&&(identical(other.profileId, profileId) || other.profileId == profileId)&&const DeepCollectionEquality().equals(other.rawConfig, rawConfig)&&(identical(other.realPatchConfig, realPatchConfig) || other.realPatchConfig == realPatchConfig)&&(identical(other.overrideDns, overrideDns) || other.overrideDns == overrideDns)&&(identical(other.appendSystemDns, appendSystemDns) || other.appendSystemDns == appendSystemDns)&&const DeepCollectionEquality().equals(other.proxyGroups, proxyGroups)&&const DeepCollectionEquality().equals(other.rules, rules)&&const DeepCollectionEquality().equals(other.addedRules, addedRules)&&(identical(other.defaultUA, defaultUA) || other.defaultUA == defaultUA)&&(identical(other.videoCallTunnelEnabled, videoCallTunnelEnabled) || other.videoCallTunnelEnabled == videoCallTunnelEnabled)&&(identical(other.videoCallTunnelPort, videoCallTunnelPort) || other.videoCallTunnelPort == videoCallTunnelPort)&&(identical(other.videoCallTunnelUsername, videoCallTunnelUsername) || other.videoCallTunnelUsername == videoCallTunnelUsername)&&(identical(other.videoCallTunnelPassword, videoCallTunnelPassword) || other.videoCallTunnelPassword == videoCallTunnelPassword));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MakeRealProfileState&&(identical(other.profilesPath, profilesPath) || other.profilesPath == profilesPath)&&(identical(other.profileId, profileId) || other.profileId == profileId)&&const DeepCollectionEquality().equals(other.rawConfig, rawConfig)&&(identical(other.realPatchConfig, realPatchConfig) || other.realPatchConfig == realPatchConfig)&&(identical(other.overrideDns, overrideDns) || other.overrideDns == overrideDns)&&(identical(other.appendSystemDns, appendSystemDns) || other.appendSystemDns == appendSystemDns)&&const DeepCollectionEquality().equals(other.proxyGroups, proxyGroups)&&const DeepCollectionEquality().equals(other.rules, rules)&&const DeepCollectionEquality().equals(other.addedRules, addedRules)&&(identical(other.defaultUA, defaultUA) || other.defaultUA == defaultUA)&&(identical(other.videoCallTunnelEnabled, videoCallTunnelEnabled) || other.videoCallTunnelEnabled == videoCallTunnelEnabled)&&(identical(other.videoCallTunnelPinned, videoCallTunnelPinned) || other.videoCallTunnelPinned == videoCallTunnelPinned)&&(identical(other.videoCallTunnelPort, videoCallTunnelPort) || other.videoCallTunnelPort == videoCallTunnelPort)&&(identical(other.videoCallTunnelUsername, videoCallTunnelUsername) || other.videoCallTunnelUsername == videoCallTunnelUsername)&&(identical(other.videoCallTunnelPassword, videoCallTunnelPassword) || other.videoCallTunnelPassword == videoCallTunnelPassword));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,profilesPath,profileId,const DeepCollectionEquality().hash(rawConfig),realPatchConfig,overrideDns,appendSystemDns,const DeepCollectionEquality().hash(proxyGroups),const DeepCollectionEquality().hash(rules),const DeepCollectionEquality().hash(addedRules),defaultUA,videoCallTunnelEnabled,videoCallTunnelPort,videoCallTunnelUsername,videoCallTunnelPassword);
+int get hashCode => Object.hash(runtimeType,profilesPath,profileId,const DeepCollectionEquality().hash(rawConfig),realPatchConfig,overrideDns,appendSystemDns,const DeepCollectionEquality().hash(proxyGroups),const DeepCollectionEquality().hash(rules),const DeepCollectionEquality().hash(addedRules),defaultUA,videoCallTunnelEnabled,videoCallTunnelPinned,videoCallTunnelPort,videoCallTunnelUsername,videoCallTunnelPassword);
 
 @override
 String toString() {
-  return 'MakeRealProfileState(profilesPath: $profilesPath, profileId: $profileId, rawConfig: $rawConfig, realPatchConfig: $realPatchConfig, overrideDns: $overrideDns, appendSystemDns: $appendSystemDns, proxyGroups: $proxyGroups, rules: $rules, addedRules: $addedRules, defaultUA: $defaultUA, videoCallTunnelEnabled: $videoCallTunnelEnabled, videoCallTunnelPort: $videoCallTunnelPort, videoCallTunnelUsername: $videoCallTunnelUsername, videoCallTunnelPassword: $videoCallTunnelPassword)';
+  return 'MakeRealProfileState(profilesPath: $profilesPath, profileId: $profileId, rawConfig: $rawConfig, realPatchConfig: $realPatchConfig, overrideDns: $overrideDns, appendSystemDns: $appendSystemDns, proxyGroups: $proxyGroups, rules: $rules, addedRules: $addedRules, defaultUA: $defaultUA, videoCallTunnelEnabled: $videoCallTunnelEnabled, videoCallTunnelPinned: $videoCallTunnelPinned, videoCallTunnelPort: $videoCallTunnelPort, videoCallTunnelUsername: $videoCallTunnelUsername, videoCallTunnelPassword: $videoCallTunnelPassword)';
 }
 
 
@@ -9093,7 +9093,7 @@ abstract mixin class $MakeRealProfileStateCopyWith<$Res>  {
   factory $MakeRealProfileStateCopyWith(MakeRealProfileState value, $Res Function(MakeRealProfileState) _then) = _$MakeRealProfileStateCopyWithImpl;
 @useResult
 $Res call({
- String profilesPath, int profileId, Map<String, dynamic> rawConfig, PatchClashConfig realPatchConfig, bool overrideDns, bool appendSystemDns, List<ProxyGroup> proxyGroups, List<Rule> rules, List<Rule> addedRules, String defaultUA, bool videoCallTunnelEnabled, int videoCallTunnelPort, String videoCallTunnelUsername, String videoCallTunnelPassword
+ String profilesPath, int profileId, Map<String, dynamic> rawConfig, PatchClashConfig realPatchConfig, bool overrideDns, bool appendSystemDns, List<ProxyGroup> proxyGroups, List<Rule> rules, List<Rule> addedRules, String defaultUA, bool videoCallTunnelEnabled, bool videoCallTunnelPinned, int videoCallTunnelPort, String videoCallTunnelUsername, String videoCallTunnelPassword
 });
 
 
@@ -9110,7 +9110,7 @@ class _$MakeRealProfileStateCopyWithImpl<$Res>
 
 /// Create a copy of MakeRealProfileState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? profilesPath = null,Object? profileId = null,Object? rawConfig = null,Object? realPatchConfig = null,Object? overrideDns = null,Object? appendSystemDns = null,Object? proxyGroups = null,Object? rules = null,Object? addedRules = null,Object? defaultUA = null,Object? videoCallTunnelEnabled = null,Object? videoCallTunnelPort = null,Object? videoCallTunnelUsername = null,Object? videoCallTunnelPassword = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? profilesPath = null,Object? profileId = null,Object? rawConfig = null,Object? realPatchConfig = null,Object? overrideDns = null,Object? appendSystemDns = null,Object? proxyGroups = null,Object? rules = null,Object? addedRules = null,Object? defaultUA = null,Object? videoCallTunnelEnabled = null,Object? videoCallTunnelPinned = null,Object? videoCallTunnelPort = null,Object? videoCallTunnelUsername = null,Object? videoCallTunnelPassword = null,}) {
   return _then(_self.copyWith(
 profilesPath: null == profilesPath ? _self.profilesPath : profilesPath // ignore: cast_nullable_to_non_nullable
 as String,profileId: null == profileId ? _self.profileId : profileId // ignore: cast_nullable_to_non_nullable
@@ -9123,6 +9123,7 @@ as List<ProxyGroup>,rules: null == rules ? _self.rules : rules // ignore: cast_n
 as List<Rule>,addedRules: null == addedRules ? _self.addedRules : addedRules // ignore: cast_nullable_to_non_nullable
 as List<Rule>,defaultUA: null == defaultUA ? _self.defaultUA : defaultUA // ignore: cast_nullable_to_non_nullable
 as String,videoCallTunnelEnabled: null == videoCallTunnelEnabled ? _self.videoCallTunnelEnabled : videoCallTunnelEnabled // ignore: cast_nullable_to_non_nullable
+as bool,videoCallTunnelPinned: null == videoCallTunnelPinned ? _self.videoCallTunnelPinned : videoCallTunnelPinned // ignore: cast_nullable_to_non_nullable
 as bool,videoCallTunnelPort: null == videoCallTunnelPort ? _self.videoCallTunnelPort : videoCallTunnelPort // ignore: cast_nullable_to_non_nullable
 as int,videoCallTunnelUsername: null == videoCallTunnelUsername ? _self.videoCallTunnelUsername : videoCallTunnelUsername // ignore: cast_nullable_to_non_nullable
 as String,videoCallTunnelPassword: null == videoCallTunnelPassword ? _self.videoCallTunnelPassword : videoCallTunnelPassword // ignore: cast_nullable_to_non_nullable
@@ -9220,10 +9221,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String profilesPath,  int profileId,  Map<String, dynamic> rawConfig,  PatchClashConfig realPatchConfig,  bool overrideDns,  bool appendSystemDns,  List<ProxyGroup> proxyGroups,  List<Rule> rules,  List<Rule> addedRules,  String defaultUA,  bool videoCallTunnelEnabled,  int videoCallTunnelPort,  String videoCallTunnelUsername,  String videoCallTunnelPassword)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String profilesPath,  int profileId,  Map<String, dynamic> rawConfig,  PatchClashConfig realPatchConfig,  bool overrideDns,  bool appendSystemDns,  List<ProxyGroup> proxyGroups,  List<Rule> rules,  List<Rule> addedRules,  String defaultUA,  bool videoCallTunnelEnabled,  bool videoCallTunnelPinned,  int videoCallTunnelPort,  String videoCallTunnelUsername,  String videoCallTunnelPassword)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MakeRealProfileState() when $default != null:
-return $default(_that.profilesPath,_that.profileId,_that.rawConfig,_that.realPatchConfig,_that.overrideDns,_that.appendSystemDns,_that.proxyGroups,_that.rules,_that.addedRules,_that.defaultUA,_that.videoCallTunnelEnabled,_that.videoCallTunnelPort,_that.videoCallTunnelUsername,_that.videoCallTunnelPassword);case _:
+return $default(_that.profilesPath,_that.profileId,_that.rawConfig,_that.realPatchConfig,_that.overrideDns,_that.appendSystemDns,_that.proxyGroups,_that.rules,_that.addedRules,_that.defaultUA,_that.videoCallTunnelEnabled,_that.videoCallTunnelPinned,_that.videoCallTunnelPort,_that.videoCallTunnelUsername,_that.videoCallTunnelPassword);case _:
   return orElse();
 
 }
@@ -9241,10 +9242,10 @@ return $default(_that.profilesPath,_that.profileId,_that.rawConfig,_that.realPat
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String profilesPath,  int profileId,  Map<String, dynamic> rawConfig,  PatchClashConfig realPatchConfig,  bool overrideDns,  bool appendSystemDns,  List<ProxyGroup> proxyGroups,  List<Rule> rules,  List<Rule> addedRules,  String defaultUA,  bool videoCallTunnelEnabled,  int videoCallTunnelPort,  String videoCallTunnelUsername,  String videoCallTunnelPassword)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String profilesPath,  int profileId,  Map<String, dynamic> rawConfig,  PatchClashConfig realPatchConfig,  bool overrideDns,  bool appendSystemDns,  List<ProxyGroup> proxyGroups,  List<Rule> rules,  List<Rule> addedRules,  String defaultUA,  bool videoCallTunnelEnabled,  bool videoCallTunnelPinned,  int videoCallTunnelPort,  String videoCallTunnelUsername,  String videoCallTunnelPassword)  $default,) {final _that = this;
 switch (_that) {
 case _MakeRealProfileState():
-return $default(_that.profilesPath,_that.profileId,_that.rawConfig,_that.realPatchConfig,_that.overrideDns,_that.appendSystemDns,_that.proxyGroups,_that.rules,_that.addedRules,_that.defaultUA,_that.videoCallTunnelEnabled,_that.videoCallTunnelPort,_that.videoCallTunnelUsername,_that.videoCallTunnelPassword);case _:
+return $default(_that.profilesPath,_that.profileId,_that.rawConfig,_that.realPatchConfig,_that.overrideDns,_that.appendSystemDns,_that.proxyGroups,_that.rules,_that.addedRules,_that.defaultUA,_that.videoCallTunnelEnabled,_that.videoCallTunnelPinned,_that.videoCallTunnelPort,_that.videoCallTunnelUsername,_that.videoCallTunnelPassword);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -9261,10 +9262,10 @@ return $default(_that.profilesPath,_that.profileId,_that.rawConfig,_that.realPat
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String profilesPath,  int profileId,  Map<String, dynamic> rawConfig,  PatchClashConfig realPatchConfig,  bool overrideDns,  bool appendSystemDns,  List<ProxyGroup> proxyGroups,  List<Rule> rules,  List<Rule> addedRules,  String defaultUA,  bool videoCallTunnelEnabled,  int videoCallTunnelPort,  String videoCallTunnelUsername,  String videoCallTunnelPassword)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String profilesPath,  int profileId,  Map<String, dynamic> rawConfig,  PatchClashConfig realPatchConfig,  bool overrideDns,  bool appendSystemDns,  List<ProxyGroup> proxyGroups,  List<Rule> rules,  List<Rule> addedRules,  String defaultUA,  bool videoCallTunnelEnabled,  bool videoCallTunnelPinned,  int videoCallTunnelPort,  String videoCallTunnelUsername,  String videoCallTunnelPassword)?  $default,) {final _that = this;
 switch (_that) {
 case _MakeRealProfileState() when $default != null:
-return $default(_that.profilesPath,_that.profileId,_that.rawConfig,_that.realPatchConfig,_that.overrideDns,_that.appendSystemDns,_that.proxyGroups,_that.rules,_that.addedRules,_that.defaultUA,_that.videoCallTunnelEnabled,_that.videoCallTunnelPort,_that.videoCallTunnelUsername,_that.videoCallTunnelPassword);case _:
+return $default(_that.profilesPath,_that.profileId,_that.rawConfig,_that.realPatchConfig,_that.overrideDns,_that.appendSystemDns,_that.proxyGroups,_that.rules,_that.addedRules,_that.defaultUA,_that.videoCallTunnelEnabled,_that.videoCallTunnelPinned,_that.videoCallTunnelPort,_that.videoCallTunnelUsername,_that.videoCallTunnelPassword);case _:
   return null;
 
 }
@@ -9276,7 +9277,7 @@ return $default(_that.profilesPath,_that.profileId,_that.rawConfig,_that.realPat
 
 
 class _MakeRealProfileState implements MakeRealProfileState {
-  const _MakeRealProfileState({required this.profilesPath, required this.profileId, required final  Map<String, dynamic> rawConfig, required this.realPatchConfig, required this.overrideDns, required this.appendSystemDns, required final  List<ProxyGroup> proxyGroups, required final  List<Rule> rules, required final  List<Rule> addedRules, required this.defaultUA, required this.videoCallTunnelEnabled, required this.videoCallTunnelPort, required this.videoCallTunnelUsername, required this.videoCallTunnelPassword}): _rawConfig = rawConfig,_proxyGroups = proxyGroups,_rules = rules,_addedRules = addedRules;
+  const _MakeRealProfileState({required this.profilesPath, required this.profileId, required final  Map<String, dynamic> rawConfig, required this.realPatchConfig, required this.overrideDns, required this.appendSystemDns, required final  List<ProxyGroup> proxyGroups, required final  List<Rule> rules, required final  List<Rule> addedRules, required this.defaultUA, required this.videoCallTunnelEnabled, required this.videoCallTunnelPinned, required this.videoCallTunnelPort, required this.videoCallTunnelUsername, required this.videoCallTunnelPassword}): _rawConfig = rawConfig,_proxyGroups = proxyGroups,_rules = rules,_addedRules = addedRules;
   
 
 @override final  String profilesPath;
@@ -9314,6 +9315,7 @@ class _MakeRealProfileState implements MakeRealProfileState {
 
 @override final  String defaultUA;
 @override final  bool videoCallTunnelEnabled;
+@override final  bool videoCallTunnelPinned;
 @override final  int videoCallTunnelPort;
 @override final  String videoCallTunnelUsername;
 @override final  String videoCallTunnelPassword;
@@ -9328,16 +9330,16 @@ _$MakeRealProfileStateCopyWith<_MakeRealProfileState> get copyWith => __$MakeRea
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MakeRealProfileState&&(identical(other.profilesPath, profilesPath) || other.profilesPath == profilesPath)&&(identical(other.profileId, profileId) || other.profileId == profileId)&&const DeepCollectionEquality().equals(other._rawConfig, _rawConfig)&&(identical(other.realPatchConfig, realPatchConfig) || other.realPatchConfig == realPatchConfig)&&(identical(other.overrideDns, overrideDns) || other.overrideDns == overrideDns)&&(identical(other.appendSystemDns, appendSystemDns) || other.appendSystemDns == appendSystemDns)&&const DeepCollectionEquality().equals(other._proxyGroups, _proxyGroups)&&const DeepCollectionEquality().equals(other._rules, _rules)&&const DeepCollectionEquality().equals(other._addedRules, _addedRules)&&(identical(other.defaultUA, defaultUA) || other.defaultUA == defaultUA)&&(identical(other.videoCallTunnelEnabled, videoCallTunnelEnabled) || other.videoCallTunnelEnabled == videoCallTunnelEnabled)&&(identical(other.videoCallTunnelPort, videoCallTunnelPort) || other.videoCallTunnelPort == videoCallTunnelPort)&&(identical(other.videoCallTunnelUsername, videoCallTunnelUsername) || other.videoCallTunnelUsername == videoCallTunnelUsername)&&(identical(other.videoCallTunnelPassword, videoCallTunnelPassword) || other.videoCallTunnelPassword == videoCallTunnelPassword));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MakeRealProfileState&&(identical(other.profilesPath, profilesPath) || other.profilesPath == profilesPath)&&(identical(other.profileId, profileId) || other.profileId == profileId)&&const DeepCollectionEquality().equals(other._rawConfig, _rawConfig)&&(identical(other.realPatchConfig, realPatchConfig) || other.realPatchConfig == realPatchConfig)&&(identical(other.overrideDns, overrideDns) || other.overrideDns == overrideDns)&&(identical(other.appendSystemDns, appendSystemDns) || other.appendSystemDns == appendSystemDns)&&const DeepCollectionEquality().equals(other._proxyGroups, _proxyGroups)&&const DeepCollectionEquality().equals(other._rules, _rules)&&const DeepCollectionEquality().equals(other._addedRules, _addedRules)&&(identical(other.defaultUA, defaultUA) || other.defaultUA == defaultUA)&&(identical(other.videoCallTunnelEnabled, videoCallTunnelEnabled) || other.videoCallTunnelEnabled == videoCallTunnelEnabled)&&(identical(other.videoCallTunnelPinned, videoCallTunnelPinned) || other.videoCallTunnelPinned == videoCallTunnelPinned)&&(identical(other.videoCallTunnelPort, videoCallTunnelPort) || other.videoCallTunnelPort == videoCallTunnelPort)&&(identical(other.videoCallTunnelUsername, videoCallTunnelUsername) || other.videoCallTunnelUsername == videoCallTunnelUsername)&&(identical(other.videoCallTunnelPassword, videoCallTunnelPassword) || other.videoCallTunnelPassword == videoCallTunnelPassword));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,profilesPath,profileId,const DeepCollectionEquality().hash(_rawConfig),realPatchConfig,overrideDns,appendSystemDns,const DeepCollectionEquality().hash(_proxyGroups),const DeepCollectionEquality().hash(_rules),const DeepCollectionEquality().hash(_addedRules),defaultUA,videoCallTunnelEnabled,videoCallTunnelPort,videoCallTunnelUsername,videoCallTunnelPassword);
+int get hashCode => Object.hash(runtimeType,profilesPath,profileId,const DeepCollectionEquality().hash(_rawConfig),realPatchConfig,overrideDns,appendSystemDns,const DeepCollectionEquality().hash(_proxyGroups),const DeepCollectionEquality().hash(_rules),const DeepCollectionEquality().hash(_addedRules),defaultUA,videoCallTunnelEnabled,videoCallTunnelPinned,videoCallTunnelPort,videoCallTunnelUsername,videoCallTunnelPassword);
 
 @override
 String toString() {
-  return 'MakeRealProfileState(profilesPath: $profilesPath, profileId: $profileId, rawConfig: $rawConfig, realPatchConfig: $realPatchConfig, overrideDns: $overrideDns, appendSystemDns: $appendSystemDns, proxyGroups: $proxyGroups, rules: $rules, addedRules: $addedRules, defaultUA: $defaultUA, videoCallTunnelEnabled: $videoCallTunnelEnabled, videoCallTunnelPort: $videoCallTunnelPort, videoCallTunnelUsername: $videoCallTunnelUsername, videoCallTunnelPassword: $videoCallTunnelPassword)';
+  return 'MakeRealProfileState(profilesPath: $profilesPath, profileId: $profileId, rawConfig: $rawConfig, realPatchConfig: $realPatchConfig, overrideDns: $overrideDns, appendSystemDns: $appendSystemDns, proxyGroups: $proxyGroups, rules: $rules, addedRules: $addedRules, defaultUA: $defaultUA, videoCallTunnelEnabled: $videoCallTunnelEnabled, videoCallTunnelPinned: $videoCallTunnelPinned, videoCallTunnelPort: $videoCallTunnelPort, videoCallTunnelUsername: $videoCallTunnelUsername, videoCallTunnelPassword: $videoCallTunnelPassword)';
 }
 
 
@@ -9348,7 +9350,7 @@ abstract mixin class _$MakeRealProfileStateCopyWith<$Res> implements $MakeRealPr
   factory _$MakeRealProfileStateCopyWith(_MakeRealProfileState value, $Res Function(_MakeRealProfileState) _then) = __$MakeRealProfileStateCopyWithImpl;
 @override @useResult
 $Res call({
- String profilesPath, int profileId, Map<String, dynamic> rawConfig, PatchClashConfig realPatchConfig, bool overrideDns, bool appendSystemDns, List<ProxyGroup> proxyGroups, List<Rule> rules, List<Rule> addedRules, String defaultUA, bool videoCallTunnelEnabled, int videoCallTunnelPort, String videoCallTunnelUsername, String videoCallTunnelPassword
+ String profilesPath, int profileId, Map<String, dynamic> rawConfig, PatchClashConfig realPatchConfig, bool overrideDns, bool appendSystemDns, List<ProxyGroup> proxyGroups, List<Rule> rules, List<Rule> addedRules, String defaultUA, bool videoCallTunnelEnabled, bool videoCallTunnelPinned, int videoCallTunnelPort, String videoCallTunnelUsername, String videoCallTunnelPassword
 });
 
 
@@ -9365,7 +9367,7 @@ class __$MakeRealProfileStateCopyWithImpl<$Res>
 
 /// Create a copy of MakeRealProfileState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? profilesPath = null,Object? profileId = null,Object? rawConfig = null,Object? realPatchConfig = null,Object? overrideDns = null,Object? appendSystemDns = null,Object? proxyGroups = null,Object? rules = null,Object? addedRules = null,Object? defaultUA = null,Object? videoCallTunnelEnabled = null,Object? videoCallTunnelPort = null,Object? videoCallTunnelUsername = null,Object? videoCallTunnelPassword = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? profilesPath = null,Object? profileId = null,Object? rawConfig = null,Object? realPatchConfig = null,Object? overrideDns = null,Object? appendSystemDns = null,Object? proxyGroups = null,Object? rules = null,Object? addedRules = null,Object? defaultUA = null,Object? videoCallTunnelEnabled = null,Object? videoCallTunnelPinned = null,Object? videoCallTunnelPort = null,Object? videoCallTunnelUsername = null,Object? videoCallTunnelPassword = null,}) {
   return _then(_MakeRealProfileState(
 profilesPath: null == profilesPath ? _self.profilesPath : profilesPath // ignore: cast_nullable_to_non_nullable
 as String,profileId: null == profileId ? _self.profileId : profileId // ignore: cast_nullable_to_non_nullable
@@ -9378,6 +9380,7 @@ as List<ProxyGroup>,rules: null == rules ? _self._rules : rules // ignore: cast_
 as List<Rule>,addedRules: null == addedRules ? _self._addedRules : addedRules // ignore: cast_nullable_to_non_nullable
 as List<Rule>,defaultUA: null == defaultUA ? _self.defaultUA : defaultUA // ignore: cast_nullable_to_non_nullable
 as String,videoCallTunnelEnabled: null == videoCallTunnelEnabled ? _self.videoCallTunnelEnabled : videoCallTunnelEnabled // ignore: cast_nullable_to_non_nullable
+as bool,videoCallTunnelPinned: null == videoCallTunnelPinned ? _self.videoCallTunnelPinned : videoCallTunnelPinned // ignore: cast_nullable_to_non_nullable
 as bool,videoCallTunnelPort: null == videoCallTunnelPort ? _self.videoCallTunnelPort : videoCallTunnelPort // ignore: cast_nullable_to_non_nullable
 as int,videoCallTunnelUsername: null == videoCallTunnelUsername ? _self.videoCallTunnelUsername : videoCallTunnelUsername // ignore: cast_nullable_to_non_nullable
 as String,videoCallTunnelPassword: null == videoCallTunnelPassword ? _self.videoCallTunnelPassword : videoCallTunnelPassword // ignore: cast_nullable_to_non_nullable

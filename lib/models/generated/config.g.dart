@@ -177,11 +177,25 @@ Map<String, dynamic> _$VpnPropsToJson(_VpnProps instance) => <String, dynamic>{
 
 _VideoCallTunnelProps _$VideoCallTunnelPropsFromJson(
   Map<String, dynamic> json,
-) => _VideoCallTunnelProps(enable: json['enable'] as bool? ?? false);
+) => _VideoCallTunnelProps(
+  enable: json['enable'] as bool? ?? false,
+  pinned: json['pinned'] as bool? ?? false,
+  restoreMode: $enumDecodeNullable(_$ModeEnumMap, json['restoreMode']),
+);
 
 Map<String, dynamic> _$VideoCallTunnelPropsToJson(
   _VideoCallTunnelProps instance,
-) => <String, dynamic>{'enable': instance.enable};
+) => <String, dynamic>{
+  'enable': instance.enable,
+  'pinned': instance.pinned,
+  'restoreMode': _$ModeEnumMap[instance.restoreMode],
+};
+
+const _$ModeEnumMap = {
+  Mode.rule: 'rule',
+  Mode.global: 'global',
+  Mode.direct: 'direct',
+};
 
 _NetworkProps _$NetworkPropsFromJson(Map<String, dynamic> json) =>
     _NetworkProps(

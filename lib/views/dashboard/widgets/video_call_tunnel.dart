@@ -25,6 +25,9 @@ class DashboardVideoCallTunnelSection extends ConsumerWidget {
     final enabled = ref.watch(
       videoCallTunnelSettingProvider.select((state) => state.enable),
     );
+    final pinned = ref.watch(
+      videoCallTunnelSettingProvider.select((state) => state.pinned),
+    );
 
     return ListenableBuilder(
       listenable: videoCallTunnelController.status,
@@ -92,6 +95,17 @@ class DashboardVideoCallTunnelSection extends ConsumerWidget {
                             color: statusColor,
                           ),
                         ),
+                        // The one thing a user needs to know from the dashboard:
+                        // nothing is taking the normal route right now.
+                        if (enabled && pinned) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            context.appLocalizations.turnTunnelPinned,
+                            style: context.textTheme.bodySmall?.copyWith(
+                              color: AppTheme.muted,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

@@ -1080,6 +1080,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
       "No bypass slot — assign one in the mini app",
     ),
+    "turnTunnelPinned": MessageLookupByLibrary.simpleMessage(
+      "All traffic goes through the tunnel",
+    ),
+    "turnTunnelPinnedDesc": MessageLookupByLibrary.simpleMessage(
+      "While the emergency tunnel is connected, every route ends at it. Turn the switch off to go back to normal routing.",
+    ),
+    "turnTunnelPinnedModeLocked": MessageLookupByLibrary.simpleMessage(
+      "Routing mode is held on Rules while all traffic goes through the emergency tunnel.",
+    ),
     "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage(
       "Reconnecting",
     ),

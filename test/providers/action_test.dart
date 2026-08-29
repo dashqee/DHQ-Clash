@@ -12,6 +12,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:riverpod/riverpod.dart';
 
 void main() {
+  // The mode guard reaches for the navigator to say why it refused, and
+  // GlobalKey.currentContext needs a binding even to answer "no context".
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('ProfilesAction', () {
     test('deep link reuses an existing profile with the same URL', () {
       final original =
@@ -263,6 +267,115 @@ void main() {
         expect(container.read(videoCallTunnelSettingProvider).enable, true);
       },
     );
+
+    test('a connected tunnel takes every route and holds the mode', () async {
+      final container = ProviderContainer(
+        overrides: [
+          videoCallTunnelSettingProvider.overrideWithBuild(
+            (_, _) => const VideoCallTunnelProps(enable: true),
+          ),
+          patchClashConfigProvider.overrideWithBuild(
+            (_, _) => const PatchClashConfig(mode: Mode.global),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(setupActionProvider.notifier);
+
+      await videoCallTunnelController.onTunnelConnected!();
+
+      final props = container.read(videoCallTunnelSettingProvider);
+      expect(props.pinned, true);
+      // Remembered so the dashboard switch can hand it back.
+      expect(props.restoreMode, Mode.global);
+      // The pin is a rule, and the core matches no rules in global or direct.
+      expect(container.read(patchClashConfigProvider).mode, Mode.rule);
+    });
+
+    test('a mode that was already rule is not remembered', () async {
+      final container = ProviderContainer(
+        overrides: [
+          videoCallTunnelSettingProvider.overrideWithBuild(
+            (_, _) => const VideoCallTunnelProps(enable: true),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(setupActionProvider.notifier);
+
+      await videoCallTunnelController.onTunnelConnected!();
+
+      // Nothing was taken away, so there is nothing to give back.
+      expect(container.read(videoCallTunnelSettingProvider).restoreMode, isNull);
+    });
+
+    test('reconnecting does not re-pin over a mode the user changed', () async {
+      final container = ProviderContainer(
+        overrides: [
+          videoCallTunnelSettingProvider.overrideWithBuild(
+            (_, _) => const VideoCallTunnelProps(enable: true),
+          ),
+          patchClashConfigProvider.overrideWithBuild(
+            (_, _) => const PatchClashConfig(mode: Mode.global),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(setupActionProvider.notifier);
+
+      await videoCallTunnelController.onTunnelConnected!();
+      await videoCallTunnelController.onTunnelConnected!();
+
+      // The transport drops and returns on its own; the second pass must not
+      // overwrite the remembered mode with the one the pin itself imposed.
+      expect(
+        container.read(videoCallTunnelSettingProvider).restoreMode,
+        Mode.global,
+      );
+    });
+
+    test('turning the tunnel off gives the mode back', () async {
+      final container = ProviderContainer(
+        overrides: [
+          videoCallTunnelSettingProvider.overrideWithBuild(
+            (_, _) => const VideoCallTunnelProps(
+              enable: true,
+              pinned: true,
+              restoreMode: Mode.global,
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container
+          .read(setupActionProvider.notifier)
+          .setVideoCallTunnelEnabled(false);
+
+      final props = container.read(videoCallTunnelSettingProvider);
+      expect(props.pinned, false);
+      expect(props.restoreMode, isNull);
+      expect(container.read(patchClashConfigProvider).mode, Mode.global);
+    });
+
+    test('the mode cannot be changed while everything is pinned', () async {
+      final container = ProviderContainer(
+        overrides: [
+          videoCallTunnelSettingProvider.overrideWithBuild(
+            (_, _) =>
+                const VideoCallTunnelProps(enable: true, pinned: true),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(setupActionProvider.notifier).changeMode(Mode.global);
+      expect(container.read(patchClashConfigProvider).mode, Mode.rule);
+
+      // The tray and the hotkey write the mode through their own path.
+      container.read(commonActionProvider.notifier).updateMode();
+      expect(container.read(patchClashConfigProvider).mode, Mode.rule);
+    });
 
     test('active Windows client restarts only when TUN is enabled', () {
       expect(
