@@ -2,11 +2,55 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/plugins/app.dart';
+import 'package:fl_clash/providers/app.dart';
 import 'package:fl_clash/providers/config.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// Icon for one link of a proxy chain, or "" when it has none.
+///
+/// Only proxy groups carry an icon — they are the ones named after a service in
+/// the config. The last link is a node out of a provider and never has one; its
+/// flag lives in the name instead. Same rule as the router panel, which reads
+/// the icon off the proxy by name and renders nothing when there is none.
+String chainIcon(List<Group> groups, String chain) =>
+    groups.getGroup(chain)?.icon ?? '';
+
+/// mihomo returns a chain innermost first, so the node comes before the group
+/// that picked it. Reversed reads as the decision did: rule, then node.
+List<String> orderedChains(List<String> chains) => chains.reversed.toList();
+
+class _ChainChip extends ConsumerWidget {
+  final String chain;
+  final VoidCallback? onPressed;
+  final TextStyle? labelStyle;
+
+  const _ChainChip({required this.chain, this.onPressed, this.labelStyle});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watched by name: a connection list rebuilds every second, and depending on
+    // the whole group list would rebuild every row for any group's change.
+    final icon = ref.watch(
+      groupsProvider.select((groups) => chainIcon(groups, chain)),
+    );
+    return CommonChip(
+      label: chain,
+      labelStyle: labelStyle,
+      onPressed: onPressed,
+      // No placeholder when there is no icon: a reserved but empty box would
+      // shift every node label out of line with the groups above it.
+      avatar: icon.isEmpty
+          ? null
+          : SizedBox.square(
+              dimension: globalState.measure.bodySmallHeight,
+              child: CommonTargetIcon(src: icon),
+            ),
+    );
+  }
+}
 
 class TrackerInfoItem extends ConsumerWidget {
   final TrackerInfo trackerInfo;
@@ -77,6 +121,7 @@ class TrackerInfoItem extends ConsumerWidget {
         ),
       ],
     );
+    final chains = orderedChains(trackerInfo.chains);
     final subTitle = SizedBox(
       height: subTitleHeight,
       child: Row(
@@ -89,11 +134,11 @@ class TrackerInfoItem extends ConsumerWidget {
               separatorBuilder: (_, _) => const SizedBox(width: 6),
               padding: EdgeInsets.zero,
               scrollDirection: Axis.horizontal,
-              itemCount: trackerInfo.chains.length,
+              itemCount: chains.length,
               itemBuilder: (_, index) {
-                final chain = trackerInfo.chains[index];
-                return CommonChip(
-                  label: chain,
+                final chain = chains[index];
+                return _ChainChip(
+                  chain: chain,
                   labelStyle: context.textTheme.bodySmall?.copyWith(
                     color: context.colorScheme.onSurfaceVariant,
                   ),
@@ -226,8 +271,8 @@ class TrackerInfoDetailView extends StatelessWidget {
       runSpacing: 8,
       alignment: WrapAlignment.end,
       children: [
-        for (final chain in trackerInfo.chains)
-          CommonChip(label: chain, onPressed: () {}),
+        for (final chain in orderedChains(trackerInfo.chains))
+          _ChainChip(chain: chain, onPressed: () {}),
       ],
     );
     return ListItem(
