@@ -277,6 +277,7 @@ class SetupAction extends _$SetupAction {
         _handleVideoCallTunnelConnected;
     videoCallTunnelController.onTerminalError =
         _handleVideoCallTunnelTerminalError;
+    videoCallTunnelController.onJoinTimeout = _handleVideoCallTunnelJoinTimeout;
     ref.onDispose(() {
       _turnLinkRetryTimer?.cancel();
       _turnAssignmentHeartbeatTimer?.cancel();
@@ -294,6 +295,10 @@ class SetupAction extends _$SetupAction {
       if (videoCallTunnelController.onTerminalError ==
           _handleVideoCallTunnelTerminalError) {
         videoCallTunnelController.onTerminalError = null;
+      }
+      if (videoCallTunnelController.onJoinTimeout ==
+          _handleVideoCallTunnelJoinTimeout) {
+        videoCallTunnelController.onJoinTimeout = null;
       }
     });
   }
@@ -464,6 +469,9 @@ class SetupAction extends _$SetupAction {
         _cancelTurnLinkRetry();
         _cancelTurnEntitlementRecheck();
         _turnJoinLink = joinLink;
+        // Only ever used to word a failure: whose call this is decides whether
+        // "nobody is hosting it" is advice or noise.
+        videoCallTunnelController.linkSource = result.source;
         return props;
       case VideoCallTunnelLinkStatus.notEntitled:
         _cancelTurnLinkRetry();
@@ -604,6 +612,23 @@ class SetupAction extends _$SetupAction {
           .read(patchClashConfigProvider.notifier)
           .update((state) => state.copyWith(mode: restoreMode));
     }
+  }
+
+  /// Joined the call and nothing answered.
+  ///
+  /// On a user's own call that means nobody is hosting it, and retrying at speed
+  /// would just ask for the captcha again and again. So this backs off through
+  /// the existing ladder instead of restarting the way a terminal error does.
+  Future<void> _handleVideoCallTunnelJoinTimeout() async {
+    _cancelTurnAssignmentHeartbeat();
+    _cancelTurnReconnectGrace();
+    await _unpinVideoCallTunnelRouting();
+    if (isStart) {
+      await applyProfile(force: true, silence: true);
+    }
+    unawaited(_reportVideoCallTunnelStatus(ok: false, reason: 'join_timeout'));
+    await videoCallTunnelController.stop();
+    _scheduleTurnLinkRetry();
   }
 
   /// The sidecar is single-shot — an ERROR or a process exit is unrecoverable, so this

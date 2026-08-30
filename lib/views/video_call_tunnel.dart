@@ -29,6 +29,8 @@ String videoCallTunnelStatusText(
     VideoCallTunnelStatus.reconnecting =>
       context.appLocalizations.turnTunnelReconnecting,
     VideoCallTunnelStatus.stopped => context.appLocalizations.turnTunnelStopped,
+    VideoCallTunnelStatus.joinTimedOut =>
+      context.appLocalizations.turnTunnelJoinTimedOut,
     VideoCallTunnelStatus.error => context.appLocalizations.turnTunnelError,
   };
 }
@@ -112,6 +114,28 @@ class VideoCallTunnelPanel extends ConsumerWidget {
                   title: Text(context.appLocalizations.status),
                   subtitle: Text(videoCallTunnelStatusText(context, status)),
                 ),
+                // A timed-out join is the one failure whose cause the user can
+                // actually act on, and only if we say which cause it was.
+                if (status == VideoCallTunnelStatus.joinTimedOut)
+                  Card.filled(
+                    key: const ValueKey('video-call-tunnel-join-timeout'),
+                    child: ListTile(
+                      leading: const Icon(Icons.person_off_outlined),
+                      title: Text(
+                        context.appLocalizations.turnTunnelJoinTimedOut,
+                      ),
+                      subtitle: Text(
+                        videoCallTunnelController.linkSource ==
+                                VideoCallTunnelSource.custom
+                            ? context
+                                  .appLocalizations
+                                  .turnTunnelJoinTimedOutCustom
+                            : context
+                                  .appLocalizations
+                                  .turnTunnelJoinTimedOutManaged,
+                      ),
+                    ),
+                  ),
                 if (captchaUri != null)
                   Card.filled(
                     child: ListTile(

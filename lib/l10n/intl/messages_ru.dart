@@ -1128,6 +1128,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "turnTunnelConnecting": MessageLookupByLibrary.simpleMessage(
       "Подключение к звонку",
     ),
+    "turnTunnelCustomNeedsCreator": MessageLookupByLibrary.simpleMessage(
+      "В звонке должен постоянно работать ваш creator. Ссылка на обычный звонок VK не подойдёт.",
+    ),
     "turnTunnelDesc": MessageLookupByLibrary.simpleMessage(
       "Использует видеозвонок VK как локальный SOCKS5-резерв, когда прямые VLESS-серверы недоступны.",
     ),
@@ -1137,6 +1140,15 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "turnTunnelError": MessageLookupByLibrary.simpleMessage(
       "Ошибка подключения",
+    ),
+    "turnTunnelJoinTimedOut": MessageLookupByLibrary.simpleMessage(
+      "Не удалось войти в звонок",
+    ),
+    "turnTunnelJoinTimedOutCustom": MessageLookupByLibrary.simpleMessage(
+      "В звонке никого нет. Для своего звонка в нём должен работать ваш creator — ссылки на обычный звонок VK недостаточно.",
+    ),
+    "turnTunnelJoinTimedOutManaged": MessageLookupByLibrary.simpleMessage(
+      "Звонок не ответил. Пробуем снова; если повторится — напишите в поддержку.",
     ),
     "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
       "Слот обхода не назначен — включите в мини-приложении",

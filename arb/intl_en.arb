@@ -594,5 +594,9 @@
   "turnTunnelPinned": "All traffic goes through the tunnel",
   "turnTunnelPinnedDesc": "While the emergency tunnel is connected, every route ends at it. Turn the switch off to go back to normal routing.",
   "turnTunnelPinnedModeLocked": "Routing mode is held on Rules while all traffic goes through the emergency tunnel.",
-  "turnTunnelPinReleased": "The emergency tunnel is not responding — routing is back to normal. It will be used again as soon as the call is reachable."
+  "turnTunnelPinReleased": "The emergency tunnel is not responding — routing is back to normal. It will be used again as soon as the call is reachable.",
+  "turnTunnelJoinTimedOut": "Could not join the call",
+  "turnTunnelJoinTimedOutCustom": "Nobody is hosting this call. Your own call needs your creator running in it — a plain VK call link is not enough.",
+  "turnTunnelJoinTimedOutManaged": "The call did not answer. Retrying; if this keeps up, tell support.",
+  "turnTunnelCustomNeedsCreator": "The call must have your own creator running in it the whole time. A link to an ordinary VK call will not work."
 }

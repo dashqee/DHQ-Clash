@@ -594,5 +594,9 @@
   "turnTunnelPinned": "全部流量走隧道",
   "turnTunnelPinnedDesc": "应急隧道连接期间，所有流量都会经过它。关闭开关即可恢复正常分流。",
   "turnTunnelPinnedModeLocked": "全部流量走应急隧道期间，模式固定为「规则」。",
-  "turnTunnelPinReleased": "应急隧道无响应，已恢复正常分流。通话可用后会再次启用。"
+  "turnTunnelPinReleased": "应急隧道无响应，已恢复正常分流。通话可用后会再次启用。",
+  "turnTunnelJoinTimedOut": "无法加入通话",
+  "turnTunnelJoinTimedOutCustom": "通话中没有人。使用自己的通话时，需要在其中运行你的 creator，仅有普通 VK 通话链接是不够的。",
+  "turnTunnelJoinTimedOutManaged": "通话没有响应。正在重试；若持续如此请联系客服。",
+  "turnTunnelCustomNeedsCreator": "通话期间必须一直运行你自己的 creator。普通 VK 通话链接无法使用。"
 }
