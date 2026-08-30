@@ -744,6 +744,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "trafficUsage": MessageLookupByLibrary.simpleMessage("流量统计"),
     "tun": MessageLookupByLibrary.simpleMessage("虚拟网卡"),
     "tunDesc": MessageLookupByLibrary.simpleMessage("仅在管理员模式生效"),
+    "tunHelperUnavailable": MessageLookupByLibrary.simpleMessage(
+      "无法启用 TUN：特权辅助服务不可用，VPN 未启动。请在「设置 → 网络」中重新安装该服务。",
+    ),
     "turnOff": MessageLookupByLibrary.simpleMessage("关闭"),
     "turnOn": MessageLookupByLibrary.simpleMessage("开启"),
     "turnTunnel": MessageLookupByLibrary.simpleMessage("视频通话应急隧道"),

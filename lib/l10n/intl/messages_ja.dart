@@ -858,6 +858,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "trafficUsage": MessageLookupByLibrary.simpleMessage("トラフィック使用量"),
     "tun": MessageLookupByLibrary.simpleMessage("TUN"),
     "tunDesc": MessageLookupByLibrary.simpleMessage("管理者モードでのみ有効"),
+    "tunHelperUnavailable": MessageLookupByLibrary.simpleMessage(
+      "TUN を有効にできませんでした。権限付きヘルパーが利用できないため、VPN は開始されていません。「設定 → ネットワーク」からサービスを再インストールしてください。",
+    ),
     "turnOff": MessageLookupByLibrary.simpleMessage("オフ"),
     "turnOn": MessageLookupByLibrary.simpleMessage("オン"),
     "turnTunnel": MessageLookupByLibrary.simpleMessage("ビデオ通話緊急トンネル"),

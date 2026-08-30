@@ -273,7 +273,15 @@ enum ActionMethod {
 
 enum AuthorizeCode { none, success, error }
 
-enum WindowsHelperServiceStatus { none, presence, running }
+enum WindowsHelperServiceStatus {
+  none,
+  presence,
+  running,
+  // Registered, answering, and pointing at a helper from a previous install.
+  // An update replaces the binary but leaves the service where it was, and the
+  // old one answers the health check exactly like the new one would.
+  stale,
+}
 
 enum FunctionTag {
   updateConfig,

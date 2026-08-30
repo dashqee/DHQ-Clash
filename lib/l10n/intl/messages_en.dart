@@ -1048,6 +1048,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "tunDesc": MessageLookupByLibrary.simpleMessage(
       "only effective in administrator mode",
     ),
+    "tunHelperUnavailable": MessageLookupByLibrary.simpleMessage(
+      "TUN could not be enabled: the privileged helper is unavailable. The VPN was not started. Try Settings → Network → reinstall the service.",
+    ),
     "turnOff": MessageLookupByLibrary.simpleMessage("Turn Off"),
     "turnOn": MessageLookupByLibrary.simpleMessage("Turn On"),
     "turnTunnel": MessageLookupByLibrary.simpleMessage(

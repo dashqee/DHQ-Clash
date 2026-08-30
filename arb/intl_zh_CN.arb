@@ -598,5 +598,6 @@
   "turnTunnelJoinTimedOut": "无法加入通话",
   "turnTunnelJoinTimedOutCustom": "通话中没有人。使用自己的通话时，需要在其中运行你的 creator，仅有普通 VK 通话链接是不够的。",
   "turnTunnelJoinTimedOutManaged": "通话没有响应。正在重试；若持续如此请联系客服。",
-  "turnTunnelCustomNeedsCreator": "通话期间必须一直运行你自己的 creator。普通 VK 通话链接无法使用。"
+  "turnTunnelCustomNeedsCreator": "通话期间必须一直运行你自己的 creator。普通 VK 通话链接无法使用。",
+  "tunHelperUnavailable": "无法启用 TUN：特权辅助服务不可用，VPN 未启动。请在「设置 → 网络」中重新安装该服务。"
 }

@@ -69,6 +69,34 @@ String windowsHelperReinstallationCommand({
   ].join(' ');
 }
 
+/// Whether `sc qc` says the service runs the helper we just installed.
+///
+/// Returns null when the output cannot be read — a locale or a format we did
+/// not expect — and the caller then behaves as it did before this check
+/// existed. Being unsure must not cost anyone a working service.
+@visibleForTesting
+bool? windowsHelperPathMatches({
+  required int exitCode,
+  required String output,
+  required String helperPath,
+}) {
+  if (exitCode != 0) return null;
+  // BINARY_PATH_NAME is not localized; its label is the same in every locale.
+  final line = output
+      .split(RegExp(r'[\r\n]+'))
+      .where((line) => line.contains('BINARY_PATH_NAME'))
+      .firstOrNull;
+  if (line == null) return null;
+  final registered = line.split(':').skip(1).join(':').trim();
+  if (registered.isEmpty) return null;
+  String normalize(String value) => value
+      .replaceAll('"', '')
+      .replaceAll(r'\\', r'\')
+      .trim()
+      .toLowerCase();
+  return normalize(registered) == normalize(helperPath);
+}
+
 @visibleForTesting
 String windowsHelperRegistrationCommand({
   required WindowsHelperServiceStatus currentStatus,
@@ -82,7 +110,10 @@ String windowsHelperRegistrationCommand({
       'taskkill /F /IM "$_legacyHelperService.exe" >nul 2>&1',
       'sc delete "$_legacyHelperService" >nul 2>&1',
     ],
-    if (currentStatus == WindowsHelperServiceStatus.presence) ...[
+    // A stale service is running the previous helper, so it has to be stopped
+    // before its binPath can be pointed at the new one.
+    if (currentStatus == WindowsHelperServiceStatus.presence ||
+        currentStatus == WindowsHelperServiceStatus.stale) ...[
       'sc stop "$appHelperService" >nul 2>&1',
       'taskkill /F /IM "$appHelperService.exe" >nul 2>&1',
     ],
@@ -322,18 +353,29 @@ class Windows {
   // }
 
   Future<WindowsHelperServiceStatus> checkService() async {
-    // final qcResult = await Process.run('sc', ['qc', appHelperService]);
-    // final qcOutput = qcResult.stdout.toString();
-    // if (qcResult.exitCode != 0 || !qcOutput.contains(appPath.helperPath)) {
-    //   return WindowsHelperServiceStatus.none;
-    // }
     final result = await Process.run('sc', ['query', appHelperService]);
     if (result.exitCode != 0) {
       return WindowsHelperServiceStatus.none;
     }
-    // The textual state returned by sc.exe is localized. The authenticated
-    // health check is enough to prove that the registered helper is running.
-    if (await request.pingHelper()) {
+    // The textual state returned by sc.exe is localized, so the authenticated
+    // health check stands in for it. But answering is not the same as being
+    // ours: an update replaces the helper binary and leaves the service
+    // pointing at the previous one, which answers this ping just as happily.
+    // Without the path check the app spends the rest of the release talking to
+    // the helper it replaced.
+    final alive = await request.pingHelper();
+    final qc = await Process.run('sc', ['qc', appHelperService]);
+    final matches = windowsHelperPathMatches(
+      exitCode: qc.exitCode,
+      output: qc.stdout.toString(),
+      helperPath: appPath.helperPath,
+    );
+    if (matches == false) {
+      return WindowsHelperServiceStatus.stale;
+    }
+    // matches == null: the output was not readable. Behave as before rather
+    // than tear down a service on a guess.
+    if (alive) {
       return WindowsHelperServiceStatus.running;
     }
     return WindowsHelperServiceStatus.presence;
@@ -414,6 +456,18 @@ Get-CimInstance Win32_Service | Where-Object {
 
     if (status == WindowsHelperServiceStatus.running) {
       return true;
+    }
+    // Registered against the previous install: the binPath has to be repointed,
+    // and one attempt per release is enough — asking for UAC on every start
+    // would train people to dismiss it.
+    if (status == WindowsHelperServiceStatus.stale) {
+      final packageInfo = globalState.packageInfo;
+      final shouldAttempt = await preferences.claimHelperInstallAttempt(
+        platform: 'windows',
+        releaseId: '${packageInfo.version}+${packageInfo.buildNumber}',
+      );
+      if (!shouldAttempt) return request.pingHelper();
+      return reinstallService();
     }
 
     // Releases before 1.1.5 registered the helper under a different service
