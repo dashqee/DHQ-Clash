@@ -474,6 +474,27 @@ void main() {
       }
     });
 
+    test('reports the join outcome next to where it asked for the link', () {
+      // The backend cannot tell a live VK call from a dead one — it gets the
+      // same page for both — so the joiner is the only witness there is.
+      expect(
+        buildVideoCallTunnelStatusUri(
+          'https://sub.example.com/configs/c_device.yaml',
+        ).toString(),
+        'https://sub.example.com/configs/turn/status/c_device.yaml',
+      );
+      expect(buildVideoCallTunnelStatusUri('not a url'), isNull);
+    });
+
+    test('the pin is given a bounded life, not an unbounded one', () {
+      // Pinned to a channel that never comes back, the machine has no internet
+      // and nothing on screen to explain it.
+      expect(videoCallTunnelPinGrace.inSeconds, greaterThan(
+        videoCallTunnelReconnectGrace.inSeconds,
+      ));
+      expect(videoCallTunnelPinGrace.inMinutes, lessThanOrEqualTo(10));
+    });
+
     test('forces process matching on, whatever the user picked', () {
       // The PROCESS-NAME bypass rules are the only thing keeping the sidecar's own
       // traffic out of its own SOCKS port; without process matching they are inert.

@@ -1141,6 +1141,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
       "Слот обхода не назначен — включите в мини-приложении",
     ),
+    "turnTunnelPinReleased": MessageLookupByLibrary.simpleMessage(
+      "Аварийный туннель не отвечает — маршрутизация вернулась к обычной. Как только звонок станет доступен, трафик снова пойдёт через него.",
+    ),
     "turnTunnelPinned": MessageLookupByLibrary.simpleMessage(
       "Весь трафик идёт через туннель",
     ),

@@ -30,6 +30,11 @@ const videoCallTunnelEntitlementRecheck = Duration(minutes: 5);
 // Respawning the process instead pre-empts that retry loop and, because the VK
 // session is not cached, costs the user a fresh captcha.
 const videoCallTunnelReconnectGrace = Duration(seconds: 60);
+// How long everything may keep pointing at a tunnel that is not up before the
+// pin is lifted. The sidecar's own retry sequence runs about a minute, so this
+// leaves room for a real recovery and still bounds the outage: pinned to a dead
+// channel there is no internet at all, and the only sign is that nothing loads.
+const videoCallTunnelPinGrace = Duration(minutes: 3);
 // Upper bound on resolving a hostname for the sidecar. It blocks on our answer while
 // holding its resolve mutex, so a lookup that never returns wedges the tunnel for good.
 const videoCallTunnelResolveTimeout = Duration(seconds: 5);
@@ -158,6 +163,22 @@ class VideoCallTunnelCredentials {
     required this.username,
     required this.password,
   });
+}
+
+/// Where the client reports whether it managed to join the call it was given.
+///
+/// The server hands out a user's own VK link unchecked and cannot check it: VK
+/// answers a live call and a fabricated one with the same page, because call
+/// state resolves client-side behind auth. The joiner is the only witness.
+Uri? buildVideoCallTunnelStatusUri(String subscriptionUrl) {
+  final link = buildVideoCallTunnelLinkUri(subscriptionUrl);
+  if (link == null) return null;
+  final segments = List<String>.from(link.pathSegments);
+  // .../turn/link/<public_file> -> .../turn/status/<public_file>
+  final turnIndex = segments.lastIndexOf('link');
+  if (turnIndex < 0) return null;
+  segments[turnIndex] = 'status';
+  return link.replace(pathSegments: segments);
 }
 
 Uri? buildVideoCallTunnelLinkUri(String subscriptionUrl) {

@@ -260,6 +260,7 @@ class SetupAction extends _$SetupAction {
   Timer? _turnAssignmentHeartbeatTimer;
   Timer? _turnEntitlementRecheckTimer;
   Timer? _turnReconnectGraceTimer;
+  Timer? _turnPinGraceTimer;
   final Random _turnRetryRandom = Random();
   bool _isRefreshingTurnLink = false;
   int _turnRetryAttempt = 0;
@@ -281,6 +282,7 @@ class SetupAction extends _$SetupAction {
       _turnAssignmentHeartbeatTimer?.cancel();
       _turnEntitlementRecheckTimer?.cancel();
       _turnReconnectGraceTimer?.cancel();
+      _turnPinGraceTimer?.cancel();
       if (videoCallTunnelController.onTunnelLost ==
           _handleVideoCallTunnelLost) {
         videoCallTunnelController.onTunnelLost = null;
@@ -330,6 +332,51 @@ class SetupAction extends _$SetupAction {
   void _cancelTurnReconnectGrace() {
     _turnReconnectGraceTimer?.cancel();
     _turnReconnectGraceTimer = null;
+  }
+
+  void _cancelTurnPinGrace() {
+    _turnPinGraceTimer?.cancel();
+    _turnPinGraceTimer = null;
+  }
+
+  /// Bound how long everything may keep pointing at a tunnel that is not up.
+  ///
+  /// Pinned, the catch-all rule sends every route into the call, so a channel
+  /// that never comes back is a machine with no internet and nothing on screen
+  /// to say why. The sidecar keeps retrying either way — this only gives the
+  /// routing back while it does.
+  void _scheduleTurnPinGrace() {
+    if (_turnPinGraceTimer?.isActive == true) return;
+    _turnPinGraceTimer = Timer(videoCallTunnelPinGrace, () async {
+      _turnPinGraceTimer = null;
+      if (videoCallTunnelController.status.value ==
+          VideoCallTunnelStatus.connected) {
+        return;
+      }
+      if (!ref.read(videoCallTunnelSettingProvider).pinned) return;
+      commonPrint.log(
+        'TURN tunnel still down; releasing the routing pin',
+        logLevel: LogLevel.warning,
+      );
+      await _unpinVideoCallTunnelRouting();
+      if (isStart) {
+        await applyProfile(force: true, silence: true);
+      }
+      globalState.showNotifier(currentAppLocalizations.turnTunnelPinReleased);
+      unawaited(_reportVideoCallTunnelStatus(ok: false, reason: 'tunnel_down'));
+    });
+  }
+
+  Future<void> _reportVideoCallTunnelStatus({
+    required bool ok,
+    String? reason,
+  }) async {
+    // Only the subscription we actually fetched a link from, never the current
+    // profile: reading that provider opens the database, which drags
+    // path_provider and its platform channel into every caller.
+    final url = _turnSubscriptionUrl;
+    if (url == null || url.isEmpty) return;
+    await request.reportVideoCallTunnelStatus(url, ok: ok, reason: reason);
   }
 
   /// Restarts the silence window. Rescheduling (rather than keeping the first timer)
@@ -504,13 +551,18 @@ class SetupAction extends _$SetupAction {
   Future<void> _handleVideoCallTunnelLost() async {
     _cancelTurnAssignmentHeartbeat();
     _scheduleTurnReconnectGrace();
+    _scheduleTurnPinGrace();
   }
 
   Future<void> _handleVideoCallTunnelConnected() async {
     _cancelTurnLinkRetry();
     _cancelTurnReconnectGrace();
+    _cancelTurnPinGrace();
     _scheduleTurnAssignmentHeartbeat();
     await _pinVideoCallTunnelRouting();
+    // The join worked, which is the only evidence the backend can get that a
+    // user's own call link is still alive.
+    unawaited(_reportVideoCallTunnelStatus(ok: true));
   }
 
   /// Send everything through the tunnel, and keep it that way until the switch
@@ -559,6 +611,8 @@ class SetupAction extends _$SetupAction {
   Future<void> _handleVideoCallTunnelTerminalError() async {
     _cancelTurnAssignmentHeartbeat();
     _cancelTurnReconnectGrace();
+    _scheduleTurnPinGrace();
+    unawaited(_reportVideoCallTunnelStatus(ok: false, reason: 'sidecar_error'));
     await _restartVideoCallTunnel();
   }
 
@@ -618,6 +672,7 @@ class SetupAction extends _$SetupAction {
     _cancelTurnAssignmentHeartbeat();
     _cancelTurnEntitlementRecheck();
     _cancelTurnReconnectGrace();
+    _cancelTurnPinGrace();
     _turnJoinLink = null;
     _turnSubscriptionUrl = null;
     await _unpinVideoCallTunnelRouting();
