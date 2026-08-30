@@ -43,7 +43,13 @@ class Preferences {
     await preferences?.setInt('version', version);
   }
 
-  Future<bool> claimMacOSHelperInstallAttempt({
+  /// One automatic helper install attempt per platform per release.
+  ///
+  /// Both desktop platforms need an elevation prompt to (re)install their
+  /// helper, and both only need it once after an update. Asking on every start
+  /// teaches people to dismiss the prompt, which is worse than not asking.
+  Future<bool> claimHelperInstallAttempt({
+    required String platform,
     required String releaseId,
     bool force = false,
   }) async {
@@ -51,13 +57,26 @@ class Preferences {
     if (force) {
       return true;
     }
-    if (preferences?.getString(_macOSHelperAutoInstallAttemptKey) ==
-        releaseId) {
+    // The macOS key predates this and is kept as-is so an update does not hand
+    // existing installs a second prompt they already answered.
+    final key = platform == 'macos'
+        ? _macOSHelperAutoInstallAttemptKey
+        : '${_macOSHelperAutoInstallAttemptKey}_$platform';
+    if (preferences?.getString(key) == releaseId) {
       return false;
     }
-    await preferences?.setString(_macOSHelperAutoInstallAttemptKey, releaseId);
+    await preferences?.setString(key, releaseId);
     return true;
   }
+
+  Future<bool> claimMacOSHelperInstallAttempt({
+    required String releaseId,
+    bool force = false,
+  }) => claimHelperInstallAttempt(
+    platform: 'macos',
+    releaseId: releaseId,
+    force: force,
+  );
 
   Future<void> saveShareState(SharedState shareState) async {
     final preferences = await sharedPreferencesCompleter.future;

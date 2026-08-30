@@ -1107,6 +1107,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "tunDesc": MessageLookupByLibrary.simpleMessage(
       "действительно только в режиме администратора",
     ),
+    "tunHelperUnavailable": MessageLookupByLibrary.simpleMessage(
+      "Не удалось включить TUN: служба с правами недоступна. VPN не запущен. Попробуйте «Настройки → Сеть → переустановить службу».",
+    ),
     "turnOff": MessageLookupByLibrary.simpleMessage("Выключить"),
     "turnOn": MessageLookupByLibrary.simpleMessage("Включить"),
     "turnTunnel": MessageLookupByLibrary.simpleMessage(

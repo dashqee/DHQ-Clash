@@ -785,8 +785,34 @@ class SetupAction extends _$SetupAction {
     }
   }
 
+  /// Make sure TUN is on before anything starts, or say why it is not.
+  ///
+  /// Returns false to abort the start. The check lives here and not in the
+  /// start button because the button is one of five ways in: the tray, the
+  /// hotkey, the deep link and autostart all reach updateStatus directly and
+  /// used to walk straight past the guard.
+  Future<bool> _ensureTunBeforeStart({required bool isInit}) async {
+    if (!system.isDesktop) return true;
+    if (ref.read(patchClashConfigProvider).tun.enable) return true;
+    if (!isInit) {
+      // An interactive start explains itself; the button does this too, ahead
+      // of time, and either dialog answered means the same thing here.
+      final enable = await globalState.showMessage(
+        title: currentAppLocalizations.tun,
+        message: TextSpan(text: currentAppLocalizations.startRequiresTun),
+        confirmText: currentAppLocalizations.enableTun,
+      );
+      if (enable != true) return false;
+    }
+    // Autostart and a core restart turn it on themselves. Asking at login is
+    // asking at the moment people are least able to answer.
+    setTunEnabled(true);
+    return true;
+  }
+
   Future<void> updateStatus(bool isStart, {bool isInit = false}) async {
     if (isStart) {
+      if (!await _ensureTunBeforeStart(isInit: isInit)) return;
       final videoCallTunnel = ref.read(videoCallTunnelSettingProvider);
       if (videoCallTunnel.enable) {
         final resolvedVideoCallTunnel = await _resolveVideoCallTunnelProps();
@@ -1050,11 +1076,8 @@ class SetupAction extends _$SetupAction {
               .read(coreActionProvider.notifier)
               .restartCore();
           if (!restarted) {
-            ref
-                .read(patchClashConfigProvider.notifier)
-                .update((state) => state.copyWith.tun(enable: false));
             ref.read(realTunEnableProvider.notifier).value = false;
-            final message = currentAppLocalizations.macosTunHelperInstallFailed;
+            final message = currentAppLocalizations.tunHelperUnavailable;
             globalState.showNotifier(message);
             return Result.error(message);
           }
@@ -1062,11 +1085,12 @@ class SetupAction extends _$SetupAction {
         case AuthorizeCode.none:
           break;
         case AuthorizeCode.error:
-          ref
-              .read(patchClashConfigProvider.notifier)
-              .update((state) => state.copyWith.tun(enable: false));
+          // The setting is what the user asked for and stays as it is; only the
+          // runtime fact changes. Clearing tun.enable here used to turn a failed
+          // elevation into a VPN that starts and routes nothing, which looks
+          // exactly like a working one.
           ref.read(realTunEnableProvider.notifier).value = false;
-          final message = currentAppLocalizations.macosTunHelperInstallFailed;
+          final message = currentAppLocalizations.tunHelperUnavailable;
           globalState.showNotifier(message);
           return Result.error(message);
       }
@@ -1247,11 +1271,8 @@ class CoreAction extends _$CoreAction {
         case AuthorizeCode.success:
           final restarted = await restartCore();
           if (!restarted) {
-            ref
-                .read(patchClashConfigProvider.notifier)
-                .update((state) => state.copyWith.tun(enable: false));
             ref.read(realTunEnableProvider.notifier).value = false;
-            final message = currentAppLocalizations.macosTunHelperInstallFailed;
+            final message = currentAppLocalizations.tunHelperUnavailable;
             globalState.showNotifier(message);
             return Result.error(message);
           }
@@ -1259,11 +1280,12 @@ class CoreAction extends _$CoreAction {
         case AuthorizeCode.none:
           break;
         case AuthorizeCode.error:
-          ref
-              .read(patchClashConfigProvider.notifier)
-              .update((state) => state.copyWith.tun(enable: false));
+          // The setting is what the user asked for and stays as it is; only the
+          // runtime fact changes. Clearing tun.enable here used to turn a failed
+          // elevation into a VPN that starts and routes nothing, which looks
+          // exactly like a working one.
           ref.read(realTunEnableProvider.notifier).value = false;
-          final message = currentAppLocalizations.macosTunHelperInstallFailed;
+          final message = currentAppLocalizations.tunHelperUnavailable;
           globalState.showNotifier(message);
           return Result.error(message);
       }

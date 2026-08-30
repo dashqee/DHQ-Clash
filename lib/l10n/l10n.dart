@@ -4963,6 +4963,16 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `TUN could not be enabled: the privileged helper is unavailable. The VPN was not started. Try Settings → Network → reinstall the service.`
+  String get tunHelperUnavailable {
+    return Intl.message(
+      'TUN could not be enabled: the privileged helper is unavailable. The VPN was not started. Try Settings → Network → reinstall the service.',
+      name: 'tunHelperUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {
