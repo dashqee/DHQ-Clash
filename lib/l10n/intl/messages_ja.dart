@@ -880,6 +880,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
       "バイパス枠が未割り当てです — ミニアプリで有効にしてください",
     ),
+    "turnTunnelPinReleased": MessageLookupByLibrary.simpleMessage(
+      "緊急トンネルが応答しないため、通常のルーティングに戻しました。通話に接続できるようになれば再び使用します。",
+    ),
     "turnTunnelPinned": MessageLookupByLibrary.simpleMessage(
       "すべての通信がトンネル経由になります",
     ),

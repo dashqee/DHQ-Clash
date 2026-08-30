@@ -4913,6 +4913,16 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `The emergency tunnel is not responding — routing is back to normal. It will be used again as soon as the call is reachable.`
+  String get turnTunnelPinReleased {
+    return Intl.message(
+      'The emergency tunnel is not responding — routing is back to normal. It will be used again as soon as the call is reachable.',
+      name: 'turnTunnelPinReleased',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

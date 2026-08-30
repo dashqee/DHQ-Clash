@@ -593,5 +593,6 @@
   "turnTunnelRetry": "重试",
   "turnTunnelPinned": "全部流量走隧道",
   "turnTunnelPinnedDesc": "应急隧道连接期间，所有流量都会经过它。关闭开关即可恢复正常分流。",
-  "turnTunnelPinnedModeLocked": "全部流量走应急隧道期间，模式固定为「规则」。"
+  "turnTunnelPinnedModeLocked": "全部流量走应急隧道期间，模式固定为「规则」。",
+  "turnTunnelPinReleased": "应急隧道无响应，已恢复正常分流。通话可用后会再次启用。"
 }

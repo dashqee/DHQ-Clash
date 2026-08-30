@@ -58,13 +58,14 @@ class Request {
   /// trying to repair. Only callers that set a timeout can hit this branch.
   Future<Response<T>> _getWithDirectFallback<T>(
     String url,
-    Options options,
-  ) async {
+    Options options, {
+    Object? data,
+  }) async {
     final wasProxied = AppHttpOverrides.handleFindProxy(
       Uri.parse(url),
     ).startsWith('PROXY');
     try {
-      return await _clashDio.get<T>(url, options: options);
+      return await _clashDio.request<T>(url, options: options, data: data);
     } on DioException catch (e) {
       const timeouts = {
         DioExceptionType.connectionTimeout,
@@ -77,7 +78,7 @@ class Request {
           'proxied fetch failed (${e.type.name}), retrying direct: $url',
           logLevel: LogLevel.warning,
         );
-        return _directDio.get<T>(url, options: options);
+        return _directDio.request<T>(url, options: options, data: data);
       }
       rethrow;
     }
@@ -108,6 +109,37 @@ class Request {
       url,
       Options(responseType: ResponseType.plain),
     );
+  }
+
+  /// Tell the backend whether the call we were handed could actually be joined.
+  ///
+  /// Best effort by design: this is a report about a channel that is already
+  /// broken, and failing to deliver it must not make anything worse.
+  Future<void> reportVideoCallTunnelStatus(
+    String subscriptionUrl, {
+    required bool ok,
+    String? reason,
+  }) async {
+    final uri = buildVideoCallTunnelStatusUri(subscriptionUrl);
+    if (uri == null) return;
+    try {
+      await _getWithDirectFallback<Object?>(
+        uri.toString(),
+        Options(
+          method: 'POST',
+          responseType: ResponseType.json,
+          validateStatus: (_) => true,
+          sendTimeout: videoCallTunnelLinkTimeout,
+          receiveTimeout: videoCallTunnelLinkTimeout,
+        ),
+        data: {'ok': ok, if (reason != null && reason.isNotEmpty) 'reason': reason},
+      );
+    } catch (error) {
+      commonPrint.log(
+        'reportVideoCallTunnelStatus failed (${error.runtimeType})',
+        logLevel: LogLevel.debug,
+      );
+    }
   }
 
   Future<VideoCallTunnelLinkResult> getVideoCallTunnelLink(

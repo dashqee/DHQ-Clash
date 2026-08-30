@@ -593,5 +593,6 @@
   "turnTunnelRetry": "Retry",
   "turnTunnelPinned": "All traffic goes through the tunnel",
   "turnTunnelPinnedDesc": "While the emergency tunnel is connected, every route ends at it. Turn the switch off to go back to normal routing.",
-  "turnTunnelPinnedModeLocked": "Routing mode is held on Rules while all traffic goes through the emergency tunnel."
+  "turnTunnelPinnedModeLocked": "Routing mode is held on Rules while all traffic goes through the emergency tunnel.",
+  "turnTunnelPinReleased": "The emergency tunnel is not responding — routing is back to normal. It will be used again as soon as the call is reachable."
 }
