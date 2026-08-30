@@ -544,6 +544,38 @@ void main() {
       );
     });
 
+    test('the captcha widens the deadline instead of removing it', () {
+      // Removing it handed the wait back to the sidecar, and a sidecar that has
+      // gone quiet after the captcha is the failure this exists to end. That is
+      // what kept the app in "connecting" for ever.
+      expect(
+        videoCallTunnelCaptchaDeadline,
+        greaterThan(videoCallTunnelJoinDeadline),
+      );
+      // Long enough to walk away and come back, short enough to still be an
+      // answer rather than a hang.
+      expect(videoCallTunnelCaptchaDeadline.inMinutes, inInclusiveRange(5, 20));
+    });
+
+    test('every wait ends before the routing pin outlives it', () {
+      // Both deadlines have to fire before the pin is released, or the user
+      // meets the outage before the explanation for it.
+      for (final deadline in [
+        videoCallTunnelJoinDeadline,
+        videoCallTunnelCaptchaDeadline,
+      ]) {
+        expect(
+          deadline.inSeconds,
+          lessThan(const Duration(days: 1).inSeconds),
+          reason: 'a deadline that never fires is the bug being fixed',
+        );
+      }
+      expect(
+        videoCallTunnelJoinDeadline.inSeconds,
+        lessThan(videoCallTunnelPinGrace.inSeconds),
+      );
+    });
+
     test('forces process matching on, whatever the user picked', () {
       // The PROCESS-NAME bypass rules are the only thing keeping the sidecar's own
       // traffic out of its own SOCKS port; without process matching they are inert.
