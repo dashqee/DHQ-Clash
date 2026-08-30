@@ -755,12 +755,22 @@ class MessageLookup extends MessageLookupByLibrary {
     "turnTunnelChecking": MessageLookupByLibrary.simpleMessage("正在检查访问权限"),
     "turnTunnelConnected": MessageLookupByLibrary.simpleMessage("隧道已连接"),
     "turnTunnelConnecting": MessageLookupByLibrary.simpleMessage("正在连接通话"),
+    "turnTunnelCustomNeedsCreator": MessageLookupByLibrary.simpleMessage(
+      "通话期间必须一直运行你自己的 creator。普通 VK 通话链接无法使用。",
+    ),
     "turnTunnelDesc": MessageLookupByLibrary.simpleMessage(
       "当直连 VLESS 服务器不可用时，使用 VK 视频通话作为本地 SOCKS5 备用通道。",
     ),
     "turnTunnelDisabled": MessageLookupByLibrary.simpleMessage("已禁用"),
     "turnTunnelEnable": MessageLookupByLibrary.simpleMessage("启用应急隧道"),
     "turnTunnelError": MessageLookupByLibrary.simpleMessage("连接错误"),
+    "turnTunnelJoinTimedOut": MessageLookupByLibrary.simpleMessage("无法加入通话"),
+    "turnTunnelJoinTimedOutCustom": MessageLookupByLibrary.simpleMessage(
+      "通话中没有人。使用自己的通话时，需要在其中运行你的 creator，仅有普通 VK 通话链接是不够的。",
+    ),
+    "turnTunnelJoinTimedOutManaged": MessageLookupByLibrary.simpleMessage(
+      "通话没有响应。正在重试；若持续如此请联系客服。",
+    ),
     "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
       "未分配绕过名额 — 请在小程序中开启",
     ),

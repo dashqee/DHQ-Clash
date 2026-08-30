@@ -35,6 +35,13 @@ const videoCallTunnelReconnectGrace = Duration(seconds: 60);
 // leaves room for a real recovery and still bounds the outage: pinned to a dead
 // channel there is no internet at all, and the only sign is that nothing loads.
 const videoCallTunnelPinGrace = Duration(minutes: 3);
+// How long the sidecar may sit between "joining" and "joined" before we call it
+// a failure. Nothing else bounds it: the sidecar reports TUNNEL_LOST and ERROR
+// but has nothing to say about a call it entered where no one is waiting, so
+// without this the app shows "connecting" for ever. A managed call connects in
+// seconds; the slack is for a slow network, not for the captcha, which stops
+// this clock entirely.
+const videoCallTunnelJoinDeadline = Duration(seconds: 90);
 // Upper bound on resolving a hostname for the sidecar. It blocks on our answer while
 // holding its resolve mutex, so a lookup that never returns wedges the tunnel for good.
 const videoCallTunnelResolveTimeout = Duration(seconds: 5);
@@ -102,6 +109,10 @@ enum VideoCallTunnelStatus {
   connected,
   reconnecting,
   stopped,
+  // Entered the call and waited, and nothing answered. Its own state, not
+  // `error`, because the thing to tell the user is specific: on a call of their
+  // own it means nobody is hosting it.
+  joinTimedOut,
   error,
 }
 
@@ -127,12 +138,24 @@ bool shouldStartVideoCallTunnel({
   }.contains(status);
 }
 
+/// Whose call the link points at. The client cannot tell by looking — the two
+/// are the same kind of VK link — so the backend says.
+enum VideoCallTunnelSource { managed, custom }
+
+VideoCallTunnelSource? parseVideoCallTunnelSource(Object? value) =>
+    switch (value) {
+      'managed' => VideoCallTunnelSource.managed,
+      'custom' => VideoCallTunnelSource.custom,
+      _ => null,
+    };
+
 @immutable
 class VideoCallTunnelLinkResult {
   final VideoCallTunnelLinkStatus status;
   final String? joinLink;
+  final VideoCallTunnelSource? source;
 
-  const VideoCallTunnelLinkResult(this.status, {this.joinLink});
+  const VideoCallTunnelLinkResult(this.status, {this.joinLink, this.source});
 }
 
 typedef VideoCallTunnelLinkFetcher =
@@ -226,6 +249,9 @@ VideoCallTunnelLinkResult parseVideoCallTunnelLinkResponse(
   return VideoCallTunnelLinkResult(
     VideoCallTunnelLinkStatus.available,
     joinLink: joinLink,
+    // Absent on an older backend, and the client must not care: it only ever
+    // changes the wording of a failure.
+    source: parseVideoCallTunnelSource(data['source']),
   );
 }
 
@@ -361,12 +387,16 @@ class VideoCallTunnelController {
   Future<void> Function()? onTunnelLost;
   Future<void> Function()? onTunnelConnected;
   Future<void> Function()? onTerminalError;
+  Future<void> Function()? onJoinTimeout;
   Process? _process;
   StreamSubscription<String>? _stdoutSubscription;
   StreamSubscription<String>? _stderrSubscription;
   String? _activeJoinLink;
   IOSink? _stdin;
   Completer<void>? _leaveAckCompleter;
+  /// Whose call the current link points at, for wording a failure.
+  VideoCallTunnelSource? linkSource;
+  Timer? _joinDeadlineTimer;
   Future<void> _lifecycleQueue = Future<void>.value();
   final Stopwatch _lifecycleClock = Stopwatch()..start();
   int? _lastDesktopStartAtMs;
@@ -415,6 +445,10 @@ class VideoCallTunnelController {
     _activeJoinLink = joinLink;
 
     status.value = VideoCallTunnelStatus.starting;
+    // From here on something must happen within the deadline. A sidecar that
+    // never prints anything at all is the same failure as one that joins a call
+    // nobody is hosting.
+    _armJoinDeadline();
     final credentials = deriveVideoCallTunnelCredentials(joinLink);
     if (system.isAndroid) {
       app?.onVideoCallTunnelStatus = _handleNativeStatus;
@@ -495,6 +529,7 @@ class VideoCallTunnelController {
 
   Future<bool> _stop() async {
     _stopping = true;
+    _cancelJoinDeadline();
     try {
       app?.onVideoCallTunnelStatus = null;
       var stopped = true;
@@ -614,11 +649,34 @@ class VideoCallTunnelController {
     }
   }
 
+  /// Restart the clock on the way into a call.
+  ///
+  /// Every sign of forward motion pushes it back, so this is "no progress for
+  /// 90 seconds", not a budget for the whole join. The captcha stops it
+  /// outright: a person is in a browser and their pace is not the sidecar's.
+  void _armJoinDeadline() {
+    _joinDeadlineTimer?.cancel();
+    _joinDeadlineTimer = Timer(videoCallTunnelJoinDeadline, () {
+      _joinDeadlineTimer = null;
+      if (status.value == VideoCallTunnelStatus.connected) return;
+      status.value = VideoCallTunnelStatus.joinTimedOut;
+      final callback = onJoinTimeout;
+      if (callback != null) unawaited(callback());
+    });
+  }
+
+  void _cancelJoinDeadline() {
+    _joinDeadlineTimer?.cancel();
+    _joinDeadlineTimer = null;
+  }
+
   void _handleNativeStatus(String value) {
     final nextCaptchaUri = parseVideoCallTunnelCaptchaUri(value);
     if (nextCaptchaUri != null) {
       captchaUri.value = nextCaptchaUri;
       status.value = VideoCallTunnelStatus.captchaRequired;
+      // Held until the captcha clears, however long that takes.
+      _cancelJoinDeadline();
       return;
     }
     if (value.startsWith('Captcha solved') ||
@@ -631,6 +689,11 @@ class VideoCallTunnelController {
     if (value == 'LEAVE_ACK') {
       final completer = _leaveAckCompleter;
       if (completer != null && !completer.isCompleted) completer.complete();
+    }
+    if (const {'READY', 'CONNECTING', 'RECONNECTING'}.contains(value) ||
+        value.startsWith('Captcha solved') ||
+        value == 'Auth complete') {
+      _armJoinDeadline();
     }
     status.value = switch (value) {
       'READY' => VideoCallTunnelStatus.connecting,
@@ -646,11 +709,13 @@ class VideoCallTunnelController {
       if (callback != null) unawaited(callback());
     }
     if (value == 'TUNNEL_CONNECTED') {
+      _cancelJoinDeadline();
       unawaited(_logSocksReachability());
       final callback = onTunnelConnected;
       if (callback != null) unawaited(callback());
     }
     if (value.startsWith('ERROR:')) {
+      _cancelJoinDeadline();
       final callback = onTerminalError;
       if (callback != null) unawaited(callback());
     }

@@ -4923,6 +4923,46 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Could not join the call`
+  String get turnTunnelJoinTimedOut {
+    return Intl.message(
+      'Could not join the call',
+      name: 'turnTunnelJoinTimedOut',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Nobody is hosting this call. Your own call needs your creator running in it — a plain VK call link is not enough.`
+  String get turnTunnelJoinTimedOutCustom {
+    return Intl.message(
+      'Nobody is hosting this call. Your own call needs your creator running in it — a plain VK call link is not enough.',
+      name: 'turnTunnelJoinTimedOutCustom',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The call did not answer. Retrying; if this keeps up, tell support.`
+  String get turnTunnelJoinTimedOutManaged {
+    return Intl.message(
+      'The call did not answer. Retrying; if this keeps up, tell support.',
+      name: 'turnTunnelJoinTimedOutManaged',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The call must have your own creator running in it the whole time. A link to an ordinary VK call will not work.`
+  String get turnTunnelCustomNeedsCreator {
+    return Intl.message(
+      'The call must have your own creator running in it the whole time. A link to an ordinary VK call will not work.',
+      name: 'turnTunnelCustomNeedsCreator',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

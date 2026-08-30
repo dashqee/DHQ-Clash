@@ -1069,6 +1069,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "turnTunnelConnecting": MessageLookupByLibrary.simpleMessage(
       "Connecting to the call",
     ),
+    "turnTunnelCustomNeedsCreator": MessageLookupByLibrary.simpleMessage(
+      "The call must have your own creator running in it the whole time. A link to an ordinary VK call will not work.",
+    ),
     "turnTunnelDesc": MessageLookupByLibrary.simpleMessage(
       "Uses a VK video call as a local SOCKS5 fallback when direct VLESS servers are unavailable.",
     ),
@@ -1077,6 +1080,15 @@ class MessageLookup extends MessageLookupByLibrary {
       "Enable emergency tunnel",
     ),
     "turnTunnelError": MessageLookupByLibrary.simpleMessage("Connection error"),
+    "turnTunnelJoinTimedOut": MessageLookupByLibrary.simpleMessage(
+      "Could not join the call",
+    ),
+    "turnTunnelJoinTimedOutCustom": MessageLookupByLibrary.simpleMessage(
+      "Nobody is hosting this call. Your own call needs your creator running in it — a plain VK call link is not enough.",
+    ),
+    "turnTunnelJoinTimedOutManaged": MessageLookupByLibrary.simpleMessage(
+      "The call did not answer. Retrying; if this keeps up, tell support.",
+    ),
     "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
       "No bypass slot — assign one in the mini app",
     ),

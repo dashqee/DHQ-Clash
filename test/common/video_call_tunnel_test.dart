@@ -495,6 +495,55 @@ void main() {
       expect(videoCallTunnelPinGrace.inMinutes, lessThanOrEqualTo(10));
     });
 
+    test('the join is given a deadline the captcha does not eat', () {
+      // Nothing else bounds the way into a call: the sidecar reports TUNNEL_LOST
+      // and ERROR, and has nothing at all to say about a call it entered where
+      // no one is waiting.
+      expect(videoCallTunnelJoinDeadline.inSeconds, greaterThan(30));
+      expect(
+        videoCallTunnelJoinDeadline.inSeconds,
+        lessThan(videoCallTunnelPinGrace.inSeconds),
+        reason: 'the join must fail before the routing pin is released, or the '
+            'user sees the outage before the reason for it',
+      );
+    });
+
+    test('the backend says whose call the link is', () {
+      // The client cannot tell by looking — both are ordinary VK links — and it
+      // changes what a failed join should say.
+      expect(
+        parseVideoCallTunnelLinkResponse(200, {
+          'join_link': 'https://vk.ru/call/join/abc',
+          'source': 'custom',
+        }).source,
+        VideoCallTunnelSource.custom,
+      );
+      expect(
+        parseVideoCallTunnelLinkResponse(200, {
+          'join_link': 'https://vk.ru/call/join/abc',
+          'source': 'managed',
+        }).source,
+        VideoCallTunnelSource.managed,
+      );
+    });
+
+    test('an older backend that says nothing is still usable', () {
+      // The field only ever changes the wording of a failure, so its absence
+      // must not make the link itself unusable.
+      final result = parseVideoCallTunnelLinkResponse(200, {
+        'join_link': 'https://vk.ru/call/join/abc',
+      });
+      expect(result.status, VideoCallTunnelLinkStatus.available);
+      expect(result.source, isNull);
+      expect(
+        parseVideoCallTunnelLinkResponse(200, {
+          'join_link': 'https://vk.ru/call/join/abc',
+          'source': 'something-new',
+        }).source,
+        isNull,
+      );
+    });
+
     test('forces process matching on, whatever the user picked', () {
       // The PROCESS-NAME bypass rules are the only thing keeping the sidecar's own
       // traffic out of its own SOCKS port; without process matching they are inert.

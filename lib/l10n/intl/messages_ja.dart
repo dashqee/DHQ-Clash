@@ -871,12 +871,24 @@ class MessageLookup extends MessageLookupByLibrary {
     "turnTunnelChecking": MessageLookupByLibrary.simpleMessage("アクセスを確認中"),
     "turnTunnelConnected": MessageLookupByLibrary.simpleMessage("トンネル接続済み"),
     "turnTunnelConnecting": MessageLookupByLibrary.simpleMessage("通話に接続中"),
+    "turnTunnelCustomNeedsCreator": MessageLookupByLibrary.simpleMessage(
+      "通話中は自分の creator を常時実行しておく必要があります。通常の VK 通話のリンクでは動作しません。",
+    ),
     "turnTunnelDesc": MessageLookupByLibrary.simpleMessage(
       "直接のVLESSサーバーが利用できない場合、VKビデオ通話をローカルSOCKS5フォールバックとして使用します。",
     ),
     "turnTunnelDisabled": MessageLookupByLibrary.simpleMessage("無効"),
     "turnTunnelEnable": MessageLookupByLibrary.simpleMessage("緊急トンネルを有効化"),
     "turnTunnelError": MessageLookupByLibrary.simpleMessage("接続エラー"),
+    "turnTunnelJoinTimedOut": MessageLookupByLibrary.simpleMessage(
+      "通話に参加できませんでした",
+    ),
+    "turnTunnelJoinTimedOutCustom": MessageLookupByLibrary.simpleMessage(
+      "通話に誰もいません。自分の通話を使うには、その通話で creator を実行しておく必要があります。通常の VK 通話のリンクでは不十分です。",
+    ),
+    "turnTunnelJoinTimedOutManaged": MessageLookupByLibrary.simpleMessage(
+      "通話が応答しませんでした。再試行します。続く場合はサポートにご連絡ください。",
+    ),
     "turnTunnelNotEntitled": MessageLookupByLibrary.simpleMessage(
       "バイパス枠が未割り当てです — ミニアプリで有効にしてください",
     ),

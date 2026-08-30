@@ -43,6 +43,7 @@ class DashboardVideoCallTunnelSection extends ConsumerWidget {
           VideoCallTunnelStatus.captchaRequired ||
           VideoCallTunnelStatus.reconnecting => AppTheme.blue,
           VideoCallTunnelStatus.error ||
+          VideoCallTunnelStatus.joinTimedOut ||
           VideoCallTunnelStatus.notEntitled => AppTheme.danger,
           VideoCallTunnelStatus.temporarilyUnavailable => AppTheme.violet,
           VideoCallTunnelStatus.disabled ||
