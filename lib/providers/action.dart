@@ -626,7 +626,12 @@ class SetupAction extends _$SetupAction {
     if (isStart) {
       await applyProfile(force: true, silence: true);
     }
-    unawaited(_reportVideoCallTunnelStatus(ok: false, reason: 'join_timeout'));
+    // The stage is what turns "it timed out" into something answerable: stuck
+    // at the captcha is a different fault from stuck waiting for a peer.
+    unawaited(_reportVideoCallTunnelStatus(
+      ok: false,
+      reason: 'join_timeout:${videoCallTunnelController.lastStage}',
+    ));
     await videoCallTunnelController.stop();
     _scheduleTurnLinkRetry();
   }

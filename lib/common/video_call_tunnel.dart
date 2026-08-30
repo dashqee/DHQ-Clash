@@ -42,6 +42,11 @@ const videoCallTunnelPinGrace = Duration(minutes: 3);
 // seconds; the slack is for a slow network, not for the captcha, which stops
 // this clock entirely.
 const videoCallTunnelJoinDeadline = Duration(seconds: 90);
+// The same deadline, widened to human scale while a captcha is on screen.
+// Stopping the clock instead — which is what this used to do — hands the wait
+// back to the sidecar, and a sidecar that has gone quiet is the failure being
+// guarded against. Long enough to walk away and come back; not forever.
+const videoCallTunnelCaptchaDeadline = Duration(minutes: 10);
 // Upper bound on resolving a hostname for the sidecar. It blocks on our answer while
 // holding its resolve mutex, so a lookup that never returns wedges the tunnel for good.
 const videoCallTunnelResolveTimeout = Duration(seconds: 5);
@@ -396,6 +401,11 @@ class VideoCallTunnelController {
   Completer<void>? _leaveAckCompleter;
   /// Whose call the current link points at, for wording a failure.
   VideoCallTunnelSource? linkSource;
+
+  /// The last thing the sidecar said, so a timeout can report where it stalled
+  /// instead of leaving everyone to compare logs by hand.
+  String _lastStage = 'starting';
+  String get lastStage => _lastStage;
   Timer? _joinDeadlineTimer;
   Future<void> _lifecycleQueue = Future<void>.value();
   final Stopwatch _lifecycleClock = Stopwatch()..start();
@@ -445,6 +455,7 @@ class VideoCallTunnelController {
     _activeJoinLink = joinLink;
 
     status.value = VideoCallTunnelStatus.starting;
+    _lastStage = 'starting';
     // From here on something must happen within the deadline. A sidecar that
     // never prints anything at all is the same failure as one that joins a call
     // nobody is hosting.
@@ -654,9 +665,9 @@ class VideoCallTunnelController {
   /// Every sign of forward motion pushes it back, so this is "no progress for
   /// 90 seconds", not a budget for the whole join. The captcha stops it
   /// outright: a person is in a browser and their pace is not the sidecar's.
-  void _armJoinDeadline() {
+  void _armJoinDeadline([Duration duration = videoCallTunnelJoinDeadline]) {
     _joinDeadlineTimer?.cancel();
-    _joinDeadlineTimer = Timer(videoCallTunnelJoinDeadline, () {
+    _joinDeadlineTimer = Timer(duration, () {
       _joinDeadlineTimer = null;
       if (status.value == VideoCallTunnelStatus.connected) return;
       status.value = VideoCallTunnelStatus.joinTimedOut;
@@ -673,10 +684,18 @@ class VideoCallTunnelController {
   void _handleNativeStatus(String value) {
     final nextCaptchaUri = parseVideoCallTunnelCaptchaUri(value);
     if (nextCaptchaUri != null) {
+      final wasWaiting = status.value == VideoCallTunnelStatus.captchaRequired;
       captchaUri.value = nextCaptchaUri;
       status.value = VideoCallTunnelStatus.captchaRequired;
-      // Held until the captcha clears, however long that takes.
-      _cancelJoinDeadline();
+      _lastStage = 'captcha';
+      // Widened, not cancelled. Cancelling put the wait back in the hands of
+      // the sidecar, and the sidecar going quiet after the captcha is exactly
+      // the failure this exists to end. A repeat of the same prompt does not
+      // push the window out again, or a sidecar that reprints it every minute
+      // buys itself forever one minute at a time.
+      if (!wasWaiting) {
+        _armJoinDeadline(videoCallTunnelCaptchaDeadline);
+      }
       return;
     }
     if (value.startsWith('Captcha solved') ||
@@ -693,6 +712,9 @@ class VideoCallTunnelController {
     if (const {'READY', 'CONNECTING', 'RECONNECTING'}.contains(value) ||
         value.startsWith('Captcha solved') ||
         value == 'Auth complete') {
+      _lastStage = value.startsWith('Captcha solved')
+          ? 'captcha_solved'
+          : value.toLowerCase();
       _armJoinDeadline();
     }
     status.value = switch (value) {
