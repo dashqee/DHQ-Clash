@@ -1,3 +1,4 @@
+import 'package:fl_clash/widgets/starfield.dart';
 import 'package:flutter/material.dart';
 
 /// The single DHQ Clash visual system shared by every platform.
@@ -283,16 +284,22 @@ class BrandBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return ColoredBox(
       color: AppTheme.background,
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment(0.88, -1.05),
-            radius: 1.25,
-            colors: [Color(0x2442DEE9), Color(0x0008091F)],
-            stops: [0, 0.72],
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          const DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment(0.88, -1.05),
+                radius: 1.25,
+                colors: [Color(0x2442DEE9), Color(0x0008091F)],
+                stops: [0, 0.72],
+              ),
+            ),
           ),
-        ),
-        child: child,
+          const RepaintBoundary(child: Starfield()),
+          child,
+        ],
       ),
     );
   }
