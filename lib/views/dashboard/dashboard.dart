@@ -289,7 +289,7 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
                       children: [
                         const DashboardConnectionOverview(),
                         const SizedBox(height: 20),
-                        const DashboardVideoCallTunnelSection(),
+                        const DashboardTunnelControls(),
                         const SizedBox(height: 20),
                         Grid(
                           crossAxisCount: columns,
@@ -303,6 +303,41 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The TUN/VPN switch pinned next to the emergency tunnel controls, above the
+/// reorderable grid — the toggle must be in view the moment the dashboard
+/// opens, on every platform.
+class DashboardTunnelControls extends StatelessWidget {
+  const DashboardTunnelControls({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget toggle = system.isDesktop
+        ? const TUNButton()
+        : const VpnButton();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 720) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              toggle,
+              const SizedBox(height: 14),
+              const DashboardVideoCallTunnelSection(),
+            ],
+          );
+        }
+        return Row(
+          children: [
+            SizedBox(width: 300, child: toggle),
+            const SizedBox(width: 14),
+            const Expanded(child: DashboardVideoCallTunnelSection()),
+          ],
+        );
+      },
     );
   }
 }

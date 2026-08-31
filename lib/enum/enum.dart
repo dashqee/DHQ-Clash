@@ -315,13 +315,14 @@ enum DashboardWidget {
   outboundModeV2(GridItem(crossAxisCellCount: 8, child: OutboundModeV2())),
   trafficUsage(GridItem(crossAxisCellCount: 8, child: TrafficUsage())),
   networkDetection(GridItem(crossAxisCellCount: 4, child: NetworkDetection())),
+  // Pinned above the emergency tunnel on the dashboard, not grid-placeable.
   tunButton(
     GridItem(crossAxisCellCount: 4, child: TUNButton()),
-    platforms: desktopPlatforms,
+    platforms: [],
   ),
   vpnButton(
     GridItem(crossAxisCellCount: 4, child: VpnButton()),
-    platforms: [SupportPlatform.Android],
+    platforms: [],
   ),
   systemProxyButton(
     GridItem(crossAxisCellCount: 4, child: SystemProxyButton()),

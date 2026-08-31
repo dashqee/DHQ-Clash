@@ -92,12 +92,11 @@ void main() {
 
   group('AppSettingProps JSON round-trip', () {
     test('uses the redesigned dashboard order by default', () {
+      // The TUN/VPN toggle is pinned above the emergency tunnel, outside the grid.
       expect(defaultDashboardWidgets, [
         DashboardWidget.networkSpeed,
         DashboardWidget.outboundModeV2,
         DashboardWidget.networkDetection,
-        DashboardWidget.tunButton,
-        DashboardWidget.vpnButton,
         DashboardWidget.trafficUsage,
       ]);
     });
@@ -113,8 +112,6 @@ void main() {
 
       expect(widgets, [
         DashboardWidget.outboundModeV2,
-        DashboardWidget.tunButton,
-        DashboardWidget.vpnButton,
         DashboardWidget.trafficUsage,
       ]);
     });
@@ -125,11 +122,7 @@ void main() {
         'outboundModeV2',
       ]);
 
-      expect(widgets, [
-        DashboardWidget.outboundModeV2,
-        DashboardWidget.tunButton,
-        DashboardWidget.vpnButton,
-      ]);
+      expect(widgets, [DashboardWidget.outboundModeV2]);
     });
 
     test('default values survive round-trip', () {
