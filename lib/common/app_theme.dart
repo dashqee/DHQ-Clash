@@ -11,13 +11,18 @@ class AppTheme {
   static const surfaceHover = Color(0xFF1B1E42);
   static const text = Color(0xFFF7F8FF);
   static const muted = Color(0xFFAEB5D3);
-  static const violet = Color(0xFF7437F5);
+  static const violet = Color(0xFF6B44F4);
   static const blue = Color(0xFF4877F4);
-  static const cyan = Color(0xFF42E5E8);
+  static const cyan = Color(0xFF42DEE9);
   static const lime = Color(0xFFC7FF3D);
   static const danger = Color(0xFFFF8D9B);
-  static const line = Color(0x387468F5);
-  static const lineStrong = Color(0x6B42E5E8);
+  static const line = Color(0x386B5CF4);
+  static const lineStrong = Color(0x6B42DEE9);
+
+  // The app-icon gradient from the Figma identity ("DHQ Clash logo").
+  static const indigoBright = Color(0xFF3737C1);
+  static const indigo = Color(0xFF130E6D);
+  static const indigoDeep = Color(0xFF080435);
 
   static const brandGradient = LinearGradient(
     begin: Alignment.centerLeft,
@@ -59,7 +64,7 @@ class AppTheme {
         onSecondaryContainer: text,
         tertiary: cyan,
         onTertiary: background,
-        tertiaryContainer: const Color(0x1A42E5E8),
+        tertiaryContainer: const Color(0x1A42DEE9),
         onTertiaryContainer: cyan,
         error: danger,
         onError: background,
@@ -283,7 +288,7 @@ class BrandBackground extends StatelessWidget {
           gradient: RadialGradient(
             center: Alignment(0.88, -1.05),
             radius: 1.25,
-            colors: [Color(0x2442E5E8), Color(0x0008091F)],
+            colors: [Color(0x2442DEE9), Color(0x0008091F)],
             stops: [0, 0.72],
           ),
         ),
