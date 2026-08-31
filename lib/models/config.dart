@@ -41,8 +41,6 @@ const List<DashboardWidget> defaultDashboardWidgets = [
   DashboardWidget.networkSpeed,
   DashboardWidget.outboundModeV2,
   DashboardWidget.networkDetection,
-  DashboardWidget.tunButton,
-  DashboardWidget.vpnButton,
   DashboardWidget.trafficUsage,
 ];
 
@@ -66,13 +64,14 @@ List<DashboardWidget> dashboardWidgetsSafeFormJson(
       DashboardWidget.intranetIp,
       DashboardWidget.systemProxyButton,
       DashboardWidget.memoryInfo,
+      // The TUN/VPN toggle is pinned above the emergency tunnel now, so it no
+      // longer lives in the reorderable grid.
+      DashboardWidget.tunButton,
+      DashboardWidget.vpnButton,
     };
-    final visibleWidgets =
-        widgets
-            .where((widget) => !retiredDashboardWidgets.contains(widget))
-            .toSet()
-          ..add(DashboardWidget.tunButton)
-          ..add(DashboardWidget.vpnButton);
+    final visibleWidgets = widgets
+        .where((widget) => !retiredDashboardWidgets.contains(widget))
+        .toSet();
     return defaultDashboardWidgets
         .where(visibleWidgets.contains)
         .toList(growable: false);
