@@ -37,9 +37,10 @@ done
 mkdir -p "$brand_source/ios"
 resize "$master_3d" 1024 1024 "$brand_source/ios/AppIcon-1024.png"
 
-# Modern Android launchers render this bitmap through the adaptive icon mask.
+# Modern Android launchers render this bitmap through the adaptive icon mask,
+# so it comes from the full-bleed master with the glyph inside the safe zone.
 mkdir -p "$repo_root/android/app/src/main/res/drawable-nodpi"
-resize "$master_3d" 432 432 \
+render "$brand_source/app-icon-adaptive.svg" 432 432 \
   "$repo_root/android/app/src/main/res/drawable-nodpi/dhq_icon_3d.png"
 
 for density_size in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
