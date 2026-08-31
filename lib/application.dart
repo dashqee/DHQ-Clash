@@ -53,6 +53,12 @@ class ApplicationState extends ConsumerState<Application> {
 
   void _initLink() {
     linkManager.initAppLinksListen((request) async {
+      // A deep link is a user gesture, but with silent launch the window may be
+      // hidden — the confirmation dialog and the import result would then play
+      // out invisibly and the click looks like it did nothing. Surface the
+      // window before handling the link.
+      await window?.show();
+      if (!mounted) return;
       // Only subscription URLs from our own backend import silently: a silently
       // installed foreign profile could route all traffic through an attacker's
       // proxy, so everything else keeps the confirmation dialog.
