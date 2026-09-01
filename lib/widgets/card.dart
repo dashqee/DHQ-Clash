@@ -47,7 +47,7 @@ class InfoHeader extends StatelessWidget {
                     width: 34,
                     height: 34,
                     decoration: BoxDecoration(
-                      color: AppTheme.surfaceHigh,
+                      color: AppTheme.surfaceHigh.withValues(alpha: 0.62),
                       borderRadius: BorderRadius.circular(AppTheme.radiusXs),
                       border: Border.all(color: AppTheme.line),
                     ),
@@ -161,16 +161,19 @@ class CommonCard extends StatelessWidget {
     //       ? colorScheme.errorContainer.opacity60
     //       : colorScheme.errorContainer.opacity12;
     // }
+    // Translucent so the starfield behind BrandBackground shows through the
+    // tiles; a selected card sits a little more solid to stay legible while it
+    // carries the accent border.
     if (type == CommonCardType.filled) {
       if (isSelected) {
-        return AppTheme.surfaceHover;
+        return AppTheme.surfaceHover.withValues(alpha: 0.82);
       }
-      return AppTheme.surfaceHigh;
+      return AppTheme.surfaceHigh.withValues(alpha: 0.74);
     }
     if (isSelected) {
-      return AppTheme.surfaceHover;
+      return AppTheme.surfaceHover.withValues(alpha: 0.82);
     }
-    return AppTheme.surface;
+    return AppTheme.surface.withValues(alpha: 0.74);
   }
 
   Color? _buildForegroundColor(BuildContext context) {

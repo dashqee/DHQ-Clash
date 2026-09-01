@@ -505,7 +505,7 @@ class _OverviewMetric extends StatelessWidget {
       constraints: const BoxConstraints(minWidth: 116),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
+        color: AppTheme.surface.withValues(alpha: 0.62),
         borderRadius: AppTheme.borderRadiusSm,
         border: Border.all(color: AppTheme.line),
       ),
