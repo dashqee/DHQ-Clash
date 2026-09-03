@@ -2158,6 +2158,275 @@ $MessageActionStateCopyWith<$Res>? get actionState {
 }
 
 /// @nodoc
+mixin _$LaunchState {
+
+ LaunchStage get stage; int get attempt; int get maxAttempts; LaunchFailure? get failure; String? get message;
+/// Create a copy of LaunchState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$LaunchStateCopyWith<LaunchState> get copyWith => _$LaunchStateCopyWithImpl<LaunchState>(this as LaunchState, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LaunchState&&(identical(other.stage, stage) || other.stage == stage)&&(identical(other.attempt, attempt) || other.attempt == attempt)&&(identical(other.maxAttempts, maxAttempts) || other.maxAttempts == maxAttempts)&&(identical(other.failure, failure) || other.failure == failure)&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,stage,attempt,maxAttempts,failure,message);
+
+@override
+String toString() {
+  return 'LaunchState(stage: $stage, attempt: $attempt, maxAttempts: $maxAttempts, failure: $failure, message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $LaunchStateCopyWith<$Res>  {
+  factory $LaunchStateCopyWith(LaunchState value, $Res Function(LaunchState) _then) = _$LaunchStateCopyWithImpl;
+@useResult
+$Res call({
+ LaunchStage stage, int attempt, int maxAttempts, LaunchFailure? failure, String? message
+});
+
+
+
+
+}
+/// @nodoc
+class _$LaunchStateCopyWithImpl<$Res>
+    implements $LaunchStateCopyWith<$Res> {
+  _$LaunchStateCopyWithImpl(this._self, this._then);
+
+  final LaunchState _self;
+  final $Res Function(LaunchState) _then;
+
+/// Create a copy of LaunchState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? stage = null,Object? attempt = null,Object? maxAttempts = null,Object? failure = freezed,Object? message = freezed,}) {
+  return _then(_self.copyWith(
+stage: null == stage ? _self.stage : stage // ignore: cast_nullable_to_non_nullable
+as LaunchStage,attempt: null == attempt ? _self.attempt : attempt // ignore: cast_nullable_to_non_nullable
+as int,maxAttempts: null == maxAttempts ? _self.maxAttempts : maxAttempts // ignore: cast_nullable_to_non_nullable
+as int,failure: freezed == failure ? _self.failure : failure // ignore: cast_nullable_to_non_nullable
+as LaunchFailure?,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [LaunchState].
+extension LaunchStatePatterns on LaunchState {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _LaunchState value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _LaunchState() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _LaunchState value)  $default,){
+final _that = this;
+switch (_that) {
+case _LaunchState():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _LaunchState value)?  $default,){
+final _that = this;
+switch (_that) {
+case _LaunchState() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( LaunchStage stage,  int attempt,  int maxAttempts,  LaunchFailure? failure,  String? message)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _LaunchState() when $default != null:
+return $default(_that.stage,_that.attempt,_that.maxAttempts,_that.failure,_that.message);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( LaunchStage stage,  int attempt,  int maxAttempts,  LaunchFailure? failure,  String? message)  $default,) {final _that = this;
+switch (_that) {
+case _LaunchState():
+return $default(_that.stage,_that.attempt,_that.maxAttempts,_that.failure,_that.message);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( LaunchStage stage,  int attempt,  int maxAttempts,  LaunchFailure? failure,  String? message)?  $default,) {final _that = this;
+switch (_that) {
+case _LaunchState() when $default != null:
+return $default(_that.stage,_that.attempt,_that.maxAttempts,_that.failure,_that.message);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _LaunchState implements LaunchState {
+  const _LaunchState({this.stage = LaunchStage.idle, this.attempt = 0, this.maxAttempts = 1, this.failure, this.message});
+  
+
+@override@JsonKey() final  LaunchStage stage;
+@override@JsonKey() final  int attempt;
+@override@JsonKey() final  int maxAttempts;
+@override final  LaunchFailure? failure;
+@override final  String? message;
+
+/// Create a copy of LaunchState
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$LaunchStateCopyWith<_LaunchState> get copyWith => __$LaunchStateCopyWithImpl<_LaunchState>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LaunchState&&(identical(other.stage, stage) || other.stage == stage)&&(identical(other.attempt, attempt) || other.attempt == attempt)&&(identical(other.maxAttempts, maxAttempts) || other.maxAttempts == maxAttempts)&&(identical(other.failure, failure) || other.failure == failure)&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,stage,attempt,maxAttempts,failure,message);
+
+@override
+String toString() {
+  return 'LaunchState(stage: $stage, attempt: $attempt, maxAttempts: $maxAttempts, failure: $failure, message: $message)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$LaunchStateCopyWith<$Res> implements $LaunchStateCopyWith<$Res> {
+  factory _$LaunchStateCopyWith(_LaunchState value, $Res Function(_LaunchState) _then) = __$LaunchStateCopyWithImpl;
+@override @useResult
+$Res call({
+ LaunchStage stage, int attempt, int maxAttempts, LaunchFailure? failure, String? message
+});
+
+
+
+
+}
+/// @nodoc
+class __$LaunchStateCopyWithImpl<$Res>
+    implements _$LaunchStateCopyWith<$Res> {
+  __$LaunchStateCopyWithImpl(this._self, this._then);
+
+  final _LaunchState _self;
+  final $Res Function(_LaunchState) _then;
+
+/// Create a copy of LaunchState
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? stage = null,Object? attempt = null,Object? maxAttempts = null,Object? failure = freezed,Object? message = freezed,}) {
+  return _then(_LaunchState(
+stage: null == stage ? _self.stage : stage // ignore: cast_nullable_to_non_nullable
+as LaunchStage,attempt: null == attempt ? _self.attempt : attempt // ignore: cast_nullable_to_non_nullable
+as int,maxAttempts: null == maxAttempts ? _self.maxAttempts : maxAttempts // ignore: cast_nullable_to_non_nullable
+as int,failure: freezed == failure ? _self.failure : failure // ignore: cast_nullable_to_non_nullable
+as LaunchFailure?,message: freezed == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
+/// @nodoc
 mixin _$MessageActionState {
 
  String get actionText; VoidCallback get action;

@@ -39,6 +39,19 @@ abstract class UpdateParams with _$UpdateParams {
       _$UpdateParamsFromJson(json);
 }
 
+/// What the core reports about its listeners. `tun` is the fact about the
+/// device, taken from the listener itself, not the setting that asked for it.
+@freezed
+abstract class RunStatus with _$RunStatus {
+  const factory RunStatus({
+    @Default(false) bool running,
+    @Default(false) bool tun,
+  }) = _RunStatus;
+
+  factory RunStatus.fromJson(Map<String, Object?> json) =>
+      _$RunStatusFromJson(json);
+}
+
 @freezed
 abstract class VpnOptions with _$VpnOptions {
   const factory VpnOptions({

@@ -64,9 +64,9 @@ void main() {
   });
 
   group('VpnSetting provider', () {
-    test('default value is disabled', () {
+    test('default value routes through the VPN service', () {
       final value = container.read(vpnSettingProvider);
-      expect(value.enable, false);
+      expect(value.enable, true);
       expect(value.systemProxy, false);
     });
 
@@ -211,9 +211,9 @@ void main() {
       expect(config.appSettingProps.onlyStatisticsProxy, false);
       expect(config.windowProps.width, 0);
       expect(config.appSettingProps.autoRun, false);
-      expect(config.vpnProps.enable, false);
+      expect(config.vpnProps.enable, true);
       expect(config.networkProps.systemProxy, false);
-      expect(config.patchClashConfig.tun.enable, false);
+      expect(config.patchClashConfig.tun.enable, true);
       expect(config.currentProfileId, null);
       expect(config.overrideDns, false);
       expect(config.hotKeyActions, isEmpty);

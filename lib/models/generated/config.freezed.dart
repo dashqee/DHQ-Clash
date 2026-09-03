@@ -915,6 +915,7 @@ as double?,
 /// @nodoc
 mixin _$VpnProps {
 
+// On by default, like Tun.enable on desktop; see migration v5.
  bool get enable; bool get systemProxy; bool get ipv6; bool get allowBypass; bool get dnsHijacking; AccessControlProps get accessControlProps;
 /// Create a copy of VpnProps
 /// with the given fields replaced by the non-null parameter values.
@@ -1123,9 +1124,10 @@ return $default(_that.enable,_that.systemProxy,_that.ipv6,_that.allowBypass,_tha
 @JsonSerializable()
 
 class _VpnProps implements VpnProps {
-  const _VpnProps({this.enable = false, this.systemProxy = false, this.ipv6 = false, this.allowBypass = true, this.dnsHijacking = false, this.accessControlProps = defaultAccessControlProps});
+  const _VpnProps({this.enable = true, this.systemProxy = false, this.ipv6 = false, this.allowBypass = true, this.dnsHijacking = false, this.accessControlProps = defaultAccessControlProps});
   factory _VpnProps.fromJson(Map<String, dynamic> json) => _$VpnPropsFromJson(json);
 
+// On by default, like Tun.enable on desktop; see migration v5.
 @override@JsonKey() final  bool enable;
 @override@JsonKey() final  bool systemProxy;
 @override@JsonKey() final  bool ipv6;

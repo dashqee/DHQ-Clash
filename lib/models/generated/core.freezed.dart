@@ -599,6 +599,272 @@ $TunCopyWith<$Res> get tun {
 
 
 /// @nodoc
+mixin _$RunStatus {
+
+ bool get running; bool get tun;
+/// Create a copy of RunStatus
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$RunStatusCopyWith<RunStatus> get copyWith => _$RunStatusCopyWithImpl<RunStatus>(this as RunStatus, _$identity);
+
+  /// Serializes this RunStatus to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RunStatus&&(identical(other.running, running) || other.running == running)&&(identical(other.tun, tun) || other.tun == tun));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,running,tun);
+
+@override
+String toString() {
+  return 'RunStatus(running: $running, tun: $tun)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $RunStatusCopyWith<$Res>  {
+  factory $RunStatusCopyWith(RunStatus value, $Res Function(RunStatus) _then) = _$RunStatusCopyWithImpl;
+@useResult
+$Res call({
+ bool running, bool tun
+});
+
+
+
+
+}
+/// @nodoc
+class _$RunStatusCopyWithImpl<$Res>
+    implements $RunStatusCopyWith<$Res> {
+  _$RunStatusCopyWithImpl(this._self, this._then);
+
+  final RunStatus _self;
+  final $Res Function(RunStatus) _then;
+
+/// Create a copy of RunStatus
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? running = null,Object? tun = null,}) {
+  return _then(_self.copyWith(
+running: null == running ? _self.running : running // ignore: cast_nullable_to_non_nullable
+as bool,tun: null == tun ? _self.tun : tun // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [RunStatus].
+extension RunStatusPatterns on RunStatus {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _RunStatus value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _RunStatus() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _RunStatus value)  $default,){
+final _that = this;
+switch (_that) {
+case _RunStatus():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _RunStatus value)?  $default,){
+final _that = this;
+switch (_that) {
+case _RunStatus() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool running,  bool tun)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _RunStatus() when $default != null:
+return $default(_that.running,_that.tun);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool running,  bool tun)  $default,) {final _that = this;
+switch (_that) {
+case _RunStatus():
+return $default(_that.running,_that.tun);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool running,  bool tun)?  $default,) {final _that = this;
+switch (_that) {
+case _RunStatus() when $default != null:
+return $default(_that.running,_that.tun);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _RunStatus implements RunStatus {
+  const _RunStatus({this.running = false, this.tun = false});
+  factory _RunStatus.fromJson(Map<String, dynamic> json) => _$RunStatusFromJson(json);
+
+@override@JsonKey() final  bool running;
+@override@JsonKey() final  bool tun;
+
+/// Create a copy of RunStatus
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$RunStatusCopyWith<_RunStatus> get copyWith => __$RunStatusCopyWithImpl<_RunStatus>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$RunStatusToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RunStatus&&(identical(other.running, running) || other.running == running)&&(identical(other.tun, tun) || other.tun == tun));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,running,tun);
+
+@override
+String toString() {
+  return 'RunStatus(running: $running, tun: $tun)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$RunStatusCopyWith<$Res> implements $RunStatusCopyWith<$Res> {
+  factory _$RunStatusCopyWith(_RunStatus value, $Res Function(_RunStatus) _then) = __$RunStatusCopyWithImpl;
+@override @useResult
+$Res call({
+ bool running, bool tun
+});
+
+
+
+
+}
+/// @nodoc
+class __$RunStatusCopyWithImpl<$Res>
+    implements _$RunStatusCopyWith<$Res> {
+  __$RunStatusCopyWithImpl(this._self, this._then);
+
+  final _RunStatus _self;
+  final $Res Function(_RunStatus) _then;
+
+/// Create a copy of RunStatus
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? running = null,Object? tun = null,}) {
+  return _then(_RunStatus(
+running: null == running ? _self.running : running // ignore: cast_nullable_to_non_nullable
+as bool,tun: null == tun ? _self.tun : tun // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
 mixin _$VpnOptions {
 
  bool get enable; int get port; bool get ipv6; bool get dnsHijacking; AccessControlProps get accessControlProps; bool get allowBypass; bool get systemProxy; List<String> get bypassDomain; String get stack; List<String> get routeAddress;

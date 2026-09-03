@@ -1309,6 +1309,58 @@ abstract class _$CoreStatus extends $Notifier<CoreStatus> {
   }
 }
 
+@ProviderFor(_LaunchProgress)
+final launchStateProvider = _LaunchProgressProvider._();
+
+final class _LaunchProgressProvider
+    extends $NotifierProvider<_LaunchProgress, LaunchState> {
+  _LaunchProgressProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'launchStateProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$_launchProgressHash();
+
+  @$internal
+  @override
+  _LaunchProgress create() => _LaunchProgress();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(LaunchState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<LaunchState>(value),
+    );
+  }
+}
+
+String _$_launchProgressHash() => r'413a4b9e3cef00497080ede86adbc5012b0e382e';
+
+abstract class _$LaunchProgress extends $Notifier<LaunchState> {
+  LaunchState build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<LaunchState, LaunchState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<LaunchState, LaunchState>,
+              LaunchState,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(Query)
 final queryProvider = QueryFamily._();
 

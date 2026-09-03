@@ -68,6 +68,13 @@ type ExternalProvider struct {
 	SubscriptionInfo *provider.SubscriptionInfo `json:"subscription-info"`
 }
 
+// RunStatus is the truthful answer to "is the tunnel actually up": the app
+// used to trust startListener, which cannot fail, while ReCreateTun can.
+type RunStatus struct {
+	Running bool `json:"running"`
+	Tun     bool `json:"tun"`
+}
+
 type ProxiesData struct {
 	Proxies map[string]constant.Proxy `json:"proxies"`
 	All     []string                  `json:"all"`
@@ -103,6 +110,7 @@ const (
 	stopLogMethod                  Method = "stopLog"
 	startListenerMethod            Method = "startListener"
 	stopListenerMethod             Method = "stopListener"
+	getRunStatusMethod             Method = "getRunStatus"
 	updateDnsMethod                Method = "updateDns"
 	crashMethod                    Method = "crash"
 	setupConfigMethod              Method = "setupConfig"

@@ -47,5 +47,6 @@ export 'text.dart';
 export 'tray.dart';
 export 'utils.dart';
 export 'video_call_tunnel.dart';
+export 'vpn_launcher.dart';
 export 'window.dart';
 export 'yaml.dart';

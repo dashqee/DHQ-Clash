@@ -61,6 +61,8 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
 
     private var vpnPrepareCallback: (suspend () -> Unit)? = null
 
+    private var vpnDeniedCallback: (() -> Unit)? = null
+
     private var requestNotificationCallback: (() -> Unit)? = null
 
     private val packages = mutableListOf<Package>()
@@ -371,18 +373,48 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
         requestNotificationCallback = null
     }
 
-    fun prepare(needPrepare: Boolean, callBack: (suspend () -> Unit)) {
+    // Runs [callBack] once the VPN consent is in hand. Returns true when the
+    // system dialog had to be shown: the answer then arrives later through
+    // [callBack] or [onDenied], and the caller must not assume either.
+    fun prepare(
+        needPrepare: Boolean,
+        onDenied: (() -> Unit)? = null,
+        callBack: (suspend () -> Unit),
+    ): Boolean {
         vpnPrepareCallback = callBack
+        vpnDeniedCallback = onDenied
         if (!needPrepare) {
             invokeVpnPrepareCallback()
-            return
+            return false
         }
         val intent = VpnService.prepare(GlobalState.application)
         if (intent != null) {
-            activityRef?.get()?.startActivityForResult(intent, VPN_PERMISSION_REQUEST_CODE)
-            return
+            val activity = activityRef?.get()
+            if (activity == null) {
+                // Nothing to show the dialog on: treat as refused rather than
+                // leave the launch waiting for an answer that cannot come.
+                invokeVpnDeniedCallback()
+                return false
+            }
+            activity.startActivityForResult(intent, VPN_PERMISSION_REQUEST_CODE)
+            return true
         }
         invokeVpnPrepareCallback()
+        return false
+    }
+
+    // Drop a pending consent flow, e.g. when the app stops the launch while
+    // the dialog is still up.
+    fun cancelVpnPrepare() {
+        vpnPrepareCallback = null
+        vpnDeniedCallback = null
+    }
+
+    private fun invokeVpnDeniedCallback() {
+        val onDenied = vpnDeniedCallback
+        vpnPrepareCallback = null
+        vpnDeniedCallback = null
+        onDenied?.invoke()
     }
 
     fun invokeVpnPrepareCallback() {
@@ -493,6 +525,10 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
         if (requestCode == VPN_PERMISSION_REQUEST_CODE) {
             if (resultCode == FlutterActivity.RESULT_OK) {
                 invokeVpnPrepareCallback()
+            } else {
+                // A refusal used to be dropped on the floor, leaving the app
+                // to believe the VPN was starting.
+                invokeVpnDeniedCallback()
             }
         }
         return true

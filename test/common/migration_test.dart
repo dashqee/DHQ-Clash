@@ -13,8 +13,8 @@ void main() {
   Future<void> configurePreferences(int version) async {
     SharedPreferences.setMockInitialValues({'version': version});
     final sharedPreferences = await SharedPreferences.getInstance();
-    preferences.sharedPreferencesCompleter =
-        Completer<SharedPreferences?>()..complete(sharedPreferences);
+    preferences.sharedPreferencesCompleter = Completer<SharedPreferences?>()
+      ..complete(sharedPreferences);
   }
 
   Config disabledStartupConfig() => const Config(
@@ -45,7 +45,7 @@ void main() {
       expect(migrated.appSettingProps.autoLaunch, true);
       expect(migrated.appSettingProps.silentLaunch, true);
       expect(migrated.appSettingProps.autoRun, true);
-      expect(await preferences.getVersion(), 4);
+      expect(await preferences.getVersion(), 5);
     },
   );
 
@@ -73,25 +73,28 @@ void main() {
     0xFF665390,
   ];
 
-  test('migration v3 applies fruit mix to clients on the legacy default theme', () async {
-    await configurePreferences(2);
+  test(
+    'migration v3 applies fruit mix to clients on the legacy default theme',
+    () async {
+      await configurePreferences(2);
 
-    const legacy = Config(
-      themeProps: ThemeProps(
-        primaryColor: legacyPrimaryColor,
-        primaryColors: legacyPrimaryColors,
-      ),
-    );
+      const legacy = Config(
+        themeProps: ThemeProps(
+          primaryColor: legacyPrimaryColor,
+          primaryColors: legacyPrimaryColors,
+        ),
+      );
 
-    final migrated = await migration.migrationIfNeeded(
-      storedConfigMap(legacy),
-      sync: (data) async => Config.realFromJson(data.configMap),
-    );
+      final migrated = await migration.migrationIfNeeded(
+        storedConfigMap(legacy),
+        sync: (data) async => Config.realFromJson(data.configMap),
+      );
 
-    expect(migrated.themeProps.primaryColor, defaultPrimaryColor);
-    expect(migrated.themeProps.primaryColors, defaultPrimaryColors);
-    expect(await preferences.getVersion(), 4);
-  });
+      expect(migrated.themeProps.primaryColor, defaultPrimaryColor);
+      expect(migrated.themeProps.primaryColors, defaultPrimaryColors);
+      expect(await preferences.getVersion(), 5);
+    },
+  );
 
   test('migration v4 switches existing clients to the list view', () async {
     // The default became `list` for fresh installs only; everyone already using
@@ -109,7 +112,7 @@ void main() {
     );
 
     expect(migrated.proxiesStyleProps.type, ProxiesType.list);
-    expect(await preferences.getVersion(), 4);
+    expect(await preferences.getVersion(), 5);
   });
 
   test('migration v4 keeps the rest of the proxies style', () async {
@@ -176,5 +179,44 @@ void main() {
 
     expect(migrated.themeProps.primaryColor, customColor);
     expect(migrated.themeProps.primaryColors, [customColor, 0xFF00FF00]);
+  });
+
+  test('migration v5 turns TUN and the VPN service on once', () async {
+    // Both defaults became true, but existing clients have false written
+    // into their config and would keep starting a VPN that routes nothing.
+    await configurePreferences(4);
+
+    const off = Config(
+      themeProps: defaultThemeProps,
+      vpnProps: VpnProps(enable: false),
+      patchClashConfig: PatchClashConfig(tun: Tun(enable: false)),
+    );
+
+    final migrated = await migration.migrationIfNeeded(
+      storedConfigMap(off),
+      sync: (data) async => Config.realFromJson(data.configMap),
+    );
+
+    expect(migrated.patchClashConfig.tun.enable, true);
+    expect(migrated.vpnProps.enable, true);
+    expect(await preferences.getVersion(), 5);
+  });
+
+  test('migration v5 keeps a later choice to turn them off', () async {
+    await configurePreferences(5);
+
+    const off = Config(
+      themeProps: defaultThemeProps,
+      vpnProps: VpnProps(enable: false),
+      patchClashConfig: PatchClashConfig(tun: Tun(enable: false)),
+    );
+
+    final config = await migration.migrationIfNeeded(
+      storedConfigMap(off),
+      sync: (data) async => Config.realFromJson(data.configMap),
+    );
+
+    expect(config.patchClashConfig.tun.enable, false);
+    expect(config.vpnProps.enable, false);
   });
 }

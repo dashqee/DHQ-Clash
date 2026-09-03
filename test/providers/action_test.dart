@@ -306,7 +306,10 @@ void main() {
       await videoCallTunnelController.onTunnelConnected!();
 
       // Nothing was taken away, so there is nothing to give back.
-      expect(container.read(videoCallTunnelSettingProvider).restoreMode, isNull);
+      expect(
+        container.read(videoCallTunnelSettingProvider).restoreMode,
+        isNull,
+      );
     });
 
     test('reconnecting does not re-pin over a mode the user changed', () async {
@@ -362,14 +365,15 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           videoCallTunnelSettingProvider.overrideWithBuild(
-            (_, _) =>
-                const VideoCallTunnelProps(enable: true, pinned: true),
+            (_, _) => const VideoCallTunnelProps(enable: true, pinned: true),
           ),
         ],
       );
       addTearDown(container.dispose);
 
-      await container.read(setupActionProvider.notifier).changeMode(Mode.global);
+      await container
+          .read(setupActionProvider.notifier)
+          .changeMode(Mode.global);
       expect(container.read(patchClashConfigProvider).mode, Mode.rule);
 
       // The tray and the hotkey write the mode through their own path.
@@ -699,14 +703,11 @@ class _TestSetupAction extends SetupAction {
   void build() {}
 
   @override
-  Future<void> applyProfile({
-    bool silence = false,
-    bool force = false,
-    void Function()? preloadInvoke,
-  }) async {
+  Future<bool> applyProfile({bool silence = false, bool force = false}) async {
     this.force = force;
     this.silence = silence;
     applyStarted.complete();
     await applyCompleter.future;
+    return true;
   }
 }

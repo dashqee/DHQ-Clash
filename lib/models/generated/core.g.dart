@@ -80,6 +80,14 @@ const _$ExternalControllerStatusEnumMap = {
   ExternalControllerStatus.open: '127.0.0.1:9090',
 };
 
+_RunStatus _$RunStatusFromJson(Map<String, dynamic> json) => _RunStatus(
+  running: json['running'] as bool? ?? false,
+  tun: json['tun'] as bool? ?? false,
+);
+
+Map<String, dynamic> _$RunStatusToJson(_RunStatus instance) =>
+    <String, dynamic>{'running': instance.running, 'tun': instance.tun};
+
 _VpnOptions _$VpnOptionsFromJson(Map<String, dynamic> json) => _VpnOptions(
   enable: json['enable'] as bool,
   port: (json['port'] as num).toInt(),
@@ -169,6 +177,7 @@ const _$CoreEventTypeEnumMap = {
   CoreEventType.loaded: 'loaded',
   CoreEventType.crash: 'crash',
   CoreEventType.geoUpdate: 'geoUpdate',
+  CoreEventType.tunnelDown: 'tunnelDown',
 };
 
 _InvokeMessage _$InvokeMessageFromJson(Map<String, dynamic> json) =>
@@ -309,6 +318,7 @@ const _$ActionMethodEnumMap = {
   ActionMethod.stopLog: 'stopLog',
   ActionMethod.startListener: 'startListener',
   ActionMethod.stopListener: 'stopListener',
+  ActionMethod.getRunStatus: 'getRunStatus',
   ActionMethod.getCountryCode: 'getCountryCode',
   ActionMethod.getMemory: 'getMemory',
   ActionMethod.crash: 'crash',

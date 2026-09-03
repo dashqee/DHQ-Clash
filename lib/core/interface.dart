@@ -34,6 +34,8 @@ mixin CoreInterface {
 
   Future<bool> stopListener();
 
+  Future<RunStatus> getRunStatus();
+
   Future<String> getExternalProviders();
 
   Future<String>? getExternalProvider(String externalProviderName);
@@ -325,6 +327,15 @@ abstract class CoreHandlerInterface with CoreInterface {
   @override
   Future<bool> stopListener() async {
     return await _invoke<bool>(method: ActionMethod.stopListener) ?? false;
+  }
+
+  @override
+  Future<RunStatus> getRunStatus() async {
+    final data = await _invoke<dynamic>(method: ActionMethod.getRunStatus);
+    if (data is Map) {
+      return RunStatus.fromJson(Map<String, Object?>.from(data));
+    }
+    return const RunStatus();
   }
 
   @override

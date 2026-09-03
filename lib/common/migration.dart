@@ -7,7 +7,7 @@ class Migration {
 
   Migration._internal();
 
-  final currentVersion = 4;
+  final currentVersion = 5;
 
   // Theme defaults shipped before v3 (pre "fruit mix"). Existing clients still
   // on these untouched defaults are moved to the new palette; anyone who picked
@@ -63,6 +63,9 @@ class Migration {
     if (_oldVersion < 4) {
       data = _useListProxiesStyle(data);
     }
+    if (_oldVersion < 5) {
+      data = _enableTunnelDefaults(data);
+    }
     final res = await sync(data);
     await preferences.setVersion(currentVersion);
     return res;
@@ -109,6 +112,34 @@ class Migration {
     return data.copyWith(configMap: nextConfigMap);
   }
 
+  /// Turn TUN (desktop) and the VPN service (Android) on once for everyone.
+  ///
+  /// Both defaults became true, but every existing client has `false` written
+  /// into its config and would never see it. This is a one-time switch: the
+  /// toggles stay in the UI, and turning them off again is kept.
+  MigrationData _enableTunnelDefaults(MigrationData data) {
+    final configMap = data.configMap;
+    if (configMap == null) return data;
+
+    final nextConfigMap = Map<String, Object?>.from(configMap);
+    final patchClashConfig = Map<String, Object?>.from(
+      nextConfigMap['patchClashConfig'] as Map? ?? const {},
+    );
+    final tun = Map<String, Object?>.from(
+      patchClashConfig['tun'] as Map? ?? const {},
+    );
+    tun['enable'] = true;
+    patchClashConfig['tun'] = tun;
+    nextConfigMap['patchClashConfig'] = patchClashConfig;
+
+    final vpnProps = Map<String, Object?>.from(
+      nextConfigMap['vpnProps'] as Map? ?? const {},
+    );
+    vpnProps['enable'] = true;
+    nextConfigMap['vpnProps'] = vpnProps;
+    return data.copyWith(configMap: nextConfigMap);
+  }
+
   MigrationData _applyFruitMixTheme(MigrationData data) {
     final configMap = data.configMap;
     if (configMap == null) return data;
@@ -123,7 +154,10 @@ class Migration {
     }
     final primaryColors = themeProps['primaryColors'];
     if (primaryColors is List &&
-        intListEquality.equals(primaryColors.cast<int>(), _legacyPrimaryColors)) {
+        intListEquality.equals(
+          primaryColors.cast<int>(),
+          _legacyPrimaryColors,
+        )) {
       themeProps['primaryColors'] = List<int>.from(defaultPrimaryColors);
     }
 

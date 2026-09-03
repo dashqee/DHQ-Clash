@@ -284,6 +284,14 @@ class _CoreStatus extends _$CoreStatus with AutoDisposeNotifierMixin {
   }
 }
 
+@Riverpod(name: 'launchStateProvider', keepAlive: true)
+class _LaunchProgress extends _$LaunchProgress with AutoDisposeNotifierMixin {
+  @override
+  LaunchState build() {
+    return const LaunchState();
+  }
+}
+
 @riverpod
 class Query extends _$Query with AutoDisposeNotifierMixin {
   @override
