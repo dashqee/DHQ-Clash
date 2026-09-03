@@ -31,8 +31,13 @@ class Tray {
     await trayManager.destroy();
   }
 
+  /// The menu-bar icon says whether the VPN is on, on every desktop.
+  ///
+  /// macOS used to get the idle glyph regardless — a template image that the
+  /// system tints to the menu bar, so nothing about it could change with the
+  /// state. Started, it now shows the same accent glyph Windows does.
   String getTryIcon({required bool isStart, required bool tunEnable}) {
-    if (system.isMacOS || !isStart) {
+    if (!isStart) {
       return 'assets/images/icon/status_1.$trayIconSuffix';
     }
     if (!tunEnable) {
@@ -48,9 +53,12 @@ class Tray {
     if (Platform.isLinux) {
       await trayManager.destroy();
     }
+    // Template only while idle: a template image is drawn in the menu bar's
+    // own colour, which is right for "off" and would erase the accent that
+    // means "on".
     await trayManager.setIcon(
       getTryIcon(isStart: isStart, tunEnable: tunEnable),
-      isTemplate: system.isMacOS,
+      isTemplate: system.isMacOS && !isStart,
     );
     if (!Platform.isLinux) {
       await trayManager.setToolTip(appName);

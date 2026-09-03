@@ -271,11 +271,25 @@ class AppSidebarContainer extends ConsumerWidget {
                   icon: const Icon(Icons.menu, color: AppTheme.muted),
                 ),
                 const SizedBox(height: 8),
-                SidebarVersionControl(
-                  version: globalState.appVersion,
-                  checkUpdateLabel: context.appLocalizations.checkUpdate,
-                  onCheckUpdate: () {
-                    ref.read(commonActionProvider.notifier).checkForUpdate();
+                Consumer(
+                  builder: (context, ref, _) {
+                    final pendingUpdate = ref.watch(pendingUpdateProvider);
+                    final appLocalizations = context.appLocalizations;
+                    return SidebarVersionControl(
+                      version: globalState.appVersion,
+                      checkUpdateLabel: appLocalizations.checkUpdate,
+                      updateVersion: pendingUpdate?.version,
+                      updateAvailableLabel: pendingUpdate == null
+                          ? null
+                          : appLocalizations.updateAvailable(
+                              pendingUpdate.version,
+                            ),
+                      onCheckUpdate: () {
+                        ref
+                            .read(commonActionProvider.notifier)
+                            .showPendingUpdateOrCheck();
+                      },
+                    );
                   },
                 ),
                 const SizedBox(height: 8),
@@ -299,20 +313,33 @@ class AppSidebarContainer extends ConsumerWidget {
   }
 }
 
+/// The version in the corner of the sidebar, and the way to update it.
+///
+/// With [updateVersion] set the icon lights up in the brand accent and wears a
+/// dot: an update was offered and not installed yet. It stays until the
+/// install, so "remind me later" is never the last anyone hears of it.
 class SidebarVersionControl extends StatelessWidget {
   final String version;
   final String checkUpdateLabel;
   final VoidCallback onCheckUpdate;
+  final String? updateVersion;
+  final String? updateAvailableLabel;
 
   const SidebarVersionControl({
     super.key,
     required this.version,
     required this.checkUpdateLabel,
     required this.onCheckUpdate,
+    this.updateVersion,
+    this.updateAvailableLabel,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasUpdate = updateVersion != null;
+    final iconColor = hasUpdate
+        ? AppTheme.cyan
+        : context.colorScheme.onSurfaceVariant;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -323,11 +350,16 @@ class SidebarVersionControl extends StatelessWidget {
           ),
         ),
         IconButton(
-          tooltip: checkUpdateLabel,
+          tooltip: hasUpdate
+              ? updateAvailableLabel ?? checkUpdateLabel
+              : checkUpdateLabel,
           onPressed: onCheckUpdate,
-          icon: Icon(
-            Icons.system_update_alt,
-            color: context.colorScheme.onSurfaceVariant,
+          icon: Badge(
+            key: const ValueKey('sidebar-update-marker'),
+            isLabelVisible: hasUpdate,
+            smallSize: 9,
+            backgroundColor: AppTheme.lime,
+            child: Icon(Icons.system_update_alt, color: iconColor),
           ),
         ),
       ],

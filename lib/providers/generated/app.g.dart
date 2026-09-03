@@ -61,6 +61,76 @@ abstract class _$RealTunEnable extends $Notifier<bool> {
   }
 }
 
+/// The update offered at the last check, until it is installed.
+///
+/// Drives the marker next to the version in the sidebar; cleared when the
+/// backend reports the running build is current.
+
+@ProviderFor(PendingUpdate)
+final pendingUpdateProvider = PendingUpdateProvider._();
+
+/// The update offered at the last check, until it is installed.
+///
+/// Drives the marker next to the version in the sidebar; cleared when the
+/// backend reports the running build is current.
+final class PendingUpdateProvider
+    extends $NotifierProvider<PendingUpdate, AppUpdateInfo?> {
+  /// The update offered at the last check, until it is installed.
+  ///
+  /// Drives the marker next to the version in the sidebar; cleared when the
+  /// backend reports the running build is current.
+  PendingUpdateProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'pendingUpdateProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$pendingUpdateHash();
+
+  @$internal
+  @override
+  PendingUpdate create() => PendingUpdate();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AppUpdateInfo? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AppUpdateInfo?>(value),
+    );
+  }
+}
+
+String _$pendingUpdateHash() => r'346db403d9ee9d8cfa9e39e45ed2478142f100a5';
+
+/// The update offered at the last check, until it is installed.
+///
+/// Drives the marker next to the version in the sidebar; cleared when the
+/// backend reports the running build is current.
+
+abstract class _$PendingUpdate extends $Notifier<AppUpdateInfo?> {
+  AppUpdateInfo? build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<AppUpdateInfo?, AppUpdateInfo?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AppUpdateInfo?, AppUpdateInfo?>,
+              AppUpdateInfo?,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
 @ProviderFor(Logs)
 final logsProvider = LogsProvider._();
 

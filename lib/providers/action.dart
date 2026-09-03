@@ -138,58 +138,79 @@ class CommonAction extends _$CommonAction {
     Map<String, dynamic>? data,
     bool isUser = false,
   }) async {
-    if (data != null) {
-      final tagName = (data['version'] ?? '').toString();
-      final body = (data['notes'] ?? '').toString();
-      final releaseNotes = utils.formatReleaseNotes(body);
-      final hasUpdate =
-          data['_hasUpdate'] as bool? ??
-          utils.compareVersions(tagName, globalState.appVersion) > 0;
-      final context = globalState.navigatorKey.currentContext!;
-      final textTheme = context.textTheme;
-      final res = await globalState.showMessage(
-        title: hasUpdate
-            ? currentAppLocalizations.discoverNewVersion
-            : currentAppLocalizations.latestVersion,
-        message: TextSpan(
-          text: '$tagName \n',
-          style: textTheme.headlineSmall,
-          children: [
-            TextSpan(
-              text:
-                  '\n${currentAppLocalizations.releaseNotes}\n\n'
-                  '${releaseNotes.isEmpty ? currentAppLocalizations.noInfo : releaseNotes}',
-              style: textTheme.bodyMedium,
-            ),
-          ],
-        ),
-        confirmText: hasUpdate ? currentAppLocalizations.goDownload : null,
-        cancelText: hasUpdate && !isUser
-            ? currentAppLocalizations.noLongerRemind
-            : null,
-        cancelable: hasUpdate,
-        maxWidth: 480,
-        maxHeight: 420,
-      );
-      if (hasUpdate && res == true) {
-        await _downloadAndInstallUpdate(data);
-      } else if (hasUpdate && !isUser && res == false) {
-        ref
-            .read(appSettingProvider.notifier)
-            .update((state) => state.copyWith(autoCheckUpdate: false));
+    if (data == null) {
+      if (isUser) {
+        globalState.showMessage(
+          title: currentAppLocalizations.checkUpdate,
+          message: TextSpan(text: currentAppLocalizations.checkUpdateError),
+        );
       }
-    } else if (isUser) {
-      globalState.showMessage(
-        title: currentAppLocalizations.checkUpdate,
-        message: TextSpan(text: currentAppLocalizations.checkUpdateError),
-      );
+      return;
+    }
+    final info = AppUpdateInfo.fromResponse(
+      data,
+      appVersion: globalState.appVersion,
+    );
+    if (!info.hasUpdate) {
+      ref.read(pendingUpdateProvider.notifier).value = null;
+      if (isUser) {
+        final releaseNotes = utils.formatReleaseNotes(info.notes);
+        final textTheme = globalState.navigatorKey.currentContext!.textTheme;
+        await globalState.showMessage(
+          title: currentAppLocalizations.latestVersion,
+          message: TextSpan(
+            text: '${info.version} \n',
+            style: textTheme.headlineSmall,
+            children: [
+              TextSpan(
+                text:
+                    '\n${currentAppLocalizations.releaseNotes}\n\n'
+                    '${releaseNotes.isEmpty ? currentAppLocalizations.noInfo : releaseNotes}',
+                style: textTheme.bodyMedium,
+              ),
+            ],
+          ),
+          cancelable: false,
+          maxWidth: 480,
+          maxHeight: 420,
+        );
+      }
+      return;
+    }
+    ref.read(pendingUpdateProvider.notifier).value = info;
+    await promptUpdate(info);
+  }
+
+  /// Offer to install [info] now. "Later" changes nothing: the marker in the
+  /// sidebar stays, and the next launch asks again. The old "don't remind
+  /// again" used to switch the automatic check off for good, which is how
+  /// people ended up several releases behind without knowing.
+  Future<void> promptUpdate(AppUpdateInfo info) async {
+    final install = await globalState.showCommonDialog<bool>(
+      child: UpdatePromptDialog(
+        version: info.version,
+        notes: utils.formatReleaseNotes(info.notes),
+      ),
+    );
+    if (install == true) {
+      await _downloadAndInstallUpdate(info);
     }
   }
 
-  Future<void> _downloadAndInstallUpdate(Map<String, dynamic> data) async {
-    final url = (data['url'] ?? '').toString();
-    final filename = (data['filename'] ?? '').toString();
-    final sha256Hex = (data['sha256'] ?? '').toString();
+  /// The sidebar entry: bring back what is already pending, otherwise look.
+  Future<void> showPendingUpdateOrCheck() async {
+    final pending = ref.read(pendingUpdateProvider);
+    if (pending != null) {
+      await promptUpdate(pending);
+      return;
+    }
+    await checkForUpdate();
+  }
+
+  Future<void> _downloadAndInstallUpdate(AppUpdateInfo info) async {
+    final url = info.url;
+    final filename = info.filename;
+    final sha256Hex = info.sha256;
     if (url.isEmpty || filename.isEmpty) return;
 
     // Platforms without an in-app installer path fall back to opening the

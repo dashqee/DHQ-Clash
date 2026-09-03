@@ -90,3 +90,45 @@ class MoreActionButton extends StatelessWidget {
     );
   }
 }
+
+/// A stadium button on the brand gradient — the one action on a surface the
+/// user is meant to take. The Start button on the dashboard is the same shape
+/// at a larger size.
+class BrandButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final Widget child;
+
+  const BrandButton({super.key, required this.onPressed, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const ShapeDecoration(
+        gradient: AppTheme.brandGradient,
+        shape: StadiumBorder(side: BorderSide(color: Color(0x33FFFFFF))),
+        shadows: [
+          BoxShadow(
+            color: Color(0x594877F4),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: FilledButton(
+        onPressed: onPressed,
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(120, 44),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+          foregroundColor: Colors.white,
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: const StadiumBorder(),
+          textStyle: context.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        child: child,
+      ),
+    );
+  }
+}

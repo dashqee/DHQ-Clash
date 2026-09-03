@@ -45,7 +45,7 @@ void main() {
       expect(migrated.appSettingProps.autoLaunch, true);
       expect(migrated.appSettingProps.silentLaunch, true);
       expect(migrated.appSettingProps.autoRun, true);
-      expect(await preferences.getVersion(), 5);
+      expect(await preferences.getVersion(), 6);
     },
   );
 
@@ -92,7 +92,7 @@ void main() {
 
       expect(migrated.themeProps.primaryColor, defaultPrimaryColor);
       expect(migrated.themeProps.primaryColors, defaultPrimaryColors);
-      expect(await preferences.getVersion(), 5);
+      expect(await preferences.getVersion(), 6);
     },
   );
 
@@ -112,7 +112,7 @@ void main() {
     );
 
     expect(migrated.proxiesStyleProps.type, ProxiesType.list);
-    expect(await preferences.getVersion(), 5);
+    expect(await preferences.getVersion(), 6);
   });
 
   test('migration v4 keeps the rest of the proxies style', () async {
@@ -199,7 +199,42 @@ void main() {
 
     expect(migrated.patchClashConfig.tun.enable, true);
     expect(migrated.vpnProps.enable, true);
-    expect(await preferences.getVersion(), 5);
+    expect(await preferences.getVersion(), 6);
+  });
+
+  test('migration v6 turns the automatic update check back on', () async {
+    // The old dialog's "don't remind again" switched the check off for good;
+    // the button is gone, and everyone gets the check back once.
+    await configurePreferences(5);
+
+    const off = Config(
+      themeProps: defaultThemeProps,
+      appSettingProps: AppSettingProps(autoCheckUpdate: false),
+    );
+
+    final migrated = await migration.migrationIfNeeded(
+      storedConfigMap(off),
+      sync: (data) async => Config.realFromJson(data.configMap),
+    );
+
+    expect(migrated.appSettingProps.autoCheckUpdate, true);
+    expect(await preferences.getVersion(), 6);
+  });
+
+  test('migration v6 keeps a later choice to switch the check off', () async {
+    await configurePreferences(6);
+
+    const off = Config(
+      themeProps: defaultThemeProps,
+      appSettingProps: AppSettingProps(autoCheckUpdate: false),
+    );
+
+    final config = await migration.migrationIfNeeded(
+      storedConfigMap(off),
+      sync: (data) async => Config.realFromJson(data.configMap),
+    );
+
+    expect(config.appSettingProps.autoCheckUpdate, false);
   });
 
   test('migration v5 keeps a later choice to turn them off', () async {

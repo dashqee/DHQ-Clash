@@ -44,3 +44,36 @@ extension AppStateExt on AppState {
 
   bool get isStart => runTime != null;
 }
+
+/// An update the backend offered, kept until it is installed.
+///
+/// Held in memory only: every launch asks the backend again, so "remind me
+/// later" is exactly that — the next start brings the prompt back.
+@freezed
+abstract class AppUpdateInfo with _$AppUpdateInfo {
+  const factory AppUpdateInfo({
+    required String version,
+    @Default('') String notes,
+    @Default('') String url,
+    @Default('') String filename,
+    @Default('') String sha256,
+    @Default(false) bool hasUpdate,
+  }) = _AppUpdateInfo;
+
+  factory AppUpdateInfo.fromResponse(
+    Map<String, dynamic> data, {
+    required String appVersion,
+  }) {
+    final version = (data['version'] ?? '').toString();
+    return AppUpdateInfo(
+      version: version,
+      notes: (data['notes'] ?? '').toString(),
+      url: (data['url'] ?? '').toString(),
+      filename: (data['filename'] ?? '').toString(),
+      sha256: (data['sha256'] ?? '').toString(),
+      hasUpdate:
+          data['_hasUpdate'] as bool? ??
+          utils.compareVersions(version, appVersion) > 0,
+    );
+  }
+}

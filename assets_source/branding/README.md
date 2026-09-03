@@ -17,6 +17,8 @@ with the radial indigo gradient.
 
 - `app-icon-master.svg` — rounded-square icon (radius 48/200), exported from Figma node `1:3`
 - `app-icon-master-3d.png` — 1024² raster of the master; every platform bitmap is downscaled from it
+- `app-icon-windows.svg` — the master with the glyph at 1.2x, for the Windows taskbar where the
+  letters otherwise blur; `tool/make_ico.dart` packs it into a multi-size `app_icon.ico`
 - `app-icon-adaptive.svg` — full-bleed variant with the glyph inside the Android
   adaptive-icon safe zone; source for `dhq_icon_3d.png` and the Play Store icon
 - `app-icon-round.svg` — circular variant for Android `ic_launcher_round`
@@ -32,7 +34,7 @@ with the radial indigo gradient.
 - `ios/AppIcon-1024.png` — staged for a future iOS target
 
 Regenerate every derived asset with `tool/generate_brand_assets.sh`
-(requires `rsvg-convert`, `sips`, `cwebp`). Hand-maintained files the script does
+(requires `rsvg-convert`, `sips`, `cwebp`, `dart`). Hand-maintained files the script does
 NOT touch: `ic_launcher_monochrome.xml`, `ic_launcher_background.xml`,
 `ic_launcher-playstore.png`, `android/service/.../ic.xml`, `ic_service.xml`.
 

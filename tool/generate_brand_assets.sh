@@ -24,9 +24,15 @@ resize() {
 }
 
 resize "$master_3d" 550 550 "$repo_root/assets/images/icon.png"
-resize "$master_3d" 256 256 "$brand_tmp/app-icon-256.png"
-sips -s format ico "$brand_tmp/app-icon-256.png" --out "$repo_root/assets/images/icon.ico" >/dev/null
-cp "$repo_root/assets/images/icon.ico" "$repo_root/windows/runner/resources/app_icon.ico"
+# Windows draws the taskbar icon at 24-32 px, where the master's letters are a
+# smudge: its own master carries the glyph at 1.2x, and the ICO holds every
+# size the shell asks for so nothing is scaled at load time.
+make_ico() {
+  dart "$repo_root/tool/make_ico.dart" "$@"
+}
+
+make_ico "$brand_source/app-icon-windows.svg" "$repo_root/windows/runner/resources/app_icon.ico"
+cp "$repo_root/windows/runner/resources/app_icon.ico" "$repo_root/assets/images/icon.ico"
 
 for size in 16 32 64 128 256 512 1024; do
   resize "$master_3d" "$size" "$size" \
@@ -65,7 +71,6 @@ for state in off proxy tun; do
   esac
   render "$brand_source/tray-$state.svg" 108 108 \
     "$repo_root/assets/images/icon/status_$index.png"
-  render "$brand_source/tray-$state.svg" 256 256 "$brand_tmp/status-$index.png"
-  sips -s format ico "$brand_tmp/status-$index.png" \
-    --out "$repo_root/assets/images/icon/status_$index.ico" >/dev/null
+  make_ico "$brand_source/tray-$state.svg" \
+    "$repo_root/assets/images/icon/status_$index.ico" 16 20 24 32 48 64 256
 done

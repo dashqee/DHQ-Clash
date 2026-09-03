@@ -1144,6 +1144,31 @@ class AppLocalizations {
     );
   }
 
+  /// `Install`
+  String get installUpdate {
+    return Intl.message('Install', name: 'installUpdate', desc: '', args: []);
+  }
+
+  /// `Remind me later`
+  String get remindLater {
+    return Intl.message(
+      'Remind me later',
+      name: 'remindLater',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Update {version} available`
+  String updateAvailable(Object version) {
+    return Intl.message(
+      'Update $version available',
+      name: 'updateAvailable',
+      desc: '',
+      args: [version],
+    );
+  }
+
   /// `Unknown`
   String get unknown {
     return Intl.message('Unknown', name: 'unknown', desc: '', args: []);
