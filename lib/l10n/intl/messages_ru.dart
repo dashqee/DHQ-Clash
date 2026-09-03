@@ -80,9 +80,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m25(count) => "Выбрано ${count} элементов";
 
-  static String m26(label) => "${label} должен быть URL";
+  static String m26(version) => "Доступно обновление ${version}";
 
-  static String m27(count) =>
+  static String m27(label) => "${label} должен быть URL";
+
+  static String m28(count) =>
       "${Intl.plural(count, one: '${count} год назад', few: '${count} года назад', many: '${count} лет назад', other: '${count} года назад')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -518,6 +520,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Введите содержимое правила",
     ),
+    "installUpdate": MessageLookupByLibrary.simpleMessage("Установить"),
     "intelligentSelected": MessageLookupByLibrary.simpleMessage(
       "Интеллектуальный выбор",
     ),
@@ -818,6 +821,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "redirPort": MessageLookupByLibrary.simpleMessage("Redir-порт"),
     "redo": MessageLookupByLibrary.simpleMessage("Повторить"),
     "releaseNotes": MessageLookupByLibrary.simpleMessage("Что нового"),
+    "remindLater": MessageLookupByLibrary.simpleMessage("Напомнить позже"),
     "remote": MessageLookupByLibrary.simpleMessage("Удаленный"),
     "remoteBackupDesc": MessageLookupByLibrary.simpleMessage(
       "Резервное копирование локальных данных на WebDAV",
@@ -1207,13 +1211,14 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "unnamed": MessageLookupByLibrary.simpleMessage("Без имени"),
     "update": MessageLookupByLibrary.simpleMessage("Обновить"),
+    "updateAvailable": m26,
     "updateChannel": MessageLookupByLibrary.simpleMessage("Канал обновлений"),
     "upload": MessageLookupByLibrary.simpleMessage("Загрузка"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage(
       "Получить профиль через URL",
     ),
-    "urlTip": m26,
+    "urlTip": m27,
     "useHosts": MessageLookupByLibrary.simpleMessage("Использовать hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage(
       "Использовать системные hosts",
@@ -1255,7 +1260,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "windowsTunHelperReinstallSuccess": MessageLookupByLibrary.simpleMessage(
       "Windows TUN helper переустановлен",
     ),
-    "yearsAgo": m27,
+    "yearsAgo": m28,
     "zh_CN": MessageLookupByLibrary.simpleMessage("Упрощенный китайский"),
   };
 }

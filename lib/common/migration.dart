@@ -7,7 +7,7 @@ class Migration {
 
   Migration._internal();
 
-  final currentVersion = 5;
+  final currentVersion = 6;
 
   // Theme defaults shipped before v3 (pre "fruit mix"). Existing clients still
   // on these untouched defaults are moved to the new palette; anyone who picked
@@ -66,9 +66,31 @@ class Migration {
     if (_oldVersion < 5) {
       data = _enableTunnelDefaults(data);
     }
+    if (_oldVersion < 6) {
+      data = _enableAutoCheckUpdate(data);
+    }
     final res = await sync(data);
     await preferences.setVersion(currentVersion);
     return res;
+  }
+
+  /// Turn the automatic update check back on for everyone, once.
+  ///
+  /// The old update dialog's "don't remind again" switched the check off for
+  /// good, so a good share of installs stopped hearing about releases after
+  /// the first prompt. The dialog no longer has that button; this gives those
+  /// installs the check back. Switching it off again in Settings still sticks.
+  MigrationData _enableAutoCheckUpdate(MigrationData data) {
+    final configMap = data.configMap;
+    if (configMap == null) return data;
+
+    final nextConfigMap = Map<String, Object?>.from(configMap);
+    final appSettingProps = Map<String, Object?>.from(
+      nextConfigMap['appSettingProps'] as Map? ?? const {},
+    );
+    appSettingProps['autoCheckUpdate'] = true;
+    nextConfigMap['appSettingProps'] = appSettingProps;
+    return data.copyWith(configMap: nextConfigMap);
   }
 
   Future<MigrationData> _oldToNow(Map<String, Object?> configMap) async {

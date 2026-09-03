@@ -376,4 +376,276 @@ $TrafficCopyWith<$Res> get totalTraffic {
 }
 }
 
+/// @nodoc
+mixin _$AppUpdateInfo {
+
+ String get version; String get notes; String get url; String get filename; String get sha256; bool get hasUpdate;
+/// Create a copy of AppUpdateInfo
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$AppUpdateInfoCopyWith<AppUpdateInfo> get copyWith => _$AppUpdateInfoCopyWithImpl<AppUpdateInfo>(this as AppUpdateInfo, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppUpdateInfo&&(identical(other.version, version) || other.version == version)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.url, url) || other.url == url)&&(identical(other.filename, filename) || other.filename == filename)&&(identical(other.sha256, sha256) || other.sha256 == sha256)&&(identical(other.hasUpdate, hasUpdate) || other.hasUpdate == hasUpdate));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,version,notes,url,filename,sha256,hasUpdate);
+
+@override
+String toString() {
+  return 'AppUpdateInfo(version: $version, notes: $notes, url: $url, filename: $filename, sha256: $sha256, hasUpdate: $hasUpdate)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $AppUpdateInfoCopyWith<$Res>  {
+  factory $AppUpdateInfoCopyWith(AppUpdateInfo value, $Res Function(AppUpdateInfo) _then) = _$AppUpdateInfoCopyWithImpl;
+@useResult
+$Res call({
+ String version, String notes, String url, String filename, String sha256, bool hasUpdate
+});
+
+
+
+
+}
+/// @nodoc
+class _$AppUpdateInfoCopyWithImpl<$Res>
+    implements $AppUpdateInfoCopyWith<$Res> {
+  _$AppUpdateInfoCopyWithImpl(this._self, this._then);
+
+  final AppUpdateInfo _self;
+  final $Res Function(AppUpdateInfo) _then;
+
+/// Create a copy of AppUpdateInfo
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? version = null,Object? notes = null,Object? url = null,Object? filename = null,Object? sha256 = null,Object? hasUpdate = null,}) {
+  return _then(_self.copyWith(
+version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as String,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,filename: null == filename ? _self.filename : filename // ignore: cast_nullable_to_non_nullable
+as String,sha256: null == sha256 ? _self.sha256 : sha256 // ignore: cast_nullable_to_non_nullable
+as String,hasUpdate: null == hasUpdate ? _self.hasUpdate : hasUpdate // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [AppUpdateInfo].
+extension AppUpdateInfoPatterns on AppUpdateInfo {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _AppUpdateInfo value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _AppUpdateInfo() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _AppUpdateInfo value)  $default,){
+final _that = this;
+switch (_that) {
+case _AppUpdateInfo():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _AppUpdateInfo value)?  $default,){
+final _that = this;
+switch (_that) {
+case _AppUpdateInfo() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String version,  String notes,  String url,  String filename,  String sha256,  bool hasUpdate)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _AppUpdateInfo() when $default != null:
+return $default(_that.version,_that.notes,_that.url,_that.filename,_that.sha256,_that.hasUpdate);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String version,  String notes,  String url,  String filename,  String sha256,  bool hasUpdate)  $default,) {final _that = this;
+switch (_that) {
+case _AppUpdateInfo():
+return $default(_that.version,_that.notes,_that.url,_that.filename,_that.sha256,_that.hasUpdate);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String version,  String notes,  String url,  String filename,  String sha256,  bool hasUpdate)?  $default,) {final _that = this;
+switch (_that) {
+case _AppUpdateInfo() when $default != null:
+return $default(_that.version,_that.notes,_that.url,_that.filename,_that.sha256,_that.hasUpdate);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+
+
+class _AppUpdateInfo implements AppUpdateInfo {
+  const _AppUpdateInfo({required this.version, this.notes = '', this.url = '', this.filename = '', this.sha256 = '', this.hasUpdate = false});
+  
+
+@override final  String version;
+@override@JsonKey() final  String notes;
+@override@JsonKey() final  String url;
+@override@JsonKey() final  String filename;
+@override@JsonKey() final  String sha256;
+@override@JsonKey() final  bool hasUpdate;
+
+/// Create a copy of AppUpdateInfo
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$AppUpdateInfoCopyWith<_AppUpdateInfo> get copyWith => __$AppUpdateInfoCopyWithImpl<_AppUpdateInfo>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppUpdateInfo&&(identical(other.version, version) || other.version == version)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.url, url) || other.url == url)&&(identical(other.filename, filename) || other.filename == filename)&&(identical(other.sha256, sha256) || other.sha256 == sha256)&&(identical(other.hasUpdate, hasUpdate) || other.hasUpdate == hasUpdate));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,version,notes,url,filename,sha256,hasUpdate);
+
+@override
+String toString() {
+  return 'AppUpdateInfo(version: $version, notes: $notes, url: $url, filename: $filename, sha256: $sha256, hasUpdate: $hasUpdate)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$AppUpdateInfoCopyWith<$Res> implements $AppUpdateInfoCopyWith<$Res> {
+  factory _$AppUpdateInfoCopyWith(_AppUpdateInfo value, $Res Function(_AppUpdateInfo) _then) = __$AppUpdateInfoCopyWithImpl;
+@override @useResult
+$Res call({
+ String version, String notes, String url, String filename, String sha256, bool hasUpdate
+});
+
+
+
+
+}
+/// @nodoc
+class __$AppUpdateInfoCopyWithImpl<$Res>
+    implements _$AppUpdateInfoCopyWith<$Res> {
+  __$AppUpdateInfoCopyWithImpl(this._self, this._then);
+
+  final _AppUpdateInfo _self;
+  final $Res Function(_AppUpdateInfo) _then;
+
+/// Create a copy of AppUpdateInfo
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? version = null,Object? notes = null,Object? url = null,Object? filename = null,Object? sha256 = null,Object? hasUpdate = null,}) {
+  return _then(_AppUpdateInfo(
+version: null == version ? _self.version : version // ignore: cast_nullable_to_non_nullable
+as String,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
+as String,filename: null == filename ? _self.filename : filename // ignore: cast_nullable_to_non_nullable
+as String,sha256: null == sha256 ? _self.sha256 : sha256 // ignore: cast_nullable_to_non_nullable
+as String,hasUpdate: null == hasUpdate ? _self.hasUpdate : hasUpdate // ignore: cast_nullable_to_non_nullable
+as bool,
+  ));
+}
+
+
+}
+
 // dart format on

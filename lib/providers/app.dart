@@ -21,6 +21,18 @@ class RealTunEnable extends _$RealTunEnable with AutoDisposeNotifierMixin {
   }
 }
 
+/// The update offered at the last check, until it is installed.
+///
+/// Drives the marker next to the version in the sidebar; cleared when the
+/// backend reports the running build is current.
+@Riverpod(keepAlive: true)
+class PendingUpdate extends _$PendingUpdate with AutoDisposeNotifierMixin {
+  @override
+  AppUpdateInfo? build() {
+    return null;
+  }
+}
+
 @Riverpod(keepAlive: true)
 class Logs extends _$Logs with AutoDisposeNotifierMixin {
   @override

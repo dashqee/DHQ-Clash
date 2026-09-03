@@ -81,9 +81,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m25(count) => "${count} items have been selected";
 
-  static String m26(label) => "${label} must be a url";
+  static String m26(version) => "Update ${version} available";
 
-  static String m27(count) =>
+  static String m27(label) => "${label} must be a url";
+
+  static String m28(count) =>
       "${Intl.plural(count, one: '1 year ago', other: '${count} years ago')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -499,6 +501,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "inputRuleContent": MessageLookupByLibrary.simpleMessage(
       "Input rule content",
     ),
+    "installUpdate": MessageLookupByLibrary.simpleMessage("Install"),
     "intelligentSelected": MessageLookupByLibrary.simpleMessage(
       "Intelligent selection",
     ),
@@ -781,6 +784,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "redirPort": MessageLookupByLibrary.simpleMessage("Redir Port"),
     "redo": MessageLookupByLibrary.simpleMessage("redo"),
     "releaseNotes": MessageLookupByLibrary.simpleMessage("What\'s new"),
+    "remindLater": MessageLookupByLibrary.simpleMessage("Remind me later"),
     "remote": MessageLookupByLibrary.simpleMessage("Remote"),
     "remoteBackupDesc": MessageLookupByLibrary.simpleMessage(
       "Backup local data to WebDAV",
@@ -1144,13 +1148,14 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "unnamed": MessageLookupByLibrary.simpleMessage("Unnamed"),
     "update": MessageLookupByLibrary.simpleMessage("Update"),
+    "updateAvailable": m26,
     "updateChannel": MessageLookupByLibrary.simpleMessage("Update channel"),
     "upload": MessageLookupByLibrary.simpleMessage("Upload"),
     "url": MessageLookupByLibrary.simpleMessage("URL"),
     "urlDesc": MessageLookupByLibrary.simpleMessage(
       "Obtain profile through URL",
     ),
-    "urlTip": m26,
+    "urlTip": m27,
     "useHosts": MessageLookupByLibrary.simpleMessage("Use hosts"),
     "useSystemHosts": MessageLookupByLibrary.simpleMessage("Use system hosts"),
     "userAgent": MessageLookupByLibrary.simpleMessage("User-Agent"),
@@ -1188,7 +1193,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "windowsTunHelperReinstallSuccess": MessageLookupByLibrary.simpleMessage(
       "Windows TUN helper reinstalled",
     ),
-    "yearsAgo": m27,
+    "yearsAgo": m28,
     "zh_CN": MessageLookupByLibrary.simpleMessage("Simplified Chinese"),
   };
 }
