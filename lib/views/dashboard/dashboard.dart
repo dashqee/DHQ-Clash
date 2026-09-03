@@ -4,6 +4,7 @@ import 'package:defer_pointer/defer_pointer.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/widgets/widgets.dart';
@@ -353,19 +354,31 @@ class DashboardConnectionOverview extends ConsumerWidget {
       patchClashConfigProvider.select((state) => state.mode),
     );
     final runTime = ref.watch(runTimeProvider);
+    final launchState = ref.watch(launchStateProvider);
     final hasProfile = ref.watch(
       profilesProvider.select((state) => state.isNotEmpty),
     );
-    final statusColor = switch (coreStatus) {
-      CoreStatus.connected => AppTheme.cyan,
-      CoreStatus.connecting => AppTheme.blue,
-      CoreStatus.disconnected => AppTheme.danger,
-    };
-    final statusLabel = switch (coreStatus) {
-      CoreStatus.connected => appLocalizations.connected,
-      CoreStatus.connecting => appLocalizations.connecting,
-      CoreStatus.disconnected => appLocalizations.disconnected,
-    };
+    // A launch in progress is the connection status people are waiting on,
+    // whatever the transport already says.
+    final statusColor = launchState.isLaunching
+        ? AppTheme.blue
+        : switch (coreStatus) {
+            CoreStatus.connected => AppTheme.cyan,
+            CoreStatus.connecting => AppTheme.blue,
+            CoreStatus.disconnected => AppTheme.danger,
+          };
+    final statusLabel = launchState.isLaunching
+        ? appLocalizations.connecting
+        : switch (coreStatus) {
+            CoreStatus.connected => appLocalizations.connected,
+            CoreStatus.connecting => appLocalizations.connecting,
+            CoreStatus.disconnected => appLocalizations.disconnected,
+          };
+    // The reason a launch failed, kept on screen: the notifier that carries
+    // it needs a navigator, which an autostart at login does not have yet.
+    final launchError = launchState.stage == LaunchStage.failed
+        ? launchState.message
+        : null;
 
     return Container(
       key: const ValueKey('dashboard-connection-overview'),
@@ -424,6 +437,16 @@ class DashboardConnectionOverview extends ConsumerWidget {
                         color: AppTheme.muted,
                       ),
                     ),
+                    if (launchError != null && launchError.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        launchError,
+                        key: const ValueKey('connection-launch-error'),
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: AppTheme.danger,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

@@ -267,8 +267,18 @@ class SetupAction extends _$SetupAction {
   String? _turnJoinLink;
   String? _turnSubscriptionUrl;
   DateTime? startTime;
+  Future<LaunchResult>? _activeLaunch;
+
+  late final VpnLauncher _launcher = VpnLauncher(
+    steps: _SetupLaunchSteps(this, ref),
+    onState: (state) {
+      ref.read(launchStateProvider.notifier).value = state;
+    },
+  );
 
   bool get isStart => startTime != null && startTime!.isBeforeNow;
+
+  bool get isLaunching => _launcher.isLaunching;
 
   @override
   void build() {
@@ -628,10 +638,12 @@ class SetupAction extends _$SetupAction {
     }
     // The stage is what turns "it timed out" into something answerable: stuck
     // at the captcha is a different fault from stuck waiting for a peer.
-    unawaited(_reportVideoCallTunnelStatus(
-      ok: false,
-      reason: 'join_timeout:${videoCallTunnelController.lastStage}',
-    ));
+    unawaited(
+      _reportVideoCallTunnelStatus(
+        ok: false,
+        reason: 'join_timeout:${videoCallTunnelController.lastStage}',
+      ),
+    );
     await videoCallTunnelController.stop();
     _scheduleTurnLinkRetry();
   }
@@ -744,18 +756,26 @@ class SetupAction extends _$SetupAction {
     ref.read(requestsProvider.notifier).value = FixedList(500);
   }
 
-  Future<void> _handleStart() async {
+  /// Record a verified start. Only the launcher gets here, and only after the
+  /// tunnel answered: isStart used to flip before anything was checked.
+  void _markStarted() {
     startTime ??= DateTime.now();
-    //The local status must be updated when performing the run task
     ref.read(commonActionProvider.notifier).updateRunTime();
     ref.read(commonActionProvider.notifier).updateTraffic();
-    if (!ref.read(suspendProvider)) {
-      await coreController.startListener();
-    }
+    _updateTimer?.cancel();
     _updateTimer = Timer.periodic(const Duration(seconds: 1), (_) {
       ref.read(commonActionProvider.notifier).updateRunTime();
       ref.read(commonActionProvider.notifier).updateTraffic();
     });
+  }
+
+  /// Forget a start without talking to the core: for a core that is already
+  /// gone (crash) or about to be replaced (restart).
+  void resetStarted() {
+    startTime = null;
+    _updateTimer?.cancel();
+    _updateTimer = null;
+    ref.read(runTimeProvider.notifier).value = null;
   }
 
   Future _updateStartTime() async {
@@ -767,7 +787,11 @@ class SetupAction extends _$SetupAction {
     _updateTimer?.cancel();
     _updateTimer = null;
     _cancelTurnAssignmentHeartbeat();
-    await coreController.stopListener();
+    // A dead core answers nothing, and the invoke waits ten seconds to find
+    // out. The listeners die with the process anyway.
+    if (coreController.isCompleted) {
+      await coreController.stopListener();
+    }
     await videoCallTunnelController.stop();
   }
 
@@ -817,50 +841,125 @@ class SetupAction extends _$SetupAction {
 
   Future<void> updateStatus(bool isStart, {bool isInit = false}) async {
     if (isStart) {
-      if (!await _ensureTunBeforeStart(isInit: isInit)) return;
-      final videoCallTunnel = ref.read(videoCallTunnelSettingProvider);
-      if (videoCallTunnel.enable) {
-        final resolvedVideoCallTunnel = await _resolveVideoCallTunnelProps();
-        if (resolvedVideoCallTunnel != null) {
-          final joinLink = _turnJoinLink;
-          if (joinLink != null) {
-            await videoCallTunnelController.start(
-              resolvedVideoCallTunnel,
-              joinLink: joinLink,
-            );
-          }
-        }
-      }
-      if (!isInit) {
-        final res = await ref
-            .read(coreActionProvider.notifier)
-            .tryStartCore(true);
-        if (res) return;
-        if (!ref.read(initProvider)) return;
-        await _handleStart();
-        applyProfileDebounce(force: true, silence: true);
-      } else {
-        globalState.needInitStatus = false;
-        ref.read(runTimeProvider.notifier).value = 0;
-        try {
-          await applyProfile(
-            force: true,
-            preloadInvoke: () async {
-              await _handleStart();
-            },
+      await _start(isInit: isInit);
+    } else {
+      await _stop();
+    }
+  }
+
+  /// Bring the VPN up through the launcher: core, config, tunnel, verified,
+  /// with a bounded retry. Nothing here sets isStart; that happens once the
+  /// launcher has seen the tunnel.
+  Future<void> _start({required bool isInit}) async {
+    if (_launcher.isLaunching || ref.read(isStartProvider)) return;
+    if (!await _ensureTunBeforeStart(isInit: isInit)) return;
+    globalState.needInitStatus = false;
+    final videoCallTunnel = ref.read(videoCallTunnelSettingProvider);
+    if (videoCallTunnel.enable) {
+      final resolvedVideoCallTunnel = await _resolveVideoCallTunnelProps();
+      if (resolvedVideoCallTunnel != null) {
+        final joinLink = _turnJoinLink;
+        if (joinLink != null) {
+          await videoCallTunnelController.start(
+            resolvedVideoCallTunnel,
+            joinLink: joinLink,
           );
-        } catch (_) {
-          ref.read(runTimeProvider.notifier).value = null;
         }
       }
+    }
+    final launch = _launcher.launch(requireTunnel: _requireTunnel);
+    _activeLaunch = launch;
+    final result = await launch;
+    _activeLaunch = null;
+    if (result.ignored) return;
+    if (result.success) {
+      _markStarted();
+      return;
+    }
+    // The launcher has already torn the attempt down.
+    ref.read(runTimeProvider.notifier).value = null;
+    if (result.failure == LaunchFailure.cancelled) return;
+    _notifyLaunchFailed(result);
+  }
+
+  /// Whether a start must wait for the tunnel. The setting is the user's
+  /// wish; on desktop the guard above has just made sure it is on. Suspended,
+  /// nothing listens, so there is nothing to verify.
+  bool get _requireTunnel {
+    if (ref.read(suspendProvider)) return false;
+    return system.isDesktop
+        ? ref.read(patchClashConfigProvider).tun.enable
+        : ref.read(vpnSettingProvider).enable;
+  }
+
+  Future<void> _stop() async {
+    if (_launcher.isLaunching) {
+      await cancelLaunch();
     } else {
       await handleStop();
-      coreController.resetTraffic();
-      ref.read(trafficsProvider.notifier).clear();
-      ref.read(totalTrafficProvider.notifier).value = const Traffic();
-      ref.read(runTimeProvider.notifier).value = null;
-      ref.read(checkIpNumProvider.notifier).add();
     }
+    coreController.resetTraffic();
+    ref.read(trafficsProvider.notifier).clear();
+    ref.read(totalTrafficProvider.notifier).value = const Traffic();
+    ref.read(runTimeProvider.notifier).value = null;
+    ref.read(checkIpNumProvider.notifier).add();
+    ref.read(launchStateProvider.notifier).value = const LaunchState();
+  }
+
+  /// Stop a launch in progress and wait for it to unwind.
+  Future<void> cancelLaunch() async {
+    _launcher.cancel();
+    await _activeLaunch;
+  }
+
+  /// Stop and start again: for a changed VPN configuration or a core that was
+  /// replaced underneath a running tunnel.
+  Future<void> restartVpn() async {
+    await _stop();
+    await _start(isInit: true);
+  }
+
+  /// The core or the tunnel went away under a running VPN. Same launch loop,
+  /// same limit; a launch already in progress absorbs the event itself.
+  Future<void> relaunchAfterCrash(String message) async {
+    if (_launcher.isLaunching || !ref.read(isStartProvider)) return;
+    commonPrint.log('relaunch after crash: $message');
+    resetStarted();
+    await _start(isInit: true);
+  }
+
+  /// Android refused the VPN consent dialog. Not a retryable failure: asking
+  /// again is asking the same question.
+  void handleVpnPermissionDenied() {
+    _launcher.cancel(
+      reason: LaunchFailure.vpnPermission,
+      message: currentAppLocalizations.vpnPermissionDenied,
+    );
+  }
+
+  void _notifyLaunchFailed(LaunchResult result) {
+    final l10n = currentAppLocalizations;
+    final message = result.message?.isNotEmpty == true
+        ? result.message!
+        : switch (result.failure) {
+            LaunchFailure.config => l10n.launchFailedConfig,
+            LaunchFailure.tunnel =>
+              system.isDesktop ? l10n.launchFailedTunnel : l10n.launchFailedVpn,
+            LaunchFailure.vpnPermission => l10n.vpnPermissionDenied,
+            _ => l10n.launchFailedCore,
+          };
+    ref
+        .read(launchStateProvider.notifier)
+        .update((state) => state.copyWith(message: message));
+    globalState.showNotifier(
+      message,
+      actionState: MessageActionState(
+        actionText: l10n.retry,
+        action: () {
+          updateStatus(true);
+        },
+      ),
+    );
   }
 
   void setTunEnabled(bool enable) {
@@ -889,11 +988,19 @@ class SetupAction extends _$SetupAction {
     debouncer.call(FunctionTag.updateConfig, () async {
       await globalState.safeRun(() async {
         final updateParams = ref.read(updateParamsProvider);
-        final res = await _requestAdmin(
+        final admin = await _requestAdmin(
           updateParams.tun.enable,
           forceMacOSHelperInstall: true,
         );
-        if (res.isError) return;
+        if (!admin.ok) return;
+        if (admin.reconnected) {
+          // The elevated core is fresh: a patch is not enough, it needs the
+          // whole profile, and the tunnel again if one was running.
+          await ref
+              .read(coreActionProvider.notifier)
+              .restartCore(reconnect: false);
+          return;
+        }
         final realTunEnable = ref.read(realTunEnableProvider);
         final message = await coreController.updateConfig(
           updateParams.copyWith.tun(enable: realTunEnable),
@@ -905,11 +1012,11 @@ class SetupAction extends _$SetupAction {
   }
 
   Future<void> restartCoreForTun() async {
-    final authorization = await _requestAdmin(true);
-    if (authorization.isError) return;
+    final admin = await _requestAdmin(true);
+    if (!admin.ok) return;
     final restarted = await ref
         .read(coreActionProvider.notifier)
-        .restartCore(true);
+        .restartCore(start: true, reconnect: !admin.reconnected);
     if (restarted) return;
     setTunEnabled(false);
     ref.read(realTunEnableProvider.notifier).value = false;
@@ -970,15 +1077,12 @@ class SetupAction extends _$SetupAction {
     });
   }
 
-  Future<void> applyProfile({
-    bool silence = false,
-    bool force = false,
-    VoidCallback? preloadInvoke,
-  }) async {
-    await _setupConfig(
+  /// Load the current profile into the core. False means the core does not
+  /// have it: elevation was refused, or the core rejected the config.
+  Future<bool> applyProfile({bool silence = false, bool force = false}) async {
+    return _setupConfig(
       force: force,
       silence: silence,
-      preloadInvoke: preloadInvoke,
       onUpdated: () async {
         await ref.read(proxiesActionProvider.notifier).updateGroups();
         await ref.read(providersProvider.notifier).syncProviders();
@@ -1066,27 +1170,30 @@ class SetupAction extends _$SetupAction {
     return '';
   }
 
-  Future<Result<bool>> _requestAdmin(
+  /// Get the privileges TUN needs, once. `reconnected` says the core was
+  /// replaced by an elevated one and has no config yet.
+  Future<({bool ok, bool reconnected})> _requestAdmin(
     bool enableTun, {
     bool forceMacOSHelperInstall = false,
   }) async {
     final realTunEnable = ref.read(realTunEnableProvider);
+    var reconnected = false;
     if (enableTun != realTunEnable && realTunEnable == false) {
       final code = await system.authorizeCore(
         forceMacOSHelperInstall: forceMacOSHelperInstall,
       );
       switch (code) {
         case AuthorizeCode.success:
-          final restarted = await ref
+          reconnected = await ref
               .read(coreActionProvider.notifier)
-              .restartCore();
-          if (!restarted) {
+              .reconnectCore();
+          if (!reconnected) {
             ref.read(realTunEnableProvider.notifier).value = false;
-            final message = currentAppLocalizations.tunHelperUnavailable;
-            globalState.showNotifier(message);
-            return Result.error(message);
+            globalState.showNotifier(
+              currentAppLocalizations.tunHelperUnavailable,
+            );
+            return (ok: false, reconnected: false);
           }
-          return Result.error('');
         case AuthorizeCode.none:
           break;
         case AuthorizeCode.error:
@@ -1095,19 +1202,19 @@ class SetupAction extends _$SetupAction {
           // elevation into a VPN that starts and routes nothing, which looks
           // exactly like a working one.
           ref.read(realTunEnableProvider.notifier).value = false;
-          final message = currentAppLocalizations.tunHelperUnavailable;
-          globalState.showNotifier(message);
-          return Result.error(message);
+          globalState.showNotifier(
+            currentAppLocalizations.tunHelperUnavailable,
+          );
+          return (ok: false, reconnected: false);
       }
     }
     ref.read(realTunEnableProvider.notifier).value = enableTun;
-    return Result.success(enableTun);
+    return (ok: true, reconnected: reconnected);
   }
 
-  Future<void> _setupConfig({
+  Future<bool> _setupConfig({
     bool force = false,
     bool silence = false,
-    VoidCallback? preloadInvoke,
     FutureOr Function()? onUpdated,
   }) async {
     var profile = ref.read(currentProfileProvider);
@@ -1136,8 +1243,17 @@ class SetupAction extends _$SetupAction {
     }
     commonPrint.log('setup ===> ${profile?.id}');
     final patchConfig = ref.read(patchClashConfigProvider);
-    final res = await _requestAdmin(patchConfig.tun.enable);
-    if (res.isError) return;
+    final admin = await _requestAdmin(patchConfig.tun.enable);
+    if (!admin.ok) return false;
+    if (admin.reconnected &&
+        ref.read(isStartProvider) &&
+        !_launcher.isLaunching) {
+      // Elevation replaced the core under a running tunnel. The launcher
+      // brings both the config and the listeners back; this call would only
+      // do the first half.
+      await ref.read(coreActionProvider.notifier).restartCore(reconnect: false);
+      return ref.read(isStartProvider);
+    }
     final realTunEnable = ref.read(realTunEnableProvider);
     final realPatchConfig = patchConfig.copyWith.tun(enable: realTunEnable);
     final setupState = await ref.read(setupStateProvider(profile?.id).future);
@@ -1152,8 +1268,10 @@ class SetupAction extends _$SetupAction {
     );
     final yamlString = vm2.a;
     final yamlMd5 = vm2.b;
-    if (yamlMd5 == globalState.lastConfigMd5 && force == false) return;
-    await globalState.loadingRun(
+    if (yamlMd5 == globalState.lastConfigMd5 && force == false) return true;
+    // loadingRun swallows the throw into a notifier and answers null, which
+    // is how a rejected config used to look exactly like an accepted one.
+    final applied = await globalState.loadingRun<bool>(
       () async {
         final configFilePath = await appPath.configFilePath;
         await File(configFilePath).safeWriteAsString(yamlString);
@@ -1161,18 +1279,86 @@ class SetupAction extends _$SetupAction {
         final message = await coreController.setupConfig(
           setupState: setupState,
           params: _setupParams,
-          preloadInvoke: preloadInvoke,
         );
         if (message.isNotEmpty && !message.endsWith('is empty')) {
           throw message;
         }
         ref.read(checkIpNumProvider.notifier).add();
         await onUpdated?.call();
+        return true;
       },
       silence: true,
       tag: !silence ? LoadingTag.proxies : null,
     );
+    return applied == true;
   }
+}
+
+/// The launcher's view of the app: each step is one dependency of a start,
+/// answered by the core or the platform rather than by a flag.
+class _SetupLaunchSteps implements LaunchSteps {
+  final SetupAction action;
+  final Ref ref;
+
+  const _SetupLaunchSteps(this.action, this.ref);
+
+  @override
+  Future<StepOutcome> ensureCore() async {
+    if (coreController.isCompleted && await coreController.isInit) {
+      return const StepOutcome.ok();
+    }
+    final connected = await ref
+        .read(coreActionProvider.notifier)
+        .reconnectCore();
+    if (connected) return const StepOutcome.ok();
+    return StepOutcome.retry(currentAppLocalizations.launchFailedCore);
+  }
+
+  @override
+  Future<StepOutcome> applyConfig() async {
+    final tunRequested =
+        system.isDesktop && ref.read(patchClashConfigProvider).tun.enable;
+    final applied = await action.applyProfile(force: true, silence: true);
+    if (applied) return const StepOutcome.ok();
+    if (tunRequested && !ref.read(realTunEnableProvider)) {
+      // Elevation was refused or the elevated core never came up. Trying
+      // again means prompting again; the person has already answered.
+      return StepOutcome.abort(
+        LaunchFailure.config,
+        currentAppLocalizations.tunHelperUnavailable,
+      );
+    }
+    return StepOutcome.retry(currentAppLocalizations.launchFailedConfig);
+  }
+
+  @override
+  Future<StepOutcome> startTunnel() async {
+    if (!ref.read(suspendProvider)) {
+      await coreController.startListener();
+    }
+    return const StepOutcome.ok();
+  }
+
+  @override
+  Future<StepOutcome> verifyTunnel() async {
+    if (system.isAndroid) {
+      // start() only launches the service; the consent dialog and the
+      // establish() call happen after it returns. Anything but `start` is
+      // still on its way (or already refused, which arrives as a cancel).
+      final runState = await service?.getRunState() ?? 'stop';
+      if (runState != 'start') return const StepOutcome.retry('');
+    }
+    final status = await coreController.getRunStatus();
+    if (status.tun) return const StepOutcome.ok();
+    return StepOutcome.retry(
+      system.isDesktop
+          ? currentAppLocalizations.launchFailedTunnel
+          : currentAppLocalizations.launchFailedVpn,
+    );
+  }
+
+  @override
+  Future<void> teardown() => action.handleStop();
 }
 
 @Riverpod(keepAlive: true)
@@ -1268,37 +1454,6 @@ class CoreAction extends _$CoreAction {
     ref.read(coreStatusProvider.notifier).value = CoreStatus.connected;
   }
 
-  Future<Result<bool>> requestAdmin(bool enableTun) async {
-    final realTunEnable = ref.read(realTunEnableProvider);
-    if (enableTun != realTunEnable && realTunEnable == false) {
-      final code = await system.authorizeCore();
-      switch (code) {
-        case AuthorizeCode.success:
-          final restarted = await restartCore();
-          if (!restarted) {
-            ref.read(realTunEnableProvider.notifier).value = false;
-            final message = currentAppLocalizations.tunHelperUnavailable;
-            globalState.showNotifier(message);
-            return Result.error(message);
-          }
-          return Result.error('');
-        case AuthorizeCode.none:
-          break;
-        case AuthorizeCode.error:
-          // The setting is what the user asked for and stays as it is; only the
-          // runtime fact changes. Clearing tun.enable here used to turn a failed
-          // elevation into a VPN that starts and routes nothing, which looks
-          // exactly like a working one.
-          ref.read(realTunEnableProvider.notifier).value = false;
-          final message = currentAppLocalizations.tunHelperUnavailable;
-          globalState.showNotifier(message);
-          return Result.error(message);
-      }
-    }
-    ref.read(realTunEnableProvider.notifier).value = enableTun;
-    return Result.success(enableTun);
-  }
-
   Future<bool> reinstallWindowsHelper() async {
     if (!system.isWindows) return false;
     final wasStarted = ref.read(isStartProvider);
@@ -1312,10 +1467,13 @@ class CoreAction extends _$CoreAction {
       ref.read(realTunEnableProvider.notifier).value = false;
       return false;
     }
-    return restartCore(wasStarted);
+    return restartCore(start: wasStarted);
   }
 
-  Future<bool> restartCore([bool start = false]) async {
+  /// Replace the core process and initialise it. Says nothing to the setup
+  /// action: the launcher calls this as its first step, and everything else
+  /// goes through [restartCore].
+  Future<bool> reconnectCore() async {
     final isDisconnected =
         ref.read(coreStatusProvider) == CoreStatus.disconnected;
     ref.read(coreStatusProvider.notifier).value = CoreStatus.disconnected;
@@ -1325,19 +1483,32 @@ class CoreAction extends _$CoreAction {
       return false;
     }
     await initCore();
-    if (start || ref.read(isStartProvider)) {
-      await ref
-          .read(setupActionProvider.notifier)
-          .updateStatus(true, isInit: true);
-    } else {
-      await ref.read(setupActionProvider.notifier).applyProfile(force: true);
-    }
     return true;
   }
 
-  Future<bool> tryStartCore([bool start = false]) async {
-    if (coreController.isCompleted) return false;
-    await restartCore(start);
+  /// Restart the core and put back whatever was on it: the tunnel if the VPN
+  /// was running (or [start] asks for it), else just the profile. Returns
+  /// whether the core came back; a failed relaunch reports itself.
+  Future<bool> restartCore({bool start = false, bool reconnect = true}) async {
+    final setupAction = ref.read(setupActionProvider.notifier);
+    final wasStarted =
+        start || ref.read(isStartProvider) || setupAction.isLaunching;
+    if (setupAction.isLaunching) {
+      await setupAction.cancelLaunch();
+    }
+    if (ref.read(isStartProvider)) {
+      // The listeners go down with the process; shutdown asks the core to
+      // close them. Only the app-side record needs clearing.
+      setupAction.resetStarted();
+    }
+    if (reconnect && !await reconnectCore()) {
+      return false;
+    }
+    if (wasStarted) {
+      await setupAction.updateStatus(true, isInit: true);
+    } else {
+      await setupAction.applyProfile(force: true);
+    }
     return true;
   }
 

@@ -161,6 +161,22 @@ void main() {
     });
   });
 
+  group('RunStatus', () {
+    test('fromJson reads the core answer', () {
+      final status = RunStatus.fromJson({'running': true, 'tun': true});
+      expect(status.running, true);
+      expect(status.tun, true);
+    });
+
+    test('missing fields mean nothing is up', () {
+      // A core too old to answer, or an empty answer, must not read as a
+      // tunnel that is up.
+      final status = RunStatus.fromJson({});
+      expect(status.running, false);
+      expect(status.tun, false);
+    });
+  });
+
   group('CoreEvent', () {
     test('fromJson with type and data', () {
       final event = CoreEvent.fromJson({'type': 'log', 'data': 'test log'});

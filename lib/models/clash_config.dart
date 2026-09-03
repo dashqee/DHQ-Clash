@@ -216,7 +216,10 @@ abstract class SnifferConfig with _$SnifferConfig {
 @freezed
 abstract class Tun with _$Tun {
   const factory Tun({
-    @Default(false) bool enable,
+    // On by default: without it the app is a local proxy that looks exactly
+    // like a working VPN. Existing installs are switched once by migration
+    // v5; after that the toggle is theirs.
+    @Default(true) bool enable,
     @Default(appName) String device,
     @JsonKey(name: 'auto-route') @Default(false) bool autoRoute,
     @Default(TunStack.mixed) TunStack stack,

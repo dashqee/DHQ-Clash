@@ -4,8 +4,10 @@ import android.net.VpnService
 import com.follow.clash.common.GlobalState
 import com.follow.clash.models.SharedState
 import com.follow.clash.plugins.AppPlugin
+import com.follow.clash.plugins.ServicePlugin
 import com.follow.clash.plugins.TilePlugin
 import com.follow.clash.service.models.NotificationParams
+import com.follow.clash.service.models.VpnOptions
 import com.google.gson.Gson
 import io.flutter.embedding.engine.FlutterEngine
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +37,9 @@ object State {
 
     val tilePlugin: TilePlugin?
         get() = flutterEngine?.plugin<TilePlugin>()
+
+    val servicePlugin: ServicePlugin?
+        get() = flutterEngine?.plugin<ServicePlugin>()
 
     suspend fun handleToggleAction() {
         var action: (suspend () -> Unit)?
@@ -83,10 +88,16 @@ object State {
             if (runStateFlow.value != RunState.START) {
                 return
             }
-            tilePlugin?.handleStop()
             if (flutterEngine != null) {
+                // A stop the app asked for has already moved the state off
+                // START; arriving here at START means the service died on its
+                // own (revoked, killed). Say so instead of dressing it up as a
+                // user stop, so the app can bring the tunnel back.
+                runStateFlow.tryEmit(RunState.STOP)
+                servicePlugin?.notifyTunnelDown("VPN service destroyed")
                 return
             }
+            tilePlugin?.handleStop()
             GlobalState.application.showToast(sharedState.stopTip)
             handleStopService()
         }
@@ -156,24 +167,33 @@ object State {
                 if (runStateFlow.value != RunState.STOP) {
                     return@launch
                 }
+                var awaitingConsent = false
                 try {
                     runStateFlow.tryEmit(RunState.PENDING)
                     val options = sharedState.vpnOptions ?: return@launch
-                    appPlugin?.let {
-                        it.prepare(options.enable) {
-                            runTime = Service.startService(options, runTime)
-                            runStateFlow.tryEmit(RunState.START)
+                    val plugin = appPlugin
+                    if (plugin != null) {
+                        // While the consent dialog is up the state stays
+                        // PENDING: the app polls it and must not read
+                        // "stopped" off a dialog nobody has answered yet.
+                        awaitingConsent = plugin.prepare(
+                            needPrepare = options.enable,
+                            onDenied = {
+                                runStateFlow.tryEmit(RunState.STOP)
+                                servicePlugin?.notifyVpnPermissionDenied()
+                            },
+                        ) {
+                            startPreparedService(options)
                         }
-                    } ?: run {
+                    } else {
                         val intent = VpnService.prepare(GlobalState.application)
                         if (intent != null) {
                             return@launch
                         }
-                        runTime = Service.startService(options, runTime)
-                        runStateFlow.tryEmit(RunState.START)
+                        startPreparedService(options)
                     }
                 } finally {
-                    if (runStateFlow.value == RunState.PENDING) {
+                    if (!awaitingConsent && runStateFlow.value == RunState.PENDING) {
                         runStateFlow.tryEmit(RunState.STOP)
                     }
                 }
@@ -181,9 +201,29 @@ object State {
         }
     }
 
+    private suspend fun startPreparedService(options: VpnOptions) {
+        runTime = Service.startService(options, runTime)
+        if (runTime == 0L) {
+            // The remote side answers 0 when VpnService.start() threw: the
+            // system refused establish(), or the service never bound.
+            runStateFlow.tryEmit(RunState.STOP)
+            servicePlugin?.notifyTunnelDown("VPN service failed to start")
+            return
+        }
+        runStateFlow.tryEmit(RunState.START)
+    }
+
     fun handleStopService() {
         GlobalState.launch {
             runLock.withLock {
+                if (runStateFlow.value == RunState.PENDING) {
+                    // Stopped while the consent dialog was still up: forget the
+                    // pending answer so a late "OK" does not start a VPN nobody
+                    // asked for any more.
+                    appPlugin?.cancelVpnPrepare()
+                    runStateFlow.tryEmit(RunState.STOP)
+                    return@launch
+                }
                 if (runStateFlow.value != RunState.START) {
                     return@launch
                 }

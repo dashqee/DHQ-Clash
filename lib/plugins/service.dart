@@ -11,6 +11,12 @@ abstract mixin class ServiceListener {
   void onServiceEvent(CoreEvent event) {}
 
   void onServiceCrash(String message) {}
+
+  /// The VpnService failed to start or was destroyed under a running core.
+  void onServiceTunnelDown(String message) {}
+
+  /// The system VPN consent dialog was dismissed or refused.
+  void onVpnPermissionDenied() {}
 }
 
 class Service {
@@ -43,6 +49,17 @@ class Service {
             listener.onServiceCrash(message);
           }
           break;
+        case 'tunnelDown':
+          final message = call.arguments as String? ?? '';
+          for (final listener in _listeners) {
+            listener.onServiceTunnelDown(message);
+          }
+          break;
+        case 'vpnPermissionDenied':
+          for (final listener in _listeners) {
+            listener.onVpnPermissionDenied();
+          }
+          break;
         default:
           throw MissingPluginException();
       }
@@ -67,6 +84,13 @@ class Service {
 
   Future<bool> stop() async {
     return await methodChannel.invokeMethod<bool>('stop') ?? false;
+  }
+
+  /// The service's own run state: `stop`, `pending` (starting, or waiting on
+  /// the VPN consent dialog) or `start`. `start()` returns before any of this
+  /// happens, so this is how a launch learns whether it worked.
+  Future<String> getRunState() async {
+    return await methodChannel.invokeMethod<String>('getRunState') ?? 'stop';
   }
 
   Future<String> init() async {

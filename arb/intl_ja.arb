@@ -599,5 +599,13 @@
   "turnTunnelJoinTimedOutCustom": "通話に誰もいません。自分の通話を使うには、その通話で creator を実行しておく必要があります。通常の VK 通話のリンクでは不十分です。",
   "turnTunnelJoinTimedOutManaged": "通話が応答しませんでした。再試行します。続く場合はサポートにご連絡ください。",
   "turnTunnelCustomNeedsCreator": "通話中は自分の creator を常時実行しておく必要があります。通常の VK 通話のリンクでは動作しません。",
-  "tunHelperUnavailable": "TUN を有効にできませんでした。権限付きヘルパーが利用できないため、VPN は開始されていません。「設定 → ネットワーク」からサービスを再インストールしてください。"
+  "tunHelperUnavailable": "TUN を有効にできませんでした。権限付きヘルパーが利用できないため、VPN は開始されていません。「設定 → ネットワーク」からサービスを再インストールしてください。",
+  "launchFailedCore": "コアを起動できませんでした。再試行してください。Windows では「設定 → ネットワーク → サービスを再インストール」が役立つ場合があります。",
+  "launchFailedConfig": "プロファイルをコアに読み込めませんでした。プロファイルを確認して再試行してください。",
+  "launchFailedTunnel": "TUN デバイスが起動せず、トラフィックは転送されません。VPN は停止しました。再試行してください。",
+  "launchFailedVpn": "VPN サービスが起動しませんでした。VPN は停止しました。再試行してください。",
+  "vpnPermissionDenied": "VPN の許可が得られませんでした。接続時に求められたら許可してください。",
+  "connectingAttempt": "接続中… {total} 回中 {attempt} 回目",
+  "@connectingAttempt": {"placeholders": {"attempt": {"type": "int"}, "total": {"type": "int"}}},
+  "retry": "再試行"
 }

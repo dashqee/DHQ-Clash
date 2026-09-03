@@ -87,8 +87,12 @@ class _AppStateManagerState extends ConsumerState<AppStateManager>
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final ref = globalState.container;
         ref.read(setupActionProvider.notifier).tryCheckIp();
-        if (system.isAndroid) {
-          ref.read(coreActionProvider.notifier).tryStartCore();
+        if (system.isAndroid &&
+            !coreController.isCompleted &&
+            !ref.read(setupActionProvider.notifier).isLaunching) {
+          // Coming back from the VPN consent dialog is also a resume; the
+          // launch waiting on it must not be restarted from under itself.
+          ref.read(coreActionProvider.notifier).restartCore();
         }
       });
     }

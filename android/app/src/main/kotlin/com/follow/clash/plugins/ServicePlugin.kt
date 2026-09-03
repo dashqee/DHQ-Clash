@@ -61,6 +61,10 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
             handleStop(result)
         }
 
+        "getRunState" -> {
+            result.success(State.runStateFlow.value.name.lowercase())
+        }
+
         else -> {
             result.notImplemented()
         }
@@ -98,6 +102,16 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler,
                 flutterMethodChannel.invokeMethod("event", value)
             }
         }
+    }
+
+    // The VpnService failed to come up, or went away under a running core.
+    fun notifyTunnelDown(message: String) {
+        flutterMethodChannel.invokeMethodOnMainThread<Any>("tunnelDown", message)
+    }
+
+    // The VPN consent dialog was refused or dismissed.
+    fun notifyVpnPermissionDenied() {
+        flutterMethodChannel.invokeMethodOnMainThread<Any>("vpnPermissionDenied", null)
     }
 
     private fun onServiceDisconnected(message: String) {

@@ -599,5 +599,13 @@
   "turnTunnelJoinTimedOutCustom": "Nobody is hosting this call. Your own call needs your creator running in it — a plain VK call link is not enough.",
   "turnTunnelJoinTimedOutManaged": "The call did not answer. Retrying; if this keeps up, tell support.",
   "turnTunnelCustomNeedsCreator": "The call must have your own creator running in it the whole time. A link to an ordinary VK call will not work.",
-  "tunHelperUnavailable": "TUN could not be enabled: the privileged helper is unavailable. The VPN was not started. Try Settings → Network → reinstall the service."
+  "tunHelperUnavailable": "TUN could not be enabled: the privileged helper is unavailable. The VPN was not started. Try Settings → Network → reinstall the service.",
+  "launchFailedCore": "The core could not be started. Try again; on Windows, Settings → Network → reinstall the service may help.",
+  "launchFailedConfig": "The profile could not be loaded into the core. Check the profile and try again.",
+  "launchFailedTunnel": "The TUN device did not come up, so nothing is routed. The VPN was stopped. Try again.",
+  "launchFailedVpn": "The VPN service did not start. The VPN was stopped. Try again.",
+  "vpnPermissionDenied": "VPN permission was not granted. Allow it when asked to connect.",
+  "connectingAttempt": "Connecting… attempt {attempt} of {total}",
+  "@connectingAttempt": {"placeholders": {"attempt": {"type": "int"}, "total": {"type": "int"}}},
+  "retry": "Retry"
 }

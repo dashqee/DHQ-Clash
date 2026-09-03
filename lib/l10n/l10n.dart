@@ -4973,6 +4973,71 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `The core could not be started. Try again; on Windows, Settings → Network → reinstall the service may help.`
+  String get launchFailedCore {
+    return Intl.message(
+      'The core could not be started. Try again; on Windows, Settings → Network → reinstall the service may help.',
+      name: 'launchFailedCore',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The profile could not be loaded into the core. Check the profile and try again.`
+  String get launchFailedConfig {
+    return Intl.message(
+      'The profile could not be loaded into the core. Check the profile and try again.',
+      name: 'launchFailedConfig',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The TUN device did not come up, so nothing is routed. The VPN was stopped. Try again.`
+  String get launchFailedTunnel {
+    return Intl.message(
+      'The TUN device did not come up, so nothing is routed. The VPN was stopped. Try again.',
+      name: 'launchFailedTunnel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The VPN service did not start. The VPN was stopped. Try again.`
+  String get launchFailedVpn {
+    return Intl.message(
+      'The VPN service did not start. The VPN was stopped. Try again.',
+      name: 'launchFailedVpn',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `VPN permission was not granted. Allow it when asked to connect.`
+  String get vpnPermissionDenied {
+    return Intl.message(
+      'VPN permission was not granted. Allow it when asked to connect.',
+      name: 'vpnPermissionDenied',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connecting… attempt {attempt} of {total}`
+  String connectingAttempt(int attempt, int total) {
+    return Intl.message(
+      'Connecting… attempt $attempt of $total',
+      name: 'connectingAttempt',
+      desc: '',
+      args: [attempt, total],
+    );
+  }
+
+  /// `Retry`
+  String get retry {
+    return Intl.message('Retry', name: 'retry', desc: '', args: []);
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {

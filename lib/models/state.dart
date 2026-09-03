@@ -61,6 +61,29 @@ abstract class CommonMessage with _$CommonMessage {
   }) = _CommonMessage;
 }
 
+/// Progress of one VPN launch, published for the start button and the
+/// dashboard. `attempt` counts from 1; `message` is the localized reason once
+/// the stage is `failed`.
+@freezed
+abstract class LaunchState with _$LaunchState {
+  const factory LaunchState({
+    @Default(LaunchStage.idle) LaunchStage stage,
+    @Default(0) int attempt,
+    @Default(1) int maxAttempts,
+    LaunchFailure? failure,
+    String? message,
+  }) = _LaunchState;
+}
+
+extension LaunchStateExt on LaunchState {
+  bool get isLaunching => switch (stage) {
+    LaunchStage.startingCore ||
+    LaunchStage.applyingConfig ||
+    LaunchStage.startingTunnel => true,
+    _ => false,
+  };
+}
+
 @freezed
 abstract class MessageActionState with _$MessageActionState {
   const factory MessageActionState({

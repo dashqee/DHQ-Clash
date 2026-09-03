@@ -239,9 +239,18 @@ class VpnService : SystemVpnService(), IBaseService,
             State.options?.let {
                 handleStart(it)
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            // Swallowing this used to report a VPN that establish() had just
+            // refused as started. The remote service turns it into runTime 0.
             stop()
+            throw e
         }
+    }
+
+    override fun onRevoke() {
+        // Another VPN took the slot, or the system pulled ours. Stopping here
+        // ends in onDestroy, which the app sees as an unexpected stop.
+        stop()
     }
 
     override fun stop() {

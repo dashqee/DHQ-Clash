@@ -599,5 +599,13 @@
   "turnTunnelJoinTimedOutCustom": "通话中没有人。使用自己的通话时，需要在其中运行你的 creator，仅有普通 VK 通话链接是不够的。",
   "turnTunnelJoinTimedOutManaged": "通话没有响应。正在重试；若持续如此请联系客服。",
   "turnTunnelCustomNeedsCreator": "通话期间必须一直运行你自己的 creator。普通 VK 通话链接无法使用。",
-  "tunHelperUnavailable": "无法启用 TUN：特权辅助服务不可用，VPN 未启动。请在「设置 → 网络」中重新安装该服务。"
+  "tunHelperUnavailable": "无法启用 TUN：特权辅助服务不可用，VPN 未启动。请在「设置 → 网络」中重新安装该服务。",
+  "launchFailedCore": "内核无法启动。请重试；在 Windows 上可尝试「设置 → 网络 → 重新安装服务」。",
+  "launchFailedConfig": "无法将配置载入内核。请检查配置后重试。",
+  "launchFailedTunnel": "TUN 设备未能启动，流量不会被接管。VPN 已停止，请重试。",
+  "launchFailedVpn": "VPN 服务未能启动。VPN 已停止，请重试。",
+  "vpnPermissionDenied": "未授予 VPN 权限。连接时请允许该权限。",
+  "connectingAttempt": "正在连接… 第 {attempt} 次，共 {total} 次",
+  "@connectingAttempt": {"placeholders": {"attempt": {"type": "int"}, "total": {"type": "int"}}},
+  "retry": "重试"
 }

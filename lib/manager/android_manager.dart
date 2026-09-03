@@ -62,6 +62,20 @@ class _AndroidContainerState extends ConsumerState<AndroidManager>
   }
 
   @override
+  void onServiceTunnelDown(String message) {
+    coreEventManager.sendEvent(
+      CoreEvent(type: CoreEventType.tunnelDown, data: message),
+    );
+    super.onServiceTunnelDown(message);
+  }
+
+  @override
+  void onVpnPermissionDenied() {
+    ref.read(setupActionProvider.notifier).handleVpnPermissionDenied();
+    super.onVpnPermissionDenied();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return widget.child;
   }

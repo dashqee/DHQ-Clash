@@ -63,8 +63,18 @@ class RemoteService : Service(),
                     intent = nextIntent
                     delegate?.bind()
                 }
-                delegate?.useService { service ->
+                // useService already wraps the call in a Result; a null
+                // delegate means nothing is bound, which is the same failure.
+                val started = delegate?.useService { service ->
                     service.start()
+                }
+                if (started == null || started.isFailure) {
+                    // runTime 0 is the wire's word for "not running"; the app
+                    // reads it back the same way after a sync.
+                    GlobalState.log("Service start failed: ${started?.exceptionOrNull()}")
+                    State.runTime = 0L
+                    result.onResult(0L)
+                    return@withLock
                 }
                 State.runTime = when (runTime != 0L) {
                     true -> runTime

@@ -74,6 +74,12 @@ func handleGetIsInit() bool {
 	return isInit
 }
 
+func handleGetRunStatus() RunStatus {
+	runLock.Lock()
+	defer runLock.Unlock()
+	return RunStatus{Running: isRunning, Tun: tunListenerUp()}
+}
+
 func handleForceGC() {
 	log.Infoln("[APP] request force GC")
 	runtime.GC()

@@ -142,7 +142,7 @@ enum ResultType {
   error,
 }
 
-enum CoreEventType { log, delay, request, loaded, crash, geoUpdate }
+enum CoreEventType { log, delay, request, loaded, crash, geoUpdate, tunnelDown }
 
 enum InvokeMessageType { protect, process }
 
@@ -255,6 +255,7 @@ enum ActionMethod {
   stopLog,
   startListener,
   stopListener,
+  getRunStatus,
   getCountryCode,
   getMemory,
   crash,
@@ -316,14 +317,8 @@ enum DashboardWidget {
   trafficUsage(GridItem(crossAxisCellCount: 8, child: TrafficUsage())),
   networkDetection(GridItem(crossAxisCellCount: 4, child: NetworkDetection())),
   // Pinned above the emergency tunnel on the dashboard, not grid-placeable.
-  tunButton(
-    GridItem(crossAxisCellCount: 4, child: TUNButton()),
-    platforms: [],
-  ),
-  vpnButton(
-    GridItem(crossAxisCellCount: 4, child: VpnButton()),
-    platforms: [],
-  ),
+  tunButton(GridItem(crossAxisCellCount: 4, child: TUNButton()), platforms: []),
+  vpnButton(GridItem(crossAxisCellCount: 4, child: VpnButton()), platforms: []),
   systemProxyButton(
     GridItem(crossAxisCellCount: 4, child: SystemProxyButton()),
     platforms: [],
@@ -550,6 +545,19 @@ enum LoadingTag {
 }
 
 enum CoreStatus { connecting, connected, disconnected }
+
+/// Where a VPN launch is. `running` is the only stage in which `isStart` may
+/// be true: the button used to flip before anything was checked.
+enum LaunchStage {
+  idle,
+  startingCore,
+  applyingConfig,
+  startingTunnel,
+  running,
+  failed,
+}
+
+enum LaunchFailure { core, config, tunnel, vpnPermission, cancelled }
 
 enum RuleScene { added, disabled, custom }
 

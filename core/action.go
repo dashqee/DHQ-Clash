@@ -173,6 +173,9 @@ func handleAction(action *Action, result ActionResult) {
 	case stopListenerMethod:
 		result.success(handleStopListener())
 		return
+	case getRunStatusMethod:
+		result.success(handleGetRunStatus())
+		return
 	case getCountryCodeMethod:
 		ip := action.Data.(string)
 		handleGetCountryCode(ip, func(value string) {

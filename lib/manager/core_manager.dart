@@ -119,7 +119,17 @@ class _CoreContainerState extends ConsumerState<CoreManager>
       context.showNotifier(message);
     }
     await coreController.shutdown(false);
+    // A running VPN does not stay "running" over a dead core: bring it back
+    // through the same bounded launch, or stop and say so.
+    await ref.read(setupActionProvider.notifier).relaunchAfterCrash(message);
     super.onCrash(message);
+  }
+
+  @override
+  Future<void> onTunnelDown(String message) async {
+    // The core is alive, only the tunnel went; no shutdown here.
+    await ref.read(setupActionProvider.notifier).relaunchAfterCrash(message);
+    super.onTunnelDown(message);
   }
 
   @override

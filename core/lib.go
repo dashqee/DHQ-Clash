@@ -138,6 +138,15 @@ func handleStopTun() {
 	}
 }
 
+// tunListenerUp reports whether the Android TUN is actually serving. A failed
+// start leaves tunHandler in place with a nil listener (see TunHandler.start),
+// so the handler alone says nothing.
+func tunListenerUp() bool {
+	tunLock.Lock()
+	defer tunLock.Unlock()
+	return tunHandler != nil && tunHandler.listener != nil
+}
+
 func handleStartTun(callback unsafe.Pointer, fd int, stack, address, dns string) {
 	handleStopTun()
 	tunLock.Lock()

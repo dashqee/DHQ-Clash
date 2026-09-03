@@ -307,6 +307,11 @@ bool isStart(Ref ref) {
 }
 
 @riverpod
+bool isLaunching(Ref ref) {
+  return ref.watch(launchStateProvider.select((state) => state.isLaunching));
+}
+
+@riverpod
 VM2<List<String>, String?> proxiesTabControllerState(Ref ref) {
   return ref.watch(
     proxiesTabStateProvider.select(

@@ -241,7 +241,7 @@ void main() {
   group('VpnProps JSON round-trip', () {
     test('default values', () {
       const props = VpnProps();
-      expect(props.enable, false);
+      expect(props.enable, true);
       expect(props.systemProxy, false);
       expect(props.ipv6, false);
       expect(props.allowBypass, true);
@@ -251,7 +251,7 @@ void main() {
 
     test('fromJson handles null', () {
       final props = VpnProps.fromJson(null);
-      expect(props.enable, false);
+      expect(props.enable, true);
     });
 
     test('round-trip with custom values', () {
@@ -414,7 +414,7 @@ void main() {
       expect(restored.currentProfileId, null);
       expect(restored.overrideDns, false);
       expect(restored.networkProps.systemProxy, false);
-      expect(restored.vpnProps.enable, false);
+      expect(restored.vpnProps.enable, true);
       expect(restored.videoCallTunnelProps.enable, false);
       expect(restored.hotKeyActions, isEmpty);
     });

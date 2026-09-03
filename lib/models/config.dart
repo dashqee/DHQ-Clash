@@ -180,7 +180,8 @@ extension WindowPropsExt on WindowProps {
 @freezed
 abstract class VpnProps with _$VpnProps {
   const factory VpnProps({
-    @Default(false) bool enable,
+    // On by default, like Tun.enable on desktop; see migration v5.
+    @Default(true) bool enable,
     @Default(false) bool systemProxy,
     @Default(false) bool ipv6,
     @Default(true) bool allowBypass,

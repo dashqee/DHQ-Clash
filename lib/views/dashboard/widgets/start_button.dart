@@ -1,5 +1,5 @@
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/enum/enum.dart';
+import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:flutter/material.dart';
@@ -19,38 +19,42 @@ bool needsTunToStart({
   required bool tunEnabled,
 }) => isStarting && isDesktop && !tunEnabled;
 
-class StartButton extends ConsumerStatefulWidget {
-  const StartButton({super.key});
-
-  @override
-  ConsumerState<StartButton> createState() => _StartButtonState();
+/// What the start button says for a launch in progress. The attempt count
+/// only appears once a retry has happened: "attempt 1 of 3" on every start
+/// would announce a problem nobody has yet.
+String launchButtonLabel(
+  LaunchState state, {
+  required String connecting,
+  required String Function(int attempt, int total) connectingAttempt,
+}) {
+  if (state.attempt > 1) {
+    return connectingAttempt(state.attempt, state.maxAttempts);
+  }
+  return connecting;
 }
 
-class _StartButtonState extends ConsumerState<StartButton> {
-  late bool _isStart;
+class StartButton extends ConsumerWidget {
+  const StartButton({super.key});
 
-  @override
-  void initState() {
-    super.initState();
-    _isStart = ref.read(isStartProvider);
-    ref.listenManual(isStartProvider, (_, next) {
-      if (mounted && next != _isStart) {
-        setState(() {
-          _isStart = next;
-        });
-      }
-    }, fireImmediately: true);
-  }
-
-  Future<void> _handleSwitchStart() async {
-    if (!_isStart &&
-        needsTunToStart(
-          isStarting: true,
-          isDesktop: system.isDesktop,
-          tunEnabled: ref.read(
-            patchClashConfigProvider.select((state) => state.tun.enable),
-          ),
-        )) {
+  Future<void> _handleSwitchStart(
+    BuildContext context,
+    WidgetRef ref, {
+    required bool isStart,
+    required bool isLaunching,
+  }) async {
+    final setupAction = ref.read(setupActionProvider.notifier);
+    if (isStart || isLaunching) {
+      // Stopping is always allowed, including a launch still on its way.
+      setupAction.updateStatus(false);
+      return;
+    }
+    if (needsTunToStart(
+      isStarting: true,
+      isDesktop: system.isDesktop,
+      tunEnabled: ref.read(
+        patchClashConfigProvider.select((state) => state.tun.enable),
+      ),
+    )) {
       final appLocalizations = context.appLocalizations;
       final enable = await globalState.showMessage(
         title: appLocalizations.tun,
@@ -59,34 +63,47 @@ class _StartButtonState extends ConsumerState<StartButton> {
       );
       // The dialog is awaited, so the screen may be gone by the time it
       // returns; ref is disposed with it.
-      if (enable != true || !mounted) return;
-      ref.read(setupActionProvider.notifier).setTunEnabled(true);
+      if (enable != true || !context.mounted) return;
+      setupAction.setTunEnabled(true);
     }
-
-    setState(() {
-      _isStart = !_isStart;
-    });
-    debouncer.call(FunctionTag.updateStatus, () {
-      globalState.container
-          .read(setupActionProvider.notifier)
-          .updateStatus(_isStart, isInit: !ref.read(initProvider));
-    }, duration: commonDuration);
+    // No debounce: the launcher ignores a second start while one is running.
+    setupAction.updateStatus(true, isInit: !ref.read(initProvider));
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final suspend = ref.watch(suspendProvider);
+    final isStart = ref.watch(isStartProvider);
+    final launchState = ref.watch(launchStateProvider);
+    final isLaunching = launchState.isLaunching;
     final appLocalizations = context.appLocalizations;
     final label = suspend
         ? appLocalizations.suspended
-        : _isStart
+        : isLaunching
+        ? launchButtonLabel(
+            launchState,
+            connecting: appLocalizations.connecting,
+            connectingAttempt: appLocalizations.connectingAttempt,
+          )
+        : isStart
         ? appLocalizations.stop
         : appLocalizations.start;
     final icon = suspend
         ? Icons.pause_circle_outline
-        : _isStart
+        : isStart
         ? Icons.stop_rounded
         : Icons.power_settings_new_rounded;
+    final Widget iconWidget = isLaunching && !suspend
+        ? const SizedBox(
+            key: ValueKey('start-button-progress'),
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              color: Colors.white,
+            ),
+          )
+        : Icon(icon, key: ValueKey(icon), size: 26);
 
     return ConstrainedBox(
       constraints: const BoxConstraints(minWidth: 156, minHeight: 64),
@@ -103,7 +120,12 @@ class _StartButtonState extends ConsumerState<StartButton> {
           ],
         ),
         child: FilledButton.icon(
-          onPressed: () => _handleSwitchStart(),
+          onPressed: () => _handleSwitchStart(
+            context,
+            ref,
+            isStart: isStart,
+            isLaunching: isLaunching,
+          ),
           style: FilledButton.styleFrom(
             minimumSize: const Size(156, 64),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -112,10 +134,7 @@ class _StartButtonState extends ConsumerState<StartButton> {
             shadowColor: Colors.transparent,
             shape: const StadiumBorder(),
           ),
-          icon: AnimatedSwitcher(
-            duration: commonDuration,
-            child: Icon(icon, key: ValueKey(icon), size: 26),
-          ),
+          icon: AnimatedSwitcher(duration: commonDuration, child: iconWidget),
           label: AnimatedSwitcher(
             duration: commonDuration,
             child: Text(

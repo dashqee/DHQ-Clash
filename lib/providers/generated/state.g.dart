@@ -771,6 +771,46 @@ final class IsStartProvider extends $FunctionalProvider<bool, bool, bool>
 
 String _$isStartHash() => r'f8bcefa8515c44fbe14876a5fc6676110508e9b2';
 
+@ProviderFor(isLaunching)
+final isLaunchingProvider = IsLaunchingProvider._();
+
+final class IsLaunchingProvider extends $FunctionalProvider<bool, bool, bool>
+    with $Provider<bool> {
+  IsLaunchingProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'isLaunchingProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$isLaunchingHash();
+
+  @$internal
+  @override
+  $ProviderElement<bool> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  bool create(Ref ref) {
+    return isLaunching(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$isLaunchingHash() => r'ed380b2587d7a5e25a02033c226e155562b57ad2';
+
 @ProviderFor(proxiesTabControllerState)
 final proxiesTabControllerStateProvider = ProxiesTabControllerStateProvider._();
 

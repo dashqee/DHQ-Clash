@@ -245,6 +245,16 @@ void main() {
       expect(result, false);
     });
 
+    test('getRunStatus delegates', () async {
+      when(
+        () => mock.getRunStatus(),
+      ).thenAnswer((_) async => const RunStatus(running: true, tun: false));
+      final result = await controller.getRunStatus();
+      expect(result.running, true);
+      expect(result.tun, false);
+      verify(() => mock.getRunStatus()).called(1);
+    });
+
     test('updateGeoData delegates', () async {
       when(() => mock.updateGeoData('MMDB')).thenAnswer((_) async => 'ok');
       final result = await controller.updateGeoData('MMDB');
