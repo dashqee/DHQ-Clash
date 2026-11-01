@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fl_clash/common/constant.dart';
 import 'package:fl_clash/common/video_call_tunnel.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
@@ -139,6 +140,55 @@ void main() {
         expect(clashConfigReadCount, 2);
       },
     );
+
+    group('autoUpdateProfiles', () {
+      final fresh = Profile.normal(
+        label: 'fresh',
+        url: 'https://example.com/fresh',
+      ).copyWith(lastUpdateDate: DateTime.now());
+      final stale =
+          Profile.normal(
+            label: 'stale',
+            url: 'https://example.com/stale',
+          ).copyWith(
+            lastUpdateDate: DateTime.now().subtract(defaultUpdateDuration),
+          );
+      final switchedOff = Profile.normal(
+        label: 'off',
+        url: 'https://example.com/off',
+      ).copyWith(autoUpdate: false);
+      final file = Profile.normal(label: 'file');
+
+      Future<List<String>> updatedLabels({required bool onLaunch}) async {
+        final profilesAction = _RecordingProfilesAction();
+        final container = ProviderContainer(
+          overrides: [
+            profilesProvider.overrideWith(
+              () => _TestProfiles([fresh, stale, switchedOff, file]),
+            ),
+            profilesActionProvider.overrideWith(() => profilesAction),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        await container
+            .read(profilesActionProvider.notifier)
+            .autoUpdateProfiles(onLaunch: onLaunch);
+
+        return profilesAction.updated.map((profile) => profile.label).toList();
+      }
+
+      test('updates only subscriptions that are due', () async {
+        expect(await updatedLabels(onLaunch: false), ['stale']);
+      });
+
+      test(
+        'updates every subscription with auto-update on at launch',
+        () async {
+          expect(await updatedLabels(onLaunch: true), ['fresh', 'stale']);
+        },
+      );
+    });
   });
 
   group('SetupAction', () {
@@ -688,6 +738,19 @@ class _TestProfiles extends Profiles {
       next[index] = profile;
     }
     state = next;
+  }
+}
+
+class _RecordingProfilesAction extends ProfilesAction {
+  final List<Profile> updated = [];
+
+  @override
+  Future<void> updateProfile(
+    Profile profile, {
+    bool showLoading = false,
+    ProfileRefresher? refreshProfile,
+  }) async {
+    updated.add(profile);
   }
 }
 

@@ -33,7 +33,7 @@ class Database extends _$Database {
   Database([QueryExecutor? executor]) : super(executor ?? _openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   static LazyDatabase _openConnection() {
     return LazyDatabase(() async {
@@ -52,8 +52,10 @@ class Database extends _$Database {
           await _resetOrders();
           await _migrateRules(m);
         }
-        if (from < 3) {
-          await shortenDefaultUpdateInterval();
+        // v3 pulled the daily default down to an hour; v4 puts every
+        // subscription on a daily update, so that step has nothing left to do.
+        if (from < 4) {
+          await enforceDailyAutoUpdate();
         }
       },
       beforeOpen: (details) async {
@@ -66,26 +68,19 @@ class Database extends _$Database {
     );
   }
 
-  /// Pull profiles still on the old daily default up to the current one.
+  /// Put every subscription on auto-update once a day, once.
   ///
-  /// Only rows that hold exactly the previous default are touched. The interval
-  /// is editable per profile, so anything else is a choice somebody made, and a
-  /// new default is no reason to overwrite it.
-  static const _legacyUpdateDurationMillis = 24 * 60 * 60 * 1000;
-
-  Future<void> shortenDefaultUpdateInterval() async {
-    await (update(profiles)
-          ..where(
-            (row) =>
-                row.autoUpdateDurationMillis.equals(_legacyUpdateDurationMillis),
-          ))
-        .write(
-          ProfilesCompanion(
-            autoUpdateDurationMillis: Value(
-              defaultUpdateDuration.inMilliseconds,
-            ),
-          ),
-        );
+  /// Unlike a new default, this overwrites what is there: auto-update switched
+  /// off or an interval somebody picked included. Profiles imported from a file
+  /// have no URL to update from and are left alone. Both settings stay editable
+  /// per profile, and a later change is kept.
+  Future<void> enforceDailyAutoUpdate() async {
+    await (update(profiles)..where((row) => row.url.equals('').not())).write(
+      ProfilesCompanion(
+        autoUpdate: const Value(true),
+        autoUpdateDurationMillis: Value(defaultUpdateDuration.inMilliseconds),
+      ),
+    );
   }
 
   Future<void> _migrateRules(Migrator m) async {

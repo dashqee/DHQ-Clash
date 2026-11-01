@@ -1840,13 +1840,18 @@ class ProfilesAction extends _$ProfilesAction {
     }
   }
 
-  Future<void> autoUpdateProfiles() async {
+  /// Update every subscription with auto-update on that is due.
+  ///
+  /// At launch ([onLaunch]) every one of them is due: a subscription's nodes
+  /// move and get revoked, and a client should not start on yesterday's list.
+  Future<void> autoUpdateProfiles({bool onLaunch = false}) async {
     for (final profile in ref.read(profilesProvider)) {
       if (!profile.autoUpdate) continue;
       final isNotNeedUpdate = profile.lastUpdateDate
           ?.add(profile.autoUpdateDuration)
           .isBeforeNow;
-      if (isNotNeedUpdate == false || profile.type == ProfileType.file) {
+      if ((!onLaunch && isNotNeedUpdate == false) ||
+          profile.type == ProfileType.file) {
         continue;
       }
       try {
