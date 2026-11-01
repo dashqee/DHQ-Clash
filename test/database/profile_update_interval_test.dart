@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const legacyMillis = 24 * 60 * 60 * 1000;
+  const dailyMillis = 24 * 60 * 60 * 1000;
 
   late Database database;
 
@@ -20,55 +20,68 @@ void main() {
     await database.close();
   });
 
-  Future<void> insertProfile({required int id, required int durationMillis}) {
+  Future<void> insertProfile({
+    required int id,
+    required int durationMillis,
+    bool autoUpdate = true,
+    String? url,
+  }) {
     return database
         .into(database.profiles)
         .insert(
           ProfilesCompanion.insert(
             id: Value(id),
             label: 'profile-$id',
-            url: 'https://example.com/$id.yaml',
+            url: url ?? 'https://example.com/$id.yaml',
             overwriteType: OverwriteType.standard,
             autoUpdateDurationMillis: durationMillis,
-            autoUpdate: true,
+            autoUpdate: autoUpdate,
             selectedMap: const {},
             unfoldSet: const {},
           ),
         );
   }
 
-  Future<int> durationOf(int id) async {
-    final row = await (database.select(
+  Future<RawProfile> rowOf(int id) {
+    return (database.select(
       database.profiles,
     )..where((row) => row.id.equals(id))).getSingle();
-    return row.autoUpdateDurationMillis;
   }
 
-  test('the default update interval is an hour', () {
-    // Profiles are per-client subscriptions; a day meant a revoked or moved node
-    // stayed in the config for up to that long.
-    expect(defaultUpdateDuration, const Duration(minutes: 60));
+  test('the default update interval is a day', () {
+    expect(defaultUpdateDuration, const Duration(hours: 24));
   });
 
-  test('a profile still on the old daily default is pulled up', () async {
-    await insertProfile(id: 1, durationMillis: legacyMillis);
-
-    await database.shortenDefaultUpdateInterval();
-
-    expect(await durationOf(1), defaultUpdateDuration.inMilliseconds);
-  });
-
-  test('an interval somebody chose is left alone', () async {
-    // The field is editable per profile, so anything that is not exactly the
-    // old default is a decision, and a new default is no reason to overwrite it.
-    const chosen = 15 * 60 * 1000;
+  test('every subscription is put on a daily auto-update', () async {
+    const hourly = 60 * 60 * 1000;
     const weekly = 7 * 24 * 60 * 60 * 1000;
-    await insertProfile(id: 1, durationMillis: chosen);
+    await insertProfile(id: 1, durationMillis: hourly);
     await insertProfile(id: 2, durationMillis: weekly);
+    await insertProfile(id: 3, durationMillis: hourly, autoUpdate: false);
 
-    await database.shortenDefaultUpdateInterval();
+    await database.enforceDailyAutoUpdate();
 
-    expect(await durationOf(1), chosen);
-    expect(await durationOf(2), weekly);
+    for (final id in [1, 2, 3]) {
+      final row = await rowOf(id);
+      expect(row.autoUpdate, true, reason: 'profile $id');
+      expect(row.autoUpdateDurationMillis, dailyMillis, reason: 'profile $id');
+    }
+  });
+
+  test('a profile imported from a file is left alone', () async {
+    // It has no URL to update from, so there is nothing to switch on.
+    const hourly = 60 * 60 * 1000;
+    await insertProfile(
+      id: 1,
+      durationMillis: hourly,
+      autoUpdate: false,
+      url: '',
+    );
+
+    await database.enforceDailyAutoUpdate();
+
+    final row = await rowOf(1);
+    expect(row.autoUpdate, false);
+    expect(row.autoUpdateDurationMillis, hourly);
   });
 }
