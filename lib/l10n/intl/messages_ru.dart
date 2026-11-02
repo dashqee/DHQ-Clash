@@ -1156,7 +1156,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "В звонке должен постоянно работать ваш creator. Ссылка на обычный звонок VK не подойдёт.",
     ),
     "turnTunnelDesc": MessageLookupByLibrary.simpleMessage(
-      "Использует видеозвонок VK как локальный SOCKS5-резерв, когда прямые VLESS-серверы недоступны.",
+      "Направляет группу PROXY через видеозвонок VK (локальный SOCKS5-канал) — на случай, когда прямые VLESS-серверы недоступны.",
     ),
     "turnTunnelDisabled": MessageLookupByLibrary.simpleMessage("Выключен"),
     "turnTunnelEnable": MessageLookupByLibrary.simpleMessage(
@@ -1188,6 +1188,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "turnTunnelPinnedModeLocked": MessageLookupByLibrary.simpleMessage(
       "Режим удерживается на «Правилах», пока весь трафик идёт через аварийный туннель.",
+    ),
+    "turnTunnelProxyLocked": MessageLookupByLibrary.simpleMessage(
+      "PROXY закреплена за DHQ TURN, пока включён аварийный туннель. Выключите туннель, чтобы выбрать другой сервер.",
     ),
     "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage(
       "Переподключение",

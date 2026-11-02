@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('video-call tunnel configuration', () {
-    test('selects the fallback route for foreign traffic', () {
+    test('sends foreign traffic to PROXY and leaves PROXY itself alone', () {
       final selectedMap = applyVideoCallTunnelRoutingSelections(const {
         'PROXY': 'MAIN',
         'Telegram': 'Local',
@@ -13,12 +13,60 @@ void main() {
         'Custom proxy': 'Local',
       });
 
+      // PROXY is held, not written: what the user picked has to still be in
+      // the profile when the tunnel is turned off.
       expect(selectedMap, {
-        'PROXY': 'Fallback',
+        'PROXY': 'MAIN',
         'Telegram': 'PROXY',
         'YouTube': 'PROXY',
         'Custom proxy': 'Local',
       });
+    });
+
+    test('holds PROXY on the tunnel without touching other picks', () {
+      const selectedMap = {'PROXY': 'MAIN', 'Telegram': 'Local'};
+
+      expect(holdVideoCallTunnelSelection(selectedMap), {
+        'PROXY': videoCallTunnelProxyName,
+        'Telegram': 'Local',
+      });
+      expect(holdVideoCallTunnelSelection(const {}), {
+        'PROXY': videoCallTunnelProxyName,
+      });
+      // The profile's own map is what comes back when the hold is lifted.
+      expect(selectedMap['PROXY'], 'MAIN');
+    });
+
+    test('knows the loaded config has TURN only when PROXY lists it', () {
+      Group proxyGroup(List<String> names) => Group(
+        name: videoCallTunnelGroupName,
+        type: GroupType.Selector,
+        all: [for (final name in names) Proxy(name: name, type: 'socks5')],
+      );
+
+      expect(
+        videoCallTunnelHoldsGroup([
+          proxyGroup([videoCallTunnelProxyName, 'MAIN']),
+        ]),
+        isTrue,
+      );
+      expect(
+        videoCallTunnelHoldsGroup([
+          proxyGroup(['MAIN']),
+        ]),
+        isFalse,
+      );
+      expect(videoCallTunnelHoldsGroup(const []), isFalse);
+      expect(
+        videoCallTunnelHoldsGroup([
+          const Group(
+            name: 'Manual',
+            type: GroupType.Selector,
+            all: [Proxy(name: videoCallTunnelProxyName, type: 'socks5')],
+          ),
+        ]),
+        isFalse,
+      );
     });
 
     test('accepts VK join links only', () {
@@ -174,12 +222,18 @@ void main() {
       );
     });
 
-    test('adds TURN proxy only to the primary Fallback group', () {
+    test('adds TURN first in PROXY and in no other group', () {
       final source = <String, dynamic>{
         'proxies': [
           {'name': 'Direct VLESS', 'type': 'vless'},
         ],
         'proxy-groups': [
+          {
+            'name': 'PROXY',
+            'type': 'select',
+            'proxies': ['Fallback', 'Direct VLESS'],
+            'use': ['MAIN', 'BACKUP'],
+          },
           {
             'name': 'Fallback',
             'type': 'fallback',
@@ -187,17 +241,12 @@ void main() {
             'use': ['MAIN', 'BACKUP'],
           },
           {
-            'name': 'EXTRA',
-            'type': 'fallback',
-            'proxies': ['Extra VLESS'],
-          },
-          {
             'name': 'Manual',
             'type': 'select',
-            'proxies': ['Direct VLESS'],
+            'use': ['MAIN'],
           },
         ],
-        'rules': ['MATCH,Fallback'],
+        'rules': ['MATCH,PROXY'],
       };
 
       final result = addVideoCallTunnelToConfig(
@@ -207,36 +256,32 @@ void main() {
         password: 'secret',
       );
 
-      expect(
-        (result['proxies'] as List).where(
-          (proxy) =>
-              proxy is Map &&
-              proxy['name']?.toString() == videoCallTunnelProxyName,
-        ),
-        isEmpty,
-      );
-      final turnProvider =
-          (result['proxy-providers'] as Map)[videoCallTunnelProviderName]
+      // A group member is resolved against `proxies:`, so PROXY could not
+      // take it from anywhere else.
+      final turnProxy =
+          (result['proxies'] as List).singleWhere(
+                (proxy) => (proxy as Map)['name'] == videoCallTunnelProxyName,
+              )
               as Map;
-      expect(turnProvider['type'], 'inline');
-      expect(
-        ((turnProvider['payload'] as List).single as Map)['name'],
+      expect(turnProxy['type'], 'socks5');
+      expect(turnProxy['port'], 11789);
+      expect(result.containsKey('proxy-providers'), isFalse);
+      final groups = (result['proxy-groups'] as List).cast<Map>();
+      expect(groups[0]['proxies'], [
         videoCallTunnelProxyName,
-      );
-      final groups = result['proxy-groups'] as List;
-      expect((groups.first as Map)['proxies'], ['Direct VLESS']);
-      expect((groups.first as Map)['use'], [
-        'MAIN',
-        'BACKUP',
-        videoCallTunnelProviderName,
+        'Fallback',
+        'Direct VLESS',
       ]);
-      expect((groups[1] as Map)['proxies'], ['Extra VLESS']);
-      expect((groups.last as Map)['proxies'], ['Direct VLESS']);
+      expect(groups[0]['use'], ['MAIN', 'BACKUP']);
+      expect(groups[1]['proxies'], ['Direct VLESS']);
+      expect(groups[1]['use'], ['MAIN', 'BACKUP']);
+      expect(groups[2].containsKey('proxies'), isFalse);
       expect(
         (result['rules'] as List).first,
         'PROCESS-NAME,DHQClashTurn,DIRECT',
       );
       expect(((source['proxy-groups'] as List).first as Map)['proxies'], [
+        'Fallback',
         'Direct VLESS',
       ]);
     });
@@ -249,15 +294,19 @@ void main() {
           ],
           'proxy-groups': [
             {
-              'name': 'Fallback',
-              'type': 'fallback',
+              'name': 'PROXY',
+              'type': 'select',
               'proxies': [
-                videoCallTunnelProxyName,
                 'MAIN',
                 videoCallTunnelProxyName,
                 'BACKUP',
+                videoCallTunnelProxyName,
               ],
-              'use': [videoCallTunnelProviderName, 'EXTRA'],
+            },
+            {
+              'name': 'Fallback',
+              'type': 'fallback',
+              'proxies': [videoCallTunnelProxyName, 'MAIN'],
             },
           ],
         },
@@ -266,36 +315,26 @@ void main() {
         password: 'secret',
       );
 
-      final proxies = result['proxies'] as List;
-      expect(
-        proxies.where(
-          (proxy) => (proxy as Map)['name'] == videoCallTunnelProxyName,
-        ),
-        isEmpty,
-      );
-      final turnProvider =
-          (result['proxy-providers'] as Map)[videoCallTunnelProviderName]
-              as Map;
-      final turnProxy = (turnProvider['payload'] as List).single as Map;
+      final turnProxy = (result['proxies'] as List).single as Map;
+      expect(turnProxy['name'], videoCallTunnelProxyName);
       expect(turnProxy['port'], 11790);
-      expect(((result['proxy-groups'] as List).single as Map)['proxies'], [
+      final groups = (result['proxy-groups'] as List).cast<Map>();
+      expect(groups[0]['proxies'], [
+        videoCallTunnelProxyName,
         'MAIN',
         'BACKUP',
       ]);
-      final fallbackGroup = (result['proxy-groups'] as List).single as Map;
-      expect(fallbackGroup['use'], ['EXTRA', videoCallTunnelProviderName]);
-      expect(fallbackGroup['url'], videoCallTunnelHealthCheckUrl);
-      expect(fallbackGroup['interval'], videoCallTunnelHealthCheckInterval);
+      expect(groups[1]['proxies'], ['MAIN']);
     });
 
-    test('appends TURN after providers in an overridden Fallback model', () {
+    test('adds TURN to an overridden PROXY model with providers only', () {
       final result = addVideoCallTunnelToConfig(
         {
           'proxy-groups': [
             const ProxyGroup(
               id: 1,
-              name: 'Fallback',
-              type: GroupType.Fallback,
+              name: 'PROXY',
+              type: GroupType.Selector,
               use: ['MAIN', 'BACKUP'],
             ),
           ],
@@ -305,18 +344,37 @@ void main() {
         password: 'secret',
       );
 
-      final fallbackGroup = (result['proxy-groups'] as List).single as Map;
-      expect(fallbackGroup['use'], [
+      final group = (result['proxy-groups'] as List).single as Map;
+      expect(group['proxies'], [videoCallTunnelProxyName]);
+      expect(group['use'], ['MAIN', 'BACKUP']);
+    });
+
+    test('leaves a PROXY group that cannot be held alone', () {
+      // Only a selector can be told what to use; in an automatic group TURN
+      // would just be one more candidate.
+      final result = addVideoCallTunnelToConfig(
+        {
+          'proxy-groups': [
+            {
+              'name': 'PROXY',
+              'type': 'url-test',
+              'proxies': ['MAIN'],
+            },
+          ],
+        },
+        port: 11789,
+        username: 'user',
+        password: 'secret',
+      );
+
+      expect(((result['proxy-groups'] as List).single as Map)['proxies'], [
         'MAIN',
-        'BACKUP',
-        videoCallTunnelProviderName,
       ]);
     });
 
-    test('leaves routing to the rules while it is only a fallback', () {
-      // The pin must not leak into ordinary use: unpinned, the tunnel is
-      // reachable only through the provider the Fallback group uses, and the
-      // profile's own rules still decide everything.
+    test('leaves routing to the rules until it is pinned', () {
+      // The pin must not leak into ordinary use: unpinned, the tunnel carries
+      // what the rules send to PROXY and nothing else.
       final result = addVideoCallTunnelToConfig(
         {
           'rules': ['RULE-SET,ads,REJECT', 'MATCH,Local'],
@@ -327,15 +385,9 @@ void main() {
       );
 
       expect(
-        (result['proxies'] as List).where(
-          (proxy) => (proxy as Map)['name'] == videoCallTunnelProxyName,
-        ),
-        isEmpty,
+        (result['rules'] as List).skip(videoCallTunnelBypassRules.length),
+        ['RULE-SET,ads,REJECT', 'MATCH,Local'],
       );
-      expect((result['rules'] as List).skip(videoCallTunnelBypassRules.length), [
-        'RULE-SET,ads,REJECT',
-        'MATCH,Local',
-      ]);
     });
 
     test('pinned, every route ends at the tunnel', () {
@@ -417,15 +469,9 @@ void main() {
       );
 
       expect(pinned['rules'], isNot(unpinned['rules']));
-      expect((unpinned['rules'] as List).skip(videoCallTunnelBypassRules.length), [
-        'RULE-SET,ads,REJECT',
-        'MATCH,Local',
-      ]);
       expect(
-        (unpinned['proxies'] as List).where(
-          (proxy) => (proxy as Map)['name'] == videoCallTunnelProxyName,
-        ),
-        isEmpty,
+        (unpinned['rules'] as List).skip(videoCallTunnelBypassRules.length),
+        ['RULE-SET,ads,REJECT', 'MATCH,Local'],
       );
     });
 
@@ -448,7 +494,10 @@ void main() {
         expect(rules, contains('DOMAIN-SUFFIX,vk.com,DIRECT'));
         final catchAll = rules.indexOf('MATCH,$videoCallTunnelProxyName');
         if (catchAll >= 0) {
-          expect(rules.indexOf('DOMAIN-SUFFIX,vk.ru,DIRECT'), lessThan(catchAll));
+          expect(
+            rules.indexOf('DOMAIN-SUFFIX,vk.ru,DIRECT'),
+            lessThan(catchAll),
+          );
         }
       }
     });
@@ -489,9 +538,10 @@ void main() {
     test('the pin is given a bounded life, not an unbounded one', () {
       // Pinned to a channel that never comes back, the machine has no internet
       // and nothing on screen to explain it.
-      expect(videoCallTunnelPinGrace.inSeconds, greaterThan(
-        videoCallTunnelReconnectGrace.inSeconds,
-      ));
+      expect(
+        videoCallTunnelPinGrace.inSeconds,
+        greaterThan(videoCallTunnelReconnectGrace.inSeconds),
+      );
       expect(videoCallTunnelPinGrace.inMinutes, lessThanOrEqualTo(10));
     });
 
@@ -503,7 +553,8 @@ void main() {
       expect(
         videoCallTunnelJoinDeadline.inSeconds,
         lessThan(videoCallTunnelPinGrace.inSeconds),
-        reason: 'the join must fail before the routing pin is released, or the '
+        reason:
+            'the join must fail before the routing pin is released, or the '
             'user sees the outage before the reason for it',
       );
     });

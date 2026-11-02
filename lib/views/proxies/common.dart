@@ -51,9 +51,7 @@ void updateCurrentUnfoldSet(Set<String> value) {
 Future<void> proxyDelayTest(Proxy proxy, [String? testUrl]) async {
   final ref = globalState.container;
   final groups = getGroups();
-  final selectedMap = ref.read(
-    currentProfileProvider.select((state) => state?.selectedMap ?? {}),
-  );
+  final selectedMap = ref.read(selectedMapProvider);
   final state = computeRealSelectedProxyState(
     proxy.name,
     groups: groups,

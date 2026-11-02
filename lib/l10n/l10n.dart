@@ -4764,10 +4764,10 @@ class AppLocalizations {
     );
   }
 
-  /// `Uses a VK video call as a local SOCKS5 fallback when direct VLESS servers are unavailable.`
+  /// `Routes the PROXY group through a VK video call (a local SOCKS5 channel) for when direct VLESS servers are unavailable.`
   String get turnTunnelDesc {
     return Intl.message(
-      'Uses a VK video call as a local SOCKS5 fallback when direct VLESS servers are unavailable.',
+      'Routes the PROXY group through a VK video call (a local SOCKS5 channel) for when direct VLESS servers are unavailable.',
       name: 'turnTunnelDesc',
       desc: '',
       args: [],
@@ -4934,6 +4934,16 @@ class AppLocalizations {
     return Intl.message(
       'Routing mode is held on Rules while all traffic goes through the emergency tunnel.',
       name: 'turnTunnelPinnedModeLocked',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `PROXY stays on DHQ TURN while the emergency tunnel is enabled. Turn the tunnel off to pick another server.`
+  String get turnTunnelProxyLocked {
+    return Intl.message(
+      'PROXY stays on DHQ TURN while the emergency tunnel is enabled. Turn the tunnel off to pick another server.',
+      name: 'turnTunnelProxyLocked',
       desc: '',
       args: [],
     );

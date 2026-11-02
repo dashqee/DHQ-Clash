@@ -898,7 +898,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "通話中は自分の creator を常時実行しておく必要があります。通常の VK 通話のリンクでは動作しません。",
     ),
     "turnTunnelDesc": MessageLookupByLibrary.simpleMessage(
-      "直接のVLESSサーバーが利用できない場合、VKビデオ通話をローカルSOCKS5フォールバックとして使用します。",
+      "直接のVLESSサーバーが利用できない場合に、PROXYグループをVKビデオ通話（ローカルSOCKS5チャネル）経由にします。",
     ),
     "turnTunnelDisabled": MessageLookupByLibrary.simpleMessage("無効"),
     "turnTunnelEnable": MessageLookupByLibrary.simpleMessage("緊急トンネルを有効化"),
@@ -926,6 +926,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "turnTunnelPinnedModeLocked": MessageLookupByLibrary.simpleMessage(
       "すべての通信が緊急トンネルを通る間、モードは「ルール」に固定されます。",
+    ),
+    "turnTunnelProxyLocked": MessageLookupByLibrary.simpleMessage(
+      "緊急トンネルが有効な間、PROXYはDHQ TURNに固定されます。別のサーバーを選ぶにはトンネルをオフにしてください。",
     ),
     "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage("再接続中"),
     "turnTunnelRetry": MessageLookupByLibrary.simpleMessage("再試行"),
