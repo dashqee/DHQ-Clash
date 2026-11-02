@@ -308,8 +308,9 @@ void main() {
         final updatedProfile = container.read(currentProfileProvider)!;
         expect(refreshCount, 1);
         expect(updatedProfile.label, 'Refreshed profile');
+        // PROXY keeps the user's pick: it is held, not written.
         expect(updatedProfile.selectedMap, {
-          'PROXY': 'Fallback',
+          'PROXY': 'MAIN',
           'Telegram': 'PROXY',
           'YouTube': 'PROXY',
           'Custom proxy': 'Local',
@@ -385,6 +386,137 @@ void main() {
         container.read(videoCallTunnelSettingProvider).restoreMode,
         Mode.global,
       );
+    });
+
+    group('PROXY held on the tunnel', () {
+      final profile = Profile.normal(
+        url: 'https://sub.example.com/configs/c_device.yaml',
+      ).copyWith(selectedMap: const {'PROXY': 'MAIN', 'Telegram': 'Local'});
+
+      Group proxyGroup({required bool withTunnel}) => Group(
+        name: videoCallTunnelGroupName,
+        type: GroupType.Selector,
+        all: [
+          if (withTunnel)
+            const Proxy(name: videoCallTunnelProxyName, type: 'Socks5'),
+          const Proxy(name: 'MAIN', type: 'Vless'),
+          const Proxy(name: 'BACKUP', type: 'Vless'),
+        ],
+      );
+
+      ProviderContainer containerWith({
+        required bool enable,
+        required bool withTunnel,
+      }) {
+        final container = ProviderContainer(
+          overrides: [
+            currentProfileIdProvider.overrideWithBuild((_, _) => profile.id),
+            profilesProvider.overrideWith(() => _TestProfiles([profile])),
+            videoCallTunnelSettingProvider.overrideWithBuild(
+              (_, _) => VideoCallTunnelProps(enable: enable),
+            ),
+            groupsProvider.overrideWithBuild(
+              (_, _) => [proxyGroup(withTunnel: withTunnel)],
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+        return container;
+      }
+
+      test('shows the tunnel selected and leaves the profile alone', () {
+        final container = containerWith(enable: true, withTunnel: true);
+
+        expect(container.read(selectedMapProvider), {
+          'PROXY': videoCallTunnelProxyName,
+          'Telegram': 'Local',
+        });
+        expect(
+          container.read(selectedProxyNameProvider(videoCallTunnelGroupName)),
+          videoCallTunnelProxyName,
+        );
+        expect(container.read(currentProfileProvider)!.selectedMap, {
+          'PROXY': 'MAIN',
+          'Telegram': 'Local',
+        });
+      });
+
+      test('does not hold PROXY on a tunnel the config does not have', () {
+        // Enabled but no join link yet — not entitled, still checking: there
+        // is nothing in PROXY to hold it on, so the user's pick stands.
+        final container = containerWith(enable: true, withTunnel: false);
+
+        expect(container.read(selectedMapProvider)['PROXY'], 'MAIN');
+        container
+            .read(profilesActionProvider.notifier)
+            .updateCurrentSelectedMap(videoCallTunnelGroupName, 'BACKUP');
+        expect(container.read(selectedMapProvider)['PROXY'], 'BACKUP');
+      });
+
+      test('refuses another pick in PROXY while held', () async {
+        final container = containerWith(enable: true, withTunnel: true);
+
+        container
+            .read(profilesActionProvider.notifier)
+            .updateCurrentSelectedMap(videoCallTunnelGroupName, 'BACKUP');
+        // Re-picking the tunnel must not land in the profile either, or it
+        // would be what comes back when the tunnel is turned off.
+        container
+            .read(profilesActionProvider.notifier)
+            .updateCurrentSelectedMap(
+              videoCallTunnelGroupName,
+              videoCallTunnelProxyName,
+            );
+        await container
+            .read(proxiesActionProvider.notifier)
+            .changeProxy(
+              groupName: videoCallTunnelGroupName,
+              proxyName: 'BACKUP',
+            );
+
+        expect(
+          container.read(currentProfileProvider)!.selectedMap['PROXY'],
+          'MAIN',
+        );
+        expect(
+          container.read(selectedMapProvider)['PROXY'],
+          videoCallTunnelProxyName,
+        );
+      });
+
+      test('other groups can still be switched while PROXY is held', () {
+        final container = containerWith(enable: true, withTunnel: true);
+
+        container
+            .read(profilesActionProvider.notifier)
+            .updateCurrentSelectedMap('Telegram', 'PROXY');
+
+        expect(
+          container.read(currentProfileProvider)!.selectedMap['Telegram'],
+          'PROXY',
+        );
+      });
+
+      test('turning the tunnel off brings the previous pick back', () async {
+        final container = containerWith(enable: true, withTunnel: true);
+        expect(
+          container.read(selectedMapProvider)['PROXY'],
+          videoCallTunnelProxyName,
+        );
+
+        await container
+            .read(setupActionProvider.notifier)
+            .setVideoCallTunnelEnabled(false);
+
+        expect(container.read(selectedMapProvider)['PROXY'], 'MAIN');
+        container
+            .read(profilesActionProvider.notifier)
+            .updateCurrentSelectedMap(videoCallTunnelGroupName, 'BACKUP');
+        expect(
+          container.read(currentProfileProvider)!.selectedMap['PROXY'],
+          'BACKUP',
+        );
+      });
     });
 
     test('turning the tunnel off gives the mode back', () async {
