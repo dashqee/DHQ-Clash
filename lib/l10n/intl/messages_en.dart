@@ -1097,7 +1097,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "The call must have your own creator running in it the whole time. A link to an ordinary VK call will not work.",
     ),
     "turnTunnelDesc": MessageLookupByLibrary.simpleMessage(
-      "Uses a VK video call as a local SOCKS5 fallback when direct VLESS servers are unavailable.",
+      "Routes the PROXY group through a VK video call (a local SOCKS5 channel) for when direct VLESS servers are unavailable.",
     ),
     "turnTunnelDisabled": MessageLookupByLibrary.simpleMessage("Disabled"),
     "turnTunnelEnable": MessageLookupByLibrary.simpleMessage(
@@ -1127,6 +1127,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "turnTunnelPinnedModeLocked": MessageLookupByLibrary.simpleMessage(
       "Routing mode is held on Rules while all traffic goes through the emergency tunnel.",
+    ),
+    "turnTunnelProxyLocked": MessageLookupByLibrary.simpleMessage(
+      "PROXY stays on DHQ TURN while the emergency tunnel is enabled. Turn the tunnel off to pick another server.",
     ),
     "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage(
       "Reconnecting",

@@ -50,6 +50,15 @@ bool shouldRestartCoreForTun({
 
 typedef ProfileRefresher = Future<Profile> Function(Profile profile);
 
+/// Whether PROXY is being held on the emergency tunnel. Only once the running
+/// config has the tunnel in it: before that there is nothing to hold it on, and
+/// the user's own pick is what the core is using.
+bool isGroupHeldByVideoCallTunnel(Ref ref, String groupName) {
+  if (groupName != videoCallTunnelGroupName) return false;
+  if (!ref.read(videoCallTunnelSettingProvider).enable) return false;
+  return videoCallTunnelHoldsGroup(ref.read(groupsProvider));
+}
+
 /// Guard shared by every place that writes the outbound mode. Refusing is not
 /// enough on its own — a tap that appears to do nothing reads as a bug — so it
 /// also says why.
@@ -298,6 +307,14 @@ class SetupAction extends _$SetupAction {
   );
 
   bool get isStart => startTime != null && startTime!.isBeforeNow;
+
+  /// Whether the config handed to the core carries the tunnel. Both it and the
+  /// held PROXY selection follow this, so the core is never told to select a
+  /// proxy the config does not have.
+  bool get _videoCallTunnelInConfig {
+    final props = ref.read(videoCallTunnelSettingProvider);
+    return props.enable && (_turnJoinLink ?? '').isNotEmpty;
+  }
 
   bool get isLaunching => _launcher.isLaunching;
 
@@ -761,12 +778,22 @@ class SetupAction extends _$SetupAction {
     unawaited(refreshVideoCallTunnel(startTunnel: isStart));
   }
 
+  /// Sent with every config, so the hold is re-applied each time: a switch
+  /// that got past the guard — from the core's own API, say — lasts only until
+  /// the next apply.
   SetupParams get _setupParams {
-    final selectedMap = ref.read(selectedMapProvider);
+    // The profile's own map, not selectedMapProvider: that one holds PROXY by
+    // what the *previous* config had loaded, and this is for the next one.
+    final selectedMap = ref.read(currentProfileProvider)?.selectedMap ?? {};
     final testUrl = ref.read(
       appSettingProvider.select((state) => state.testUrl),
     );
-    return SetupParams(selectedMap: selectedMap, testUrl: testUrl);
+    return SetupParams(
+      selectedMap: _videoCallTunnelInConfig
+          ? holdVideoCallTunnelSelection(selectedMap)
+          : selectedMap,
+      testUrl: testUrl,
+    );
   }
 
   void fullSetup() {
@@ -1162,12 +1189,9 @@ class SetupAction extends _$SetupAction {
         appendSystemDns: appendSystemDns,
         addedRules: addedRules,
         defaultUA: defaultUA,
-        videoCallTunnelEnabled:
-            videoCallTunnel.enable && turnJoinLink.isNotEmpty,
+        videoCallTunnelEnabled: _videoCallTunnelInConfig,
         videoCallTunnelPinned:
-            videoCallTunnel.enable &&
-            videoCallTunnel.pinned &&
-            turnJoinLink.isNotEmpty,
+            _videoCallTunnelInConfig && videoCallTunnel.pinned,
         videoCallTunnelPort: videoCallTunnelSocksPort,
         videoCallTunnelUsername: videoCallCredentials.username,
         videoCallTunnelPassword: videoCallCredentials.password,
@@ -1731,9 +1755,7 @@ class ProxiesAction extends _$ProxiesAction {
           final testUrl = ref.read(
             appSettingProvider.select((state) => state.testUrl),
           );
-          final selectedMap = ref.read(
-            currentProfileProvider.select((state) => state?.selectedMap ?? {}),
-          );
+          final selectedMap = ref.read(selectedMapProvider);
           return coreController.getProxiesGroups(
             selectedMap: selectedMap,
             sortType: sortType,
@@ -1773,6 +1795,9 @@ class ProxiesAction extends _$ProxiesAction {
     required String groupName,
     required String proxyName,
   }) async {
+    // Refused out loud in updateCurrentSelectedMap, which every picker calls
+    // first; here it only has to not reach the core.
+    if (isGroupHeldByVideoCallTunnel(ref, groupName)) return;
     await coreController.changeProxy(
       ChangeProxyParams(groupName: groupName, proxyName: proxyName),
     );
@@ -1813,6 +1838,18 @@ class ProfilesAction extends _$ProfilesAction {
   void build() {}
 
   void updateCurrentSelectedMap(String groupName, String proxyName) {
+    if (isGroupHeldByVideoCallTunnel(ref, groupName)) {
+      // Not written even when it is the tunnel itself being picked: the
+      // profile's entry is what comes back when the tunnel is turned off.
+      if (proxyName == videoCallTunnelProxyName) return;
+      final context = globalState.navigatorKey.currentContext;
+      if (context != null) {
+        globalState.showNotifier(
+          context.appLocalizations.turnTunnelProxyLocked,
+        );
+      }
+      return;
+    }
     final currentProfile = ref.read(currentProfileProvider);
     if (currentProfile != null &&
         currentProfile.selectedMap[groupName] != proxyName) {

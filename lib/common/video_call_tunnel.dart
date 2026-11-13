@@ -13,12 +13,12 @@ import 'print.dart';
 import 'system.dart';
 
 const videoCallTunnelProxyName = 'DHQ TURN';
-const videoCallTunnelProviderName = 'DHQ TURN provider';
+// The profile's main selector. While the tunnel is enabled it is listed first
+// there and held selected, so everything routed to PROXY goes through it.
+const videoCallTunnelGroupName = 'PROXY';
 const videoCallTunnelDisplayName = 'DHQ Clash';
 const videoCallTunnelSocksPort = 11789;
 const videoCallTunnelMode = 'dc';
-const videoCallTunnelHealthCheckUrl = 'https://cp.cloudflare.com/generate_204';
-const videoCallTunnelHealthCheckInterval = 30;
 const videoCallTunnelRestartDebounce = Duration(seconds: 2);
 const videoCallTunnelAssignmentHeartbeat = Duration(seconds: 60);
 // Entitlement is bought in the mini app, not here, so a 403 is not final: re-ask on a
@@ -97,8 +97,9 @@ const videoCallTunnelPinRules = <String>[
   'MATCH,$videoCallTunnelProxyName',
 ];
 
+// PROXY itself is not here: its selection is held, not written, so the user's
+// own choice is still in the profile when the tunnel is turned off.
 const videoCallTunnelRoutingSelections = <String, String>{
-  'PROXY': 'Fallback',
   'Telegram': 'PROXY',
   'YouTube': 'PROXY',
 };
@@ -180,6 +181,27 @@ Map<String, String> applyVideoCallTunnelRoutingSelections(
   Map<String, String> selectedMap,
 ) {
   return {...selectedMap, ...videoCallTunnelRoutingSelections};
+}
+
+/// The selection with PROXY held on the tunnel.
+///
+/// Laid over the profile's map on the way to the core and the UI rather than
+/// written into it: the profile keeps what the user picked, so turning the
+/// tunnel off brings that back without anything having to remember it. A pick
+/// that no longer exists by then is the core's to resolve, and it falls back to
+/// the group's first proxy.
+Map<String, String> holdVideoCallTunnelSelection(
+  Map<String, String> selectedMap,
+) {
+  return {...selectedMap, videoCallTunnelGroupName: videoCallTunnelProxyName};
+}
+
+/// Whether the loaded groups have the tunnel in PROXY — that is, whether the
+/// config the core is running is one the tunnel was added to.
+bool videoCallTunnelHoldsGroup(List<Group> groups) {
+  final group = groups.getGroup(videoCallTunnelGroupName);
+  if (group == null) return false;
+  return group.all.any((proxy) => proxy.name == videoCallTunnelProxyName);
 }
 
 @immutable
@@ -316,23 +338,11 @@ Map<String, dynamic> addVideoCallTunnelToConfig(
     'password': password,
     'udp': true,
   };
-  // Unpinned, the tunnel reaches the core only through the inline provider the
-  // Fallback group uses. A rule target, though, is looked up in the proxy map
-  // built from `proxies:` and the group names — a provider-only proxy is not in
-  // it — so pinning has to put the proxy there as well for MATCH to resolve.
-  if (pinned) {
-    proxies.add(proxy);
-  }
+  // A group member, like a rule target, is looked up in the proxy map built
+  // from `proxies:` and the group names, so the proxy has to be listed there
+  // for PROXY to take it and for the pinned MATCH to resolve.
+  proxies.add(proxy);
   config['proxies'] = proxies;
-
-  final proxyProviders = Map<String, dynamic>.from(
-    config['proxy-providers'] as Map? ?? const {},
-  );
-  proxyProviders[videoCallTunnelProviderName] = {
-    'type': 'inline',
-    'payload': [proxy],
-  };
-  config['proxy-providers'] = proxyProviders;
 
   final groups = List<dynamic>.from(config['proxy-groups'] as List? ?? const [])
       .map((group) {
@@ -342,24 +352,20 @@ Map<String, dynamic> addVideoCallTunnelToConfig(
       })
       .toList();
   for (final group in groups) {
-    if (group is! Map ||
-        group['type']?.toString() != 'fallback' ||
-        group['name']?.toString() != 'Fallback') {
-      continue;
-    }
+    if (group is! Map) continue;
+    final isMainSelector =
+        group['name']?.toString() == videoCallTunnelGroupName &&
+        const {'select', 'selector'}.contains(group['type']?.toString());
+    if (!isMainSelector && group['proxies'] == null) continue;
     final groupProxies = List<dynamic>.from(
       group['proxies'] as List? ?? const [],
     );
     groupProxies.removeWhere((item) => item == videoCallTunnelProxyName);
+    // First, ahead of the group's providers as well: the core puts a group's
+    // own `proxies` before its `use`, and falls back to the first entry when
+    // the held selection cannot be found.
+    if (isMainSelector) groupProxies.insert(0, videoCallTunnelProxyName);
     group['proxies'] = groupProxies;
-    final groupProviders = List<dynamic>.from(
-      group['use'] as List? ?? const [],
-    );
-    groupProviders.removeWhere((item) => item == videoCallTunnelProviderName);
-    groupProviders.add(videoCallTunnelProviderName);
-    group['use'] = groupProviders;
-    group.putIfAbsent('url', () => videoCallTunnelHealthCheckUrl);
-    group.putIfAbsent('interval', () => videoCallTunnelHealthCheckInterval);
   }
   config['proxy-groups'] = groups;
 

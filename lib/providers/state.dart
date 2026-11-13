@@ -428,12 +428,19 @@ int? delay(Ref ref, {required String proxyName, String? testUrl}) {
   );
 }
 
+/// What is selected, as the core has it: the profile's picks, with PROXY held
+/// on the emergency tunnel while the loaded config has the tunnel in it.
 @riverpod
 Map<String, String> selectedMap(Ref ref) {
   final selectedMap = ref.watch(
     currentProfileProvider.select((state) => state?.selectedMap ?? {}),
   );
-  return selectedMap;
+  final tunnelEnabled = ref.watch(
+    videoCallTunnelSettingProvider.select((state) => state.enable),
+  );
+  if (!tunnelEnabled) return selectedMap;
+  final held = ref.watch(groupsProvider.select(videoCallTunnelHoldsGroup));
+  return held ? holdVideoCallTunnelSelection(selectedMap) : selectedMap;
 }
 
 @riverpod
@@ -597,11 +604,11 @@ VM3<bool, int, ProxiesSortType> needUpdateGroups(Ref ref) {
 @riverpod
 SharedState sharedState(Ref ref) {
   ref.watch((appSettingProvider).select((state) => state.locale));
-  final currentProfileVM2 = ref.watch(
-    currentProfileProvider.select(
-      (state) => VM2(state?.label ?? '', state?.selectedMap ?? {}),
-    ),
+  final currentProfileName = ref.watch(
+    currentProfileProvider.select((state) => state?.label ?? ''),
   );
+  // The service may set the core up on its own, so it gets the held PROXY too.
+  final selectedMap = ref.watch(selectedMapProvider);
   final appSettingVM3 = ref.watch(
     appSettingProvider.select(
       (state) =>
@@ -617,8 +624,6 @@ SharedState sharedState(Ref ref) {
     ),
   );
   final vpnSetting = ref.watch(vpnSettingProvider);
-  final currentProfileName = currentProfileVM2.a;
-  final selectedMap = currentProfileVM2.b;
   final onlyStatisticsProxy = appSettingVM3.a;
   final crashlytics = appSettingVM3.b;
   final testUrl = appSettingVM3.c;

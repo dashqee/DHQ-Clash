@@ -782,7 +782,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "通话期间必须一直运行你自己的 creator。普通 VK 通话链接无法使用。",
     ),
     "turnTunnelDesc": MessageLookupByLibrary.simpleMessage(
-      "当直连 VLESS 服务器不可用时，使用 VK 视频通话作为本地 SOCKS5 备用通道。",
+      "将 PROXY 组经由 VK 视频通话（本地 SOCKS5 通道）转发，用于直连 VLESS 服务器不可用时。",
     ),
     "turnTunnelDisabled": MessageLookupByLibrary.simpleMessage("已禁用"),
     "turnTunnelEnable": MessageLookupByLibrary.simpleMessage("启用应急隧道"),
@@ -806,6 +806,9 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "turnTunnelPinnedModeLocked": MessageLookupByLibrary.simpleMessage(
       "全部流量走应急隧道期间，模式固定为「规则」。",
+    ),
+    "turnTunnelProxyLocked": MessageLookupByLibrary.simpleMessage(
+      "应急隧道开启期间，PROXY 固定为 DHQ TURN。关闭隧道后可选择其他服务器。",
     ),
     "turnTunnelReconnecting": MessageLookupByLibrary.simpleMessage("正在重新连接"),
     "turnTunnelRetry": MessageLookupByLibrary.simpleMessage("重试"),
